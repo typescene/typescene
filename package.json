@@ -1,6 +1,6 @@
 {
   "name": "typescene",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Strongly typed front end library for use with Typescript",
   "main": "index.js",
   "typings": "index.d.ts",
