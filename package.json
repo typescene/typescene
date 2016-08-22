@@ -3,9 +3,9 @@
   "version": "0.1.1",
   "description": "Strongly typed front end library for use with Typescript",
   "main": "index.js",
-  "typings": "./typings/index.d.ts",
+  "typings": "index.d.ts",
   "scripts": {
-    "build": "webpack && tsc -p src -d --outDir typings && node scripts/postbuild"
+    "build": "tsc index.ts -d"
   },
   "repository": {
     "type": "git",
@@ -17,12 +17,8 @@
     "url": "https://github.com/typescene/typescene/issues"
   },
   "homepage": "https://github.com/typescene/typescene#readme",
-  "devDependencies": {
-    "ts-loader": "^0.8.2",
-    "typescript": "^1.8.10",
-    "webpack": "^1.13.2"
-  },
   "dependencies": {
-    "typescene-async": "^1.0.0"
+    "typescene-async": "^1.0.0",
+    "typescene-ui": "^0.1.0"
   }
 }
