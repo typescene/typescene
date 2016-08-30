@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/typescene/typescene#readme",
   "dependencies": {
-    "typescene-async": "^1.0.0",
-    "typescene-ui": "^0.1.0"
+    "typescene-async": "1",
+    "typescene-ui": "0"
   }
 }
