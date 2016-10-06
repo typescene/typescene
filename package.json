@@ -5,7 +5,7 @@
   "main": "index.js",
   "typings": "index.d.ts",
   "scripts": {
-    "build": "tsc index.ts -d"
+    "build": "webpack -p index.js typescene.min.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +19,9 @@
   "homepage": "https://github.com/typescene/typescene#readme",
   "dependencies": {
     "typescene-async": "1",
-    "typescene-ui": "0"
+    "typescene-ui": "0.4.0"
+  },
+  "devDependencies": {
+    "webpack": "^1.13.2"
   }
 }

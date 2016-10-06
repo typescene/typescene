@@ -1,17 +1,27 @@
 "use strict";
-// == import typescene-async library
-var _Async = require("typescene-async");
-/** Library for asynchronous programming */
-exports.Async = _Async;
-/** Shortcut to @Async.observable decorator */
-exports.observable = _Async.observable;
-/** Shortcut to Async.observe function to quickly create an ObservableValue
-  * from a getter function or Async.Promise instance, or an ObservableObject
-  * from any other object */
-exports.observe = _Async.observe;
-// == import typescene-ui library
-var _UI = require("typescene-ui");
-/** Library for strongly typed web UIs */
-exports.UI = _UI;
+
+// export typescene-async library
+var Async = require("typescene-async");
+exports.Async = Async;
+exports.observable = Async.observable;
+exports.observe = Async.observe;
+
+// export typescene-ui library
+var UI = require("typescene-ui");
+exports.UI = UI;
+
+// TypeScript-compatible default export
+var _default = {
+  Async: Async,
+  UI: UI,
+  observe: Async.observe
+};
 exports.__esModule = true;
-exports["default"] = { Async: _Async, UI: _UI };
+exports["default"] = _default;
+
+// expose UI and Async separately on window, too
+if (typeof window === "object") {
+  window["Async"] = Async;
+  window["UI"] = UI;
+  window["typescene"] = _default;
+}
