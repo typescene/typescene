@@ -19,7 +19,7 @@
   "homepage": "https://github.com/typescene/typescene#readme",
   "dependencies": {
     "typescene-async": "1",
-    "typescene-ui": "0.4.1"
+    "typescene-ui": "0.4.2"
   },
   "devDependencies": {
     "webpack": "^1.13.2"
