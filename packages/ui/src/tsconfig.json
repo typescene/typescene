@@ -1,0 +1,17 @@
+{
+    "files": [ "index.ts" ],
+    "compilerOptions": {
+        "outDir": "../dist",
+        "target": "es5",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "pretty": true,
+        "declaration": true,
+        "declarationDir": "../typings",
+        "stripInternal": true,
+        "experimentalDecorators": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "strictNullChecks": true
+    }
+}

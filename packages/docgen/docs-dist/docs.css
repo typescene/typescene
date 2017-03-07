@@ -1,0 +1,134 @@
+html {
+    font-size: 16px;
+}
+body {
+    font-family: "Open Sans", sans-serif;
+    background: #ffe;
+    height: 100vh;
+}
+code {
+    background: rgba(255,255,255,.75);
+}
+pre {
+    padding: .5rem;
+    border: 0;
+    margin: 1rem 0;
+    background: #222;
+    color: #eee;
+    border-radius: 3px;
+}
+a, a:visited {
+    color: #38e;
+}
+a:active {
+    color: #26d;
+}
+.btn {
+    border-radius: 0;
+}
+.btn.btn-primary {
+    background: #38e;
+    color: #fff;
+}
+blockquote {
+    font-size: inherit;
+    border-color: #e80;
+}
+
+h1 {
+    font-size: 3.8rem;
+    font-weight: 600;
+    letter-spacing: -2px;
+}
+h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -1px;
+}
+h3 {
+    font-size: inherit;
+    font-weight: bold;
+    font-style: normal;
+    padding: 0;
+    margin: 1.75rem 0 .75rem;
+    padding-top: .25rem !important;
+}
+h4 {
+    font-size: inherit;
+    font-style: italic;
+    padding: 0;
+    margin: 1.75rem 0 .75rem;
+}
+h5 {
+    font-size: .75rem;
+    font-style: normal;
+    text-transform: uppercase;
+    font-weight: 800;
+    margin: 1.5rem 0 .5rem;
+}
+p, li {
+    line-height: 1.5em;
+}
+li {
+    margin: .25rem 0;
+}
+
+.doc-text-type-note {
+    background: #eed;
+    border: 1px solid rgba(0,0,0,.2);
+    padding: .5rem 1rem;
+    margin: 1.5rem 0;
+}
+
+.doc-text-type-note > :first-child {
+    margin-top: .5rem;
+}
+
+.doc-text-type-example {
+    background: #cdd;
+    border: 1px solid rgba(0,0,0,.2);
+    padding: .5rem 1rem;
+    margin: 1.5rem 0;
+}
+
+.doc-text-type-example > h5 {
+    background: #8aa;
+    color: #fff;
+    padding: .75rem 1rem;
+    margin: -.5rem -1rem 1rem -1rem;
+}
+
+.doc-text-type-example > h5:last-child {
+    margin-bottom: -.5rem;
+}
+
+.doc-text-type-example > pre {
+    margin-left: -.65rem;
+    margin-right: -.65rem;
+}
+
+.doc-text-type-example > h5 + pre {
+    margin: -1rem -1rem 1rem;
+    border-radius: 0;
+    padding-left: .75rem;
+}
+
+.doc-text-example-output {
+    display: block !important;
+    overflow: auto !important;
+    width: auto !important;
+    margin: 0 -1rem -.5rem !important;
+    background: #fff;
+    border-top: 1px solid #ccc;
+}
+
+.doc-text-type-example > h5 + pre + .doc-text-example-output {
+    margin-top: -1rem !important;
+}
+
+.doc-text-example-byline, .doc-text-example-byline button {
+    font-size: .65rem;
+    text-transform: uppercase !important;
+    font-weight: bold;
+    border-bottom: 1px dotted #ccc;
+}

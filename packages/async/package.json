@@ -1,0 +1,23 @@
+{
+  "name": "@typescene/async",
+  "version": "0.9.0",
+  "description": "Library for strongly typed asynchronous programming",
+  "author": "Jelmer Cormont",
+  "repository": "https://github.com/typescene/typescene/tree/master/packages/async",
+  "homepage": "http://typescene.org/",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist-module/index.js",
+  "typings": "./typings/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist dist-module typings",
+    "build": "npm run build-src && npm run build-src-module",
+    "build-src": "tsc -p src",
+    "build-src-module": "tsc -p src --module es6 --outDir dist-module",
+    "prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "promises-aplus-tests": "^2.1.2",
+    "rimraf": "^2.5.4"
+  }
+}

@@ -1,0 +1,17 @@
+{
+    "files": [
+        "main.ts"
+    ],
+    "compilerOptions": {
+        "outDir": "../temp",
+        "target": "es5",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "pretty": true,
+        "stripInternal": true,
+        "experimentalDecorators": true,
+        "noImplicitThis": true,
+        "noImplicitReturns": true,
+        "strictNullChecks": true
+    }
+}

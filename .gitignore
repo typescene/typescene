@@ -1,2 +1,9 @@
+dist/
+dist-module/
+typings/
+*.log
 npm-debug.log*
-node_modules
+node_modules/
+/packages/docgen/docs-dist/monaco-editor
+/packages/docgen/docs-dist/*.min.js
+/packages/docgen/docs-dist/*.min.css

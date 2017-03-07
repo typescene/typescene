@@ -1,12 +1,8 @@
 {
-  "name": "typescene",
-  "version": "1.1.1",
-  "description": "Strongly typed front end library for use with TypeScript",
-  "main": "index.js",
-  "typings": "index.d.ts",
-  "scripts": {
-    "build": "webpack -p index.js typescene.min.js"
-  },
+  "name": "@typescene/*",
+  "private": true,
+  "description": "Strongly typed GUI toolkit for Web applications",
+  "version": "0.9.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/typescene/typescene.git"
@@ -17,12 +13,15 @@
     "url": "https://github.com/typescene/typescene/issues"
   },
   "homepage": "https://github.com/typescene/typescene#readme",
-  "dependencies": {
-    "typescene-async": "1",
-    "typescene-ui": "0",
-    "typescene-app": "0.1.1"
+  "scripts": {
+    "postinstall": "lerna bootstrap",
+    "bootstrap": "lerna bootstrap",
+    "clean": "lerna run clean && lerna clean --yes",
+    "build": "lerna run build && lerna run build-min && npm run update-docs",
+    "update-docs": "lerna run build-doc-viewer && node ./scripts/update-docs.js"
   },
   "devDependencies": {
-    "webpack": "^1.13.2"
+    "lerna": "2.0.0-beta.37",
+    "typescript": "^2.0.0"
   }
 }
