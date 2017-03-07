@@ -1,7 +1,7 @@
 {
   "name": "@typescene/ui",
   "version": "0.9.0",
-  "description": "Strongly typed GUI toolkit for Web applications",
+  "description": "Strongly typed GUI toolkit for Web applications - UI module",
   "author": "Jelmer Cormont",
   "repository": "https://github.com/typescene/typescene/tree/master/packages/ui",
   "homepage": "http://typescene.org/",
@@ -17,7 +17,9 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@typescene/async": "^0.9.0",
+    "@typescene/async": "^0.9.0"
+  },
+  "devDependencies": {
     "rimraf": "^2.5.4"
   }
 }

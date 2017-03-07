@@ -11,7 +11,8 @@
   "typings": "index.d.ts",
   "scripts": {
     "clean": "rimraf typescene.min.js",
-    "build-min": "webpack -p index.js typescene.min.js"
+    "build-min": "webpack -p index.js typescene.min.js",
+    "prepublish": "npm run build-min"
   },
   "dependencies": {
     "@typescene/async": "^0.9.0",
