@@ -23,7 +23,7 @@ function makeMethodHandler(method: string, target?: {}) {
         var f = target[method];
         if (typeof f !== "function")
             throw new TypeError("Target does not contain method: " + method);
-        f.call(target, arguments);
+        f.apply(target, arguments);
     }
 }
 
