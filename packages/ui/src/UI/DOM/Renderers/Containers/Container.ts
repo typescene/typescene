@@ -2,7 +2,7 @@ import * as Async from "@typescene/async";
 import { DOM } from "../../DOM";
 import { DOMUpdater } from "../../DOMUpdater";
 import { Style } from "../../../Style";
-import { Container } from "../../../Components/Containers/Container";
+import { Container, FlowContainer } from "../../../Components/Containers/Container";
 import { ComponentRenderer, mapComponentRenderer } from "../../../Components/ComponentRenderer";
 
 /** Base class name used for CSS style sheet */
@@ -127,6 +127,8 @@ Async.inject(Container, {
 
 // Add style override and apply style sheet
 Container.addStyleOverride(Style.withClass(CSS_CLASS));
+FlowContainer.addStyleOverride(Style.withClass(
+    CSS_CLASS + " " + CSS_CLASS + "-Flow"));
 DOM.CSS.define(CSS_CLASS, {
     ".~~": {
         cursor: "default",
@@ -153,5 +155,9 @@ DOM.CSS.define(CSS_CLASS, {
     ".~_layoutcell": {
         display: "table-cell",
         height: "100%"
+    },
+    ".~-Flow > .~_main > .~_layoutcell > .UI-Block": {
+        display: "inline-block",
+        verticalAlign: "top"
     }
 });
