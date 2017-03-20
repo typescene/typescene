@@ -3,7 +3,7 @@
   "private": true,
   "author": "Jelmer Cormont",
   "license": "MIT",
-  "version": "0.9.1",
+  "version": "0.9.3",
   "description": "Documentation generator used by Typescene modules",
   "homepage": "http://typescene.org/",
   "main": "index.js",

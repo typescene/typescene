@@ -1,6 +1,6 @@
 {
   "name": "@typescene/app",
-  "version": "0.9.1",
+  "version": "0.9.3",
   "description": "Strongly typed GUI toolkit for Web applications",
   "author": "Jelmer Cormont",
   "repository": "https://github.com/typescene/typescene/tree/master/packages/app",

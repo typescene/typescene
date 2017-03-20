@@ -1,6 +1,6 @@
 {
   "name": "@typescene/async",
-  "version": "0.9.1",
+  "version": "0.9.3",
   "description": "Library for strongly typed asynchronous programming",
   "author": "Jelmer Cormont",
   "repository": "https://github.com/typescene/typescene/tree/master/packages/async",
