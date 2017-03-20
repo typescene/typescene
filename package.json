@@ -12,7 +12,7 @@
   "bugs": {
     "url": "https://github.com/typescene/typescene/issues"
   },
-  "homepage": "https://github.com/typescene/typescene#readme",
+  "homepage": "http://typescene.org/",
   "scripts": {
     "postinstall": "lerna bootstrap",
     "bootstrap": "lerna bootstrap",

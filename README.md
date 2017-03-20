@@ -3,7 +3,7 @@ Typescene is a strongly typed GUI toolkit for Web applications written in TypeSc
 
 Learn more about Typescene at [typescene.org](http://typescene.org), and follow [@typescene](https://twitter.com/typescene) on twitter.
 
-The docs are hosted on [typescene.github.io/typescene](https://typescene.github.io/typescene).
+The docs can be found at [docs.typescene.org](http://docs.typescene.org/).
 
 ## Installation
 

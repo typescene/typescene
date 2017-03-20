@@ -3,7 +3,7 @@ Typescene is a strongly typed GUI toolkit for Web applications written in TypeSc
 
 Learn more about Typescene at [typescene.org](http://typescene.org), and follow [@typescene](https://twitter.com/typescene) on twitter.
 
-The docs are hosted on [typescene.github.io/typescene](https://typescene.github.io/typescene).
+The docs can be found at [docs.typescene.org](http://docs.typescene.org/).
 
 
 ## Philosophy
@@ -20,7 +20,7 @@ _These are the primary goals for this project:_
 
 The result is a toolkit that encourages developers to write readable, coherent code in a single code base, while still taking advantage of the benefits that the modern browser JS environment offers.
 
-Don&rsquo;t believe that this is possible? See how easy it is to get started with the examples in the [Async](http://typescene.github.io/typescene/async/#/samples) module documentation, then move on to [UI components](http://typescene.github.io/typescene/ui/#/overview/getting-started), and finally refer to best practices for putting everything together in a full [application](http://typescene.github.io/typescene/app).
+Don&rsquo;t believe that this is possible? See how easy it is to get started with the examples in the [Async](/async/#/samples) module documentation, then move on to [UI components](/ui/#/overview/getting-started), and finally refer to best practices for putting everything together in a full [application](/app).
 
 
 ## Installation
