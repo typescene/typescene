@@ -46,7 +46,7 @@ export abstract class Drag {
     /** Signal emitted when the drag operation is canceled */
     public readonly Canceled: Async.Signal.Emittable<Drag, typeof DragEndSignal> = Async.defineSignal(DragEndSignal);
 
-    /** Constrain effective drag coordinates on (original) X and/or Y axis, and/or contrain to stay within given component on screen (calling this method twice does not constrain further, but the constraints are replaced) */
+    /** Constrain effective drag coordinates on (original) X and/or Y axis of the viewport, and/or contrain to stay within given component on screen (calling this method twice does not constrain further, but the constraints are replaced) */
     public abstract constrain(constrainX?: boolean, constrainY?: boolean, component?: Component): void;
 
     /** Make given component follow the mouse cursor while dragging */

@@ -47,8 +47,11 @@ export class Renderer<T extends DialogContainer> extends ContainerRenderer<T> {
             let out = headerRow.out;
             let className = CSS_CLASS + "_header";
             if (out && (!out.wrapper ||
-                out.wrapper.className !== className))
-                out.wrapper = DOM.div(className, out.element);
+                out.wrapper.className !== className)) {
+                var w = out.wrapper = DOM.div(className, out.element);
+                w.onselectstart = e => e.preventDefault();
+                w.onmousedown = e => component.header && component.header.Pressed(e);
+            }
             content.push(out);
         }
 

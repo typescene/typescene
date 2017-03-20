@@ -1043,7 +1043,7 @@ export abstract class Component extends Async.ObservableObject {
     addShadowEffectOnFocus(d: number): void;
     /** Set to true to hide this component (observable, directly modifies hidden state of `.style` and plays show/hide animations) */
     hidden: boolean;
-    _hidden: boolean;
+    private _hidden;
     /** Set to true to display this component in a selected state (observable, directly modifies selected state of `.style` and plays select/deselect animations) */
     selected: boolean;
     private _selected;
@@ -1534,7 +1534,6 @@ import { ComponentFactory } from "@typescene/ui/UI/Components/ComponentFactory";
 import { TextLabelFactory } from "@typescene/ui/UI/Components/TextLabelFactory";
 /** Represents a toast message that is displayed in the corner of the page */
 export class Toast extends Row {
-    timeout: number;
     /** Close all toasts currently displayed on the page */
     static closeAll(): void;
     /** Global positioning setting (do not change after first display) */
@@ -1553,8 +1552,10 @@ export class Toast extends Row {
     static APPEAR_ANIMATION?: Animation;
     /** Default "disappear" animation, added to every new `Toast` instance by the constructor */
     static DISAPPEAR_ANIMATION?: Animation;
-    /** Create a toast message with given content, and optional timeout in ms (default 4000) */
+    /** Create a toast message with given content, and optional timeout in ms */
     constructor(content: string | TextLabelFactory | ComponentFactory.SpecElt[], timeout?: number);
+    /** Time (in ms) after which this toast will be removed from the page automatically */
+    timeout: number;
     /** Display this toast message on the page */
     display(): this | undefined;
     /** Remove this toast from the page */
@@ -2560,7 +2561,7 @@ import { ControlElement } from "@typescene/ui/UI/Components/Controls/ControlElem
 export class Spacer extends ControlElement {
     /** Create a spacer element with given height (default 1px) */
     constructor(height?: string);
-    /** Initialize a spacer control factory with given size (CSS lengths) */
+    /** Initialize a spacer control factory with given size (CSS lengths); also sets `.shrinkwrap` to true if a width is given */
     static withSize<T extends Spacer>(this: {
         new (): T;
         with: typeof Spacer.with;
@@ -3060,7 +3061,7 @@ export abstract class Drag {
     readonly Dropped: Async.Signal.Emittable<Drag, typeof DragEndSignal>;
     /** Signal emitted when the drag operation is canceled */
     readonly Canceled: Async.Signal.Emittable<Drag, typeof DragEndSignal>;
-    /** Constrain effective drag coordinates on (original) X and/or Y axis, and/or contrain to stay within given component on screen (calling this method twice does not constrain further, but the constraints are replaced) */
+    /** Constrain effective drag coordinates on (original) X and/or Y axis of the viewport, and/or contrain to stay within given component on screen (calling this method twice does not constrain further, but the constraints are replaced) */
     abstract constrain(constrainX?: boolean, constrainY?: boolean, component?: Component): void;
     /** Make given component follow the mouse cursor while dragging */
     abstract pickUp(component: Component, removeWhenDone?: boolean): void;
@@ -3331,8 +3332,6 @@ export class Activity extends Async.ObservableObject {
     constructor(title?: string);
     /** Display title of this activity (observable) */
     title: string | undefined;
-    /** Object that represents the internal state of the activity; this is a sealed observable object, never null or undefined, and setting this to a plain object ({...}) will create an ObservableObject instance (in practice, initialize all properties as activity.state = { x: ... } first to make properties observable); it is recommended to keep properties on the state object instead of on the Activity instance itself, and provide public access through the derived Activity's methods (e.g. to view instances) */
-    protected state: {};
     /** Object that contains options for this activity (observable, not null or undefined) */
     options: Activity.ActivityOptions;
     /** Signal that is emitted before this activity is pushed to foreground, if any handler throws an error then the activity is not activated */

@@ -31,7 +31,7 @@ console.log("Wait for it...");
 <!-- id: samples/signals -->
 <!-- sort: 02 -->
 
-Signals are like events, but with a single strongly typed payload.
+Signals are like event emitters, but they limit their events to a very specific type.
 
 Creating a signal and subscribing to it:
 
@@ -121,6 +121,34 @@ p2.then(v => { /* ... */ });
 
 // ... or even:
 Async.sleep(1000, "abc").then(v => { /* ... */ });
+```
+
+## Async/await
+
+Using TypeScript's `async/await` features, we can use `async` functions even in code that will be transpiled to ES5 code (i.e. for most browsers in use today, including Internet Explorer 9).
+
+Async functions are transformed to series of `Promise.then` callbacks internally, but allow you to write code as if it is not asynchronous at all. Simply use the `await` keyword in front of an expression that returns a Promise, to wait for the promise to be resolved. An async function itself also returns a Promise, instead of the return value itself, which allows you to `await` your own async functions as well.
+
+As a convention, async function names should end with "Async", e.g. `getProductsAsync(...)`.
+
+TypeScript expects the return value of an async function to be created using a global `Promise` class. When transpiling to an ES5 target, the `Promise` class may not always be provided by the user's browser, and we can use Typescene's Promise class. This can be specified by explicitly setting the return type of the function to `Async.Promise<...>`. This is not possible when transpiling to an ES6 target, but should not be necessary anyway since the global `Promise` object provides the same API as Typescene's implementation.
+
+## Example: async functions (ES5)
+<!-- type: example -->
+
+```typescript
+async function helloAsync(): Async.Promise<string> {
+    await Async.sleep(1000);
+    return "Yawn... Hello, world!";
+}
+
+async function fancy(): Async.Promise<void> {
+    var msg = await helloAsync();
+    console.log(msg);
+}
+
+console.log("Wait for it...");
+fancy();
 ```
 
 # Observables

@@ -1,5 +1,9 @@
 # Typescene
-Strongly typed front-end toolkit for modern Web applications built with TypeScript. Read more about Typescene on the project's [website](http://typescene.org).
+Typescene is a strongly typed GUI toolkit for Web applications written in TypeScript.
+
+Learn more about Typescene at [typescene.org](http://typescene.org), and follow [@typescene](https://twitter.com/typescene) on twitter.
+
+The docs are hosted on [typescene.github.io/typescene](https://typescene.github.io/typescene).
 
 
 ## Philosophy
@@ -16,7 +20,7 @@ _These are the primary goals for this project:_
 
 The result is a toolkit that encourages developers to write readable, coherent code in a single code base, while still taking advantage of the benefits that the modern browser JS environment offers.
 
-Don&rsquo;t believe it&rsquo;s possible? See how easy it is to get started with the examples in the [Async](http://typescene.github.io/typescene/async/#/samples) module documentation, then move on to [UI components](http://typescene.github.io/typescene/ui/#/overview/getting-started), and finally refer to best practices for putting everything together in a full [application](http://typescene.github.io/typescene/app).
+Don&rsquo;t believe that this is possible? See how easy it is to get started with the examples in the [Async](http://typescene.github.io/typescene/async/#/samples) module documentation, then move on to [UI components](http://typescene.github.io/typescene/ui/#/overview/getting-started), and finally refer to best practices for putting everything together in a full [application](http://typescene.github.io/typescene/app).
 
 
 ## Installation
@@ -47,8 +51,7 @@ Alternatively, you can use the `.min.js` file from the Node.js module root folde
 
 ## Issues & Contributions
 
-Please report all issues on the GitHub issues page.
-Make sure to include the name of the affected module and method(s), and add a TypeScript code sample if possible.
+Please report all issues on the GitHub issues page. Make sure to include the name of the affected module and method(s), and add a TypeScript code sample if possible.
 
 Pull requests are welcome. Especially if they are related to one of the following focus areas:
 

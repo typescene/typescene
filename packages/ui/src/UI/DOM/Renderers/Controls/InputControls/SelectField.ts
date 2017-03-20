@@ -96,7 +96,7 @@ DOM.CSS.define("UI-Control " + CSS_CLASS, {
     ".~~ > label": {
         font: "inherit"
     },
-    ".~~ > input": {
+    ".~~ > select": {
         boxSizing: "border-box",
         width: "100%"
     }

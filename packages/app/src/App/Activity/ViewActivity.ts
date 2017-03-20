@@ -65,9 +65,10 @@ export class ViewActivity extends ResourceActivity {
                 getter.call(undefined, child || this) || undefined;
 
             // if not non-modal container or page, go after parent first
-            if ((!(view instanceof Container) ||
-                !view.displayOptions || !view.displayOptions.modal) &&
-                !(view instanceof Page)) {
+            if (!view ||
+                !(view instanceof Page) &&
+                !((view instanceof Container) &&
+                view.displayOptions && view.displayOptions.modal)) {
                 // check parent activity/view (class or instance)
                 if (this.options.parentActivity) {
                     var parent =

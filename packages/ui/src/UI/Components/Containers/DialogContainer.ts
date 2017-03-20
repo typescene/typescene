@@ -77,9 +77,8 @@ export class DialogContainer extends Container {
 
         // listen to mouse down and start drag, then pick up container
         if (handle) {
-            this._dragHandleConnection = handle.Press.connect(event => {
-                Drag.start(event).moved
-                    .then(drag => { drag.pickUp(this) });
+            this._dragHandleConnection = handle.Pressed.connect(event => {
+                if (!event.button) Drag.start(event).pickUp(this);
             });
         }
     }

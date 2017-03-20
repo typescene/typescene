@@ -15,8 +15,8 @@ class DOMDrag extends Drag {
     /** Initialize the operation and start tracking mouse movement, sends drag start event to given target DOM element; starts sending drag enter and drag leave events as well */
     constructor(event: MouseEvent | PointerEvent /* TODO: | TouchEvent */) {
         super();
-        this._curX.value = this._origX = event.screenX;
-        this._curY.value = this._origY = event.screenY;
+        this._curX.value = this._origX = event.clientX;
+        this._curY.value = this._origY = event.clientY;
         var target = event.currentTarget;
         if (!target) throw new TypeError();
 
@@ -47,13 +47,13 @@ class DOMDrag extends Drag {
     /** Resolves to true when the observed coordinates actually change by a reasonable amount (to distinguish from a click), useful e.g. for calling `.pickUp(...)` only when resolved */
     public readonly moved: PromiseLike<DOMDrag>;
 
-    /** Current screen X coordinate (read-only observable, constrained) */
+    /** Current viewport X coordinate (read-only observable, constrained) */
     public get x() { return this._curX.value! }
 
-    /** Current screen Y coordinate (read-only observable, constrained) */
+    /** Current viewport Y coordinate (read-only observable, constrained) */
     public get y() { return this._curY.value! }
 
-    /** Constrain effective drag coordinates on (original) X and/or Y axis, and/or contrain to stay within given element on screen (calling this method twice does not constrain further, but the constraints are replaced) */
+    /** Constrain effective drag coordinates on (original) X and/or Y axis of the viewport, and/or contrain to stay within given element on screen (calling this method twice does not constrain further, but the constraints are replaced) */
     public constrain(constrainX?: boolean, constrainY?: boolean, component?: Component) {
         // find the element to constrain to
         var baseElt: HTMLElement = <any>this._currentTarget || <any>this._origTarget;

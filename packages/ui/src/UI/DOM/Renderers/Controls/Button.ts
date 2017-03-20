@@ -123,7 +123,8 @@ DOM.CSS.define("UI-Control " + CSS_CLASS, {
         marginBottom: "-.25rem"
     },
     ".~~ > button": {
-        width: "100%"
+        width: "100%",
+        whiteSpace: "pre"
     },
     ".~~.UI-TextButton > button": {
         border: "0",

@@ -264,11 +264,19 @@ document.addEventListener("blur", event => {
 
 // listen to click/dblclick/press and dispatch asynchronous events
 function addAsyncEvent(origEvent: string, asyncEvent: string) {
-    document.addEventListener(origEvent, event => {
+    document.addEventListener(origEvent, (event: Event & PointerEvent) => {
         var target = event.target;
         setTimeout(() => {
-            target.dispatchEvent(new CustomEvent(asyncEvent,
-                { bubbles: true, cancelable: true }));
+            var toDispatch = new CustomEvent(asyncEvent,
+                { bubbles: true, cancelable: true });
+            (<PointerEvent>toDispatch).button = event.button;
+            (<PointerEvent>toDispatch).clientX = event.clientX;
+            (<PointerEvent>toDispatch).clientY = event.clientY;
+            (<PointerEvent>toDispatch).altKey = event.altKey;
+            (<PointerEvent>toDispatch).ctrlKey = event.ctrlKey;
+            (<PointerEvent>toDispatch).metaKey = event.metaKey;
+            (<PointerEvent>toDispatch).shiftKey = event.shiftKey;
+            target.dispatchEvent(toDispatch);
         }, 0);
     }, true);
 }

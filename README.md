@@ -1,13 +1,15 @@
 # Typescene
 Typescene is a strongly typed GUI toolkit for Web applications written in TypeScript.
 
-## Documentation
+Learn more about Typescene at [typescene.org](http://typescene.org), and follow [@typescene](https://twitter.com/typescene) on twitter.
 
-The documentation for Typescene is available over at [`typescene.github.io/typescene`](https://typescene.github.io/typescene).
+The docs are hosted on [typescene.github.io/typescene](https://typescene.github.io/typescene).
 
 ## Installation
 
-The Typescene toolkit is available from NPM, at [@typescene/typescene](https://www.npmjs.com/package/@typescene/typescene).
+To begin using Typescene in your projects, you will need Node.js and npm. The use of TypeScript is optional, but highly recommended.
+
+The Typescene toolkit is available from npm: [@typescene/typescene](https://www.npmjs.com/package/@typescene/typescene).
 
 Example commands to set up a new project with TypeScript and Webpack:
 
@@ -18,11 +20,15 @@ Example commands to set up a new project with TypeScript and Webpack:
 > npm install --save-dev typescript webpack ts-loader @typescene/typescene
 ```
 
-Import the toolkit in your TypeScript or ES6 / ES2015+ files as follows:
+Now, Webpack (with ts-loader) can be used to transpile a TypeScript source file, and generate output as a .js file that also includes Typescene sources.
+
+In your TypeScript file, you can import all Typescene modules by adding the following line:
 
 ```typescript
 import { Async, UI, App } from "@typescene/typescene";
 ```
+
+Alternatively, you can use the `.min.js` file from the Node.js module root folder directly in your HTML file, which adds the `Async`, `UI`, and `App` objects to the global namespace.
 
 ## Building from source
 

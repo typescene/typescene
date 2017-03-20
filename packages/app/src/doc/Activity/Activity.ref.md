@@ -25,32 +25,3 @@ class MyActivity extends UI.Activity {
 ## See Also
 
 To implement a home view activity, derive from [`RootViewActivity`](#RootViewActivity).
-
-
-# Activity/state
-
-## Example
-
-```typescript
-class MyActivity extends UI.RootViewActivity {
-    // state object is converted to observable object automatically
-    protected state = {
-        text: "Hello, world!"
-    };
-
-    // use methods to expose the current state (observable)
-    public getText() {
-        return this.state.text;
-    }
-
-    public exclaim() {
-        // either set state properties directly:
-        this.state.text += "!";
-
-        // ... or use a more functional pattern:
-        this.state = {
-            text: this.state.text + "!"
-        };
-    }
-}
-```

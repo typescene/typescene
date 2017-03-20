@@ -15,4 +15,4 @@ This namespace module exports the following classes and methods:
 * `Http.Requesting` and `Http.Responded` signals --- for intercepting requests and responses.
 * `Http.options` object --- contains options for default behavior of the `fetch` function.
 
-Refer to the [samples](#/http-samples) for common usage patterns.
+Refer to the [samples](#/samples/http) for common usage patterns.

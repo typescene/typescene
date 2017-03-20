@@ -568,7 +568,7 @@ export abstract class Component extends Async.ObservableObject {
         }
         this.hidden = yesno;
     }
-    public _hidden: boolean;
+    private _hidden: boolean;
 
     /** Set to true to display this component in a selected state (observable, directly modifies selected state of `.style` and plays select/deselect animations) */
     @Async.observable

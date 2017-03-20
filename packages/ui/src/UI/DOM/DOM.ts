@@ -367,11 +367,11 @@ export namespace DOM {
     /** Get boxShadow property for given shadow height (0-1) */
     function getBoxShadowText(d: number) {
         d = Math.min(1, Math.max(0, d));
-        return `0 0 ${d*2}rem ${d*-.25}rem rgba(0,0,0,${d*d*.1+d*.08}),` +
-            `0 ${d*.85}rem ${d*1}rem ${d*-.25}rem rgba(0,0,0,${d*.15+.1}),` +
-            `0 ${d*d*.5+d*.6}rem ${d*1}rem ${d*-1}rem rgba(0,0,0,.4),` +
-            `0 ${d*d*1.5}rem ${d*3}rem ${d*-1}rem rgba(0,0,0,.3),` +
-            `0 ${d*d*3}rem ${d*2.5}rem ${d*-2}rem rgba(0,0,0,.3)`;
+        return `0 0 ${d * 2}rem ${d * -.25}rem rgba(0,0,0,${d * d * .1 + d * .08}),` +
+            `0 ${d * .85}rem ${d * 1}rem ${d * -.25}rem rgba(0,0,0,${d * .15 + .1}),` +
+            `0 ${d * d * .5 + d * .6}rem ${d * 1}rem ${d * -1}rem rgba(0,0,0,.4),` +
+            `0 ${d * d * 1.5}rem ${d * 3}rem ${d * -1}rem rgba(0,0,0,.3),` +
+            `0 ${d * d * 3}rem ${d * 2.5}rem ${d * -2}rem rgba(0,0,0,.3)`;
     }
 
     /** Set the global root-em unit size in pixels or using a CSS value string */
@@ -420,9 +420,11 @@ export namespace DOM {
     declare class WeakMap<SourceT, TargetT>{ get; set; };
 
     // set CSS root-em size to 16px to override Bootstrap 3 if needed
-    applyStylesheet({
-        "html": { fontSize: "16px" },
-        "[hidden]": { display: "none !important" }
+    Screen.ready.then(() => {
+        applyStylesheet({
+            "html": { fontSize: "16px" },
+            "[hidden]": { display: "none !important" }
+        })
     });
 
     // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

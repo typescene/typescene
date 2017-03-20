@@ -304,10 +304,16 @@ function _transformFactorySpec(key: string, src: ComponentFactory.SpecEltOrList,
     // wrap if needed
     if (targetLevel === ComponentFactory.CLevel.ControlElement) {
         // wrap to class down to ControlElement
-        if (src instanceof Container)
-            return new ContainerControl(src);
-        if (src instanceof Block && !asTableCol)
-            return new BlockControl(src);
+        if (src instanceof Container) {
+            let control = new ContainerControl(src);
+            if (src.width !== "auto") control.shrinkwrap = true;
+            return control;
+        }
+        if (src instanceof Block && !asTableCol) {
+            let control = new BlockControl(src);
+            if (src.width !== "auto") control.shrinkwrap = true;
+            return control;
+        }
         return src;
     }
     else if (targetLevel === ComponentFactory.CLevel.Block) {

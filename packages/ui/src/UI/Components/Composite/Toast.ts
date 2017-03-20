@@ -44,10 +44,11 @@ export class Toast extends Row {
     /** Default "disappear" animation, added to every new `Toast` instance by the constructor */
     public static DISAPPEAR_ANIMATION?: Animation;
 
-    /** Create a toast message with given content, and optional timeout in ms (default 4000) */
+    /** Create a toast message with given content, and optional timeout in ms */
     constructor(content: string | TextLabelFactory | ComponentFactory.SpecElt[],
-        public timeout = Toast.TIMEOUT) {
+        timeout = Toast.TIMEOUT) {
         super();
+        this.timeout = timeout;
         this.initializeWith({
             content: (content instanceof Array) ? content :
                 (content instanceof TextLabelFactory) ? [content] :
@@ -73,6 +74,9 @@ export class Toast extends Row {
             this.style.override(this._override);
         });
     }
+
+    /** Time (in ms) after which this toast will be removed from the page automatically */
+    public timeout: number;
 
     /** Display this toast message on the page */
     public display() {

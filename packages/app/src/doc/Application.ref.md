@@ -35,14 +35,6 @@ class MyApplication extends UI.Application {
 new MyApplication();
 ```
 
-## Routing
-Routing among different activities of an application can be performed using a number of different methods.
-
-1. Using manual activity management (i.e. manually starting and dropping activities), e.g. directly from event handlers with [`startActivity`](#Application_startActivity) and [`dropActivity`](#Application_dropActivity), or other properties such as [`.activity`](#Button_activity) on Button instances.
-2. Using the `map*` methods on `Application`.
-3. Using decorators on activity classes &mdash; see [`@mapToPath`](#mapToPath) and [`@mapToResource`](#mapToResource).
-
-
 # Application/PageNotFound
 
 ## Example

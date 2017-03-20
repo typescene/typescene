@@ -19,10 +19,6 @@ export class Activity extends Async.ObservableObject {
     @Async.observable_string
     public title: string | undefined;
 
-    /** Object that represents the internal state of the activity; this is a sealed observable object, never null or undefined, and setting this to a plain object ({...}) will create an ObservableObject instance (in practice, initialize all properties as activity.state = { x: ... } first to make properties observable); it is recommended to keep properties on the state object instead of on the Activity instance itself, and provide public access through the derived Activity's methods (e.g. to view instances) */
-    @Async.observable_seal
-    protected state: {};
-
     /** Object that contains options for this activity (observable, not null or undefined) */
     @Async.observable_not_null
     public options: Activity.ActivityOptions = {};

@@ -9,12 +9,14 @@ export class Spacer extends ControlElement {
         this.height = height;
     }
 
-    /** Initialize a spacer control factory with given size (CSS lengths) */
+    /** Initialize a spacer control factory with given size (CSS lengths); also sets `.shrinkwrap` to true if a width is given */
     public static withSize<T extends Spacer>(
         this: { new (): T, with: typeof Spacer.with },
         width?: UIValueOrAsync<string>,
         height?: UIValueOrAsync<string>) {
-        return this.with({ width, height });
+        return this.with(width ?
+            { width, height, shrinkwrap: true } :
+            { height });
     }
 
     /** Initialize with given (observable) properties; returns this */
