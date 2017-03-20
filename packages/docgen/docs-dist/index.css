@@ -6,7 +6,7 @@ body {
     background: #fd3;
     width: 100%;
     height: 100%;
-    padding-top: 5rem;
+    padding-top: 3rem;
 }
 .container, .container-fluid {
     font-size: 1rem;
@@ -19,6 +19,9 @@ hr {
 }
 code {
     background: rgba(255,255,255,.75);
+}
+strong {
+    font-weight: 600;
 }
 pre {
     padding: .5rem;
@@ -34,7 +37,9 @@ a:active {
     color: #47a;
 }
 .btn {
+    font-size: 1rem;
     border-radius: 0;
+    padding: .5rem .75rem;
 }
 .btn.btn-primary {
     background: #47a;
@@ -42,13 +47,21 @@ a:active {
 }
 
 h1 {
-    margin-top: 3rem;
     font-size: 3.8rem;
     font-weight: 600;
     letter-spacing: -2px;
 }
+h1.display-heading {
+    margin-bottom: 2rem;
+}
+h1.display-heading > span {
+    background: #ff0;
+    padding: 2px 4px 4px;
+    border-bottom: 4px solid #444;
+}
 h2 {
     margin-top: 2rem;
+    margin-bottom: 1rem;
     font-size: 2rem;
     font-weight: 300;
     letter-spacing: -1px;
@@ -71,6 +84,24 @@ h4 {
     font-style: italic;
     padding: 0;
     margin: 1.75rem 0 .75rem;
+}
+
+p.heading-num-icons {
+    margin-bottom: -.5rem;
+    line-height: 2rem;
+}
+p.heading-num-icons > span {
+    display: inline-block;
+    text-align: center;
+    width: 2rem;
+    border-radius: 1rem;
+    background: #333;
+    color: #fd3;
+    font-weight: 600;
+    margin-right: .25rem;
+}
+p.heading-num-icons > i {
+    font-size: 20px;
 }
 
 .link-list-item {
@@ -97,6 +128,15 @@ h4 {
     color: inherit;
     text-decoration: none;
 }
+.ts-dark-navbar a.icon {
+    float: right;
+    color: #ccc;
+    margin-right: 0;
+    margin-left: .25rem;
+}
+.ts-dark-navbar a.icon > i {
+    vertical-align: middle;
+}
 .ts-dark-navbar a:hover {
     border-bottom: 2px solid #eee;
 }
@@ -110,8 +150,7 @@ body.page-about .ts-dark-navbar a.page-about { font-weight: 600; border-bottom: 
 article {
     background: #ffe;
     color: #333;
-    margin: 2rem 0;
-    padding-bottom: 1rem;
+    margin: 2rem 0 0;
 }
 article hr {
     border-color: #aaa;
@@ -124,6 +163,13 @@ article ul.text-bullets li {
     margin-bottom: .5rem;
 }
 
+.jumbotron {
+    background: transparent;
+}
+.jumbotron + article {
+    margin-top: 0;
+}
+
 @media screen and (min-width:1100px) {
     .container-fluid.modulesHorz {
         width: 60rem;
@@ -133,6 +179,18 @@ article ul.text-bullets li {
     font-size: .875rem;
 }
 
+@media screen and (min-width:992px) {
+    .right-column-extra-space {
+        margin-left: 1rem;
+    }
+}
+@media screen and (max-width:767px) {
+    .right-column-extra-space {
+        margin-top: 3rem;
+    }
+}
+
 footer.container {
-    padding-bottom: 1rem;
+    font-size: .875rem;
+    line-height: 4rem;
 }
