@@ -18,9 +18,8 @@
   },
   "devDependencies": {
     "@typescene/typescene": "^0.9.1",
+    "monaco-editor": "^0.8.1",
     "ts-loader": "^1.3.3",
-    "rollup-plugin-typescript2": "^0.1.2",
-    "rollup-plugin-node-resolve": "^2.0.0",
-    "monaco-editor": "^0.8.1"
+    "webpack": "^2.2.1"
   }
 }
