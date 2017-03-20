@@ -20,7 +20,7 @@ _These are the primary goals for this project:_
 
 The result is a toolkit that encourages developers to write readable, coherent code in a single code base, while still taking advantage of the benefits that the modern browser JS environment offers.
 
-Don&rsquo;t believe that this is possible? See how easy it is to get started with the examples in the [Async](/async/#/samples) module documentation, then move on to [UI components](/ui/#/overview/getting-started), and finally refer to best practices for putting everything together in a full [application](/app).
+Don&rsquo;t believe that this is possible? See how easy it is to get started with the examples in the [Async](http://docs.typescene.org/async/#/samples) module documentation, then move on to [UI components](http://docs.typescene.org/ui/#/overview/getting-started), and finally refer to best practices for putting everything together in a full [application](http://docs.typescene.org/app).
 
 
 ## Installation
