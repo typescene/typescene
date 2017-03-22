@@ -20,6 +20,17 @@
                 m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
         })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
         ga('create', 'UA-96048899-2', 'auto');
-        ga('send', 'pageview');
+        ga('send', 'pageview', {
+            'page': location.pathname + location.hash
+        });
+        App.Application.ready.then(function (app) {
+            app.activities.Transition.connect(function (t) {
+                if (t.to && t.to.resourcePath) {
+                    ga('send', 'pageview', {
+                        'page': location.pathname + t.to.resourcePath
+                    });
+                }
+            });
+        });
     }, 500);
 </script>
