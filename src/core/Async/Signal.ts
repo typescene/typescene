@@ -379,7 +379,7 @@ export namespace Signal {
     }
 }
 
-/** Signal that is triggered with exceptions that were unhandled during async execution; a custom handler may be added here, the default handler just writes a warning message to the console; to disable this behavior for specific errors, set error.message to a blank string */
+/** Signal that is emitted for all exceptions that were unhandled during async execution; a custom handler may be added here, the default handler just logs a warning message to the console; to disable this behavior for specific errors, set error.message to a blank string */
 export const UnhandledException = Signal.create<Error>();
 
 // hook up default behavior:

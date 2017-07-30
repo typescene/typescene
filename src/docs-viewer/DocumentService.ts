@@ -88,7 +88,8 @@ export class DocumentService extends App.Service {
         if (DocumentService._loadingP) return DocumentService._loadingP;
         var version = (<any>window).typescene.core.version;
         version = version.replace(/^(\d+\.\d+)\..*/, "$1");
-        return DocumentService._loadingP = App.Http.getAsync("http://localhost:8080/" + version + "/documentation.json")
+        return DocumentService._loadingP = App.Http.getAsync(
+            "/" + version + "/documentation.json")
             .then((json: any): true => {
                 this.fromJSON(json);
                 return true;

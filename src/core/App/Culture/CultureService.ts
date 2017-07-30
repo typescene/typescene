@@ -1,6 +1,4 @@
-import Async from "../../Async";
-import { Service, mapService, injectService } from "../Service";
-import { Screen, TextLabelFactory } from "../../UI";
+import { Service, mapService } from "../Service";
 
 /** Quick 2-digit number padding implementation for date/time formatting */
 let d2 = (n: number) => n < 10 ? "0" + n : String(n);
@@ -30,7 +28,7 @@ let monthNamesAbbr = capSplit("JanFebMarAprMayJunJulAugSepOctNovDec");
 @mapService("culture-neutral", "culture")
 export class CultureService extends Service {
     /** The name of this culture, defaults to "none" but should be set to _languagecode-countrycode/regioncode_ and/or shorter forms such as _languagecode-countrycode_ and _languagecode_ */
-    public readonly name = "none";
+    public readonly name = "neutral";
 
     /** Text flow direction for this culture's language, either `ltr` or `rtl`, or undefined (platform default) */
     public readonly textFlowDirection?: "ltr" | "rtl";
@@ -164,29 +162,3 @@ export namespace CultureService {
         [s: string]: (this: DateTimeFormatters, d: Date, s: CultureService) => string;
     }
 }
-
-/** Helper class used to subscribe to culture changes and update UI module properties */
-class Updater {
-    constructor() {
-        var currentCulture: CultureService | undefined;
-        Async.observe(() => this.culture).subscribe(culture => {
-            currentCulture = culture;
-            console.log("culture set to", culture && culture.name);
-            Screen.defaultFlowDirection = culture && culture.textFlowDirection;
-        });
-        Async.inject(TextLabelFactory, {
-            ["@translateText"]: (text: string) => {
-                return currentCulture ? currentCulture.translateText(text) : "";
-            },
-            ["@pluralizeText"]: (n: number, forms: string[]) => {
-                return currentCulture ? currentCulture.pluralizeText(n, forms) : "";
-            }
-        })
-    }
-
-    @injectService("culture")
-    public culture: CultureService;
-}
-
-// create an instance to start observing
-Async.defer(() => { new Updater() });
