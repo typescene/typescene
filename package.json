@@ -1,27 +1,41 @@
 {
-  "name": "@typescene/*",
+  "name": "typescene",
   "private": true,
+  "version": "0.9.5",
   "description": "Strongly typed GUI toolkit for Web applications",
-  "version": "0.9.3",
+  "author": "Jelmer Cormont",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/typescene/typescene.git"
   },
-  "author": "Jelmer Cormont",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/typescene/typescene/issues"
   },
   "homepage": "http://typescene.org/",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "publishConfig": {
+    "tag": "dev"
+  },
   "scripts": {
-    "postinstall": "lerna bootstrap",
-    "bootstrap": "lerna bootstrap",
-    "clean": "lerna run clean && lerna clean --yes",
-    "build": "lerna run build && lerna run build-min && npm run update-docs",
-    "update-docs": "lerna run build-doc-viewer && node ./scripts/update-docs.js"
+    "clean": "rimraf dist node_modules",
+    "prebuild": "node scripts/prebuild",
+    "postbuild": "node scripts/postbuild && node scripts/generate-docs",
+    "build-core": "tsc -p src/core/tsconfig-internal-api.json && tsc -p src/core",
+    "build-dom": "tsc -p src/dom",
+    "build": "npm run build-core && npm run build-dom",
+    "generate-docs": "node scripts/generate-docs",
+    "update-docs": "node scripts/update-docs"
   },
   "devDependencies": {
-    "lerna": "2.0.0-beta.38",
-    "typescript": "^2.0.0"
+    "awesome-typescript-loader": "^3.2.1",
+    "bootstrap": "^3.3.7",
+    "markdown-it": "^8.3.1",
+    "monaco-editor": "^0.9.0",
+    "rimraf": "^2.6.1",
+    "typescript": "^2.4.2",
+    "webpack": "^3.3.0"
   }
 }

@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "outDir": "../../dist/core/lib",
+        "target": "es5",
+        "module": "es2015",
+        "moduleResolution": "node",
+        "pretty": true,
+        "declaration": true,
+        "declarationDir": "../../dist/core/typings",
+        "stripInternal": true,
+        "experimentalDecorators": true,
+        "strict": true
+    },
+    "include": [
+        "./**.ts"
+    ]
+}
