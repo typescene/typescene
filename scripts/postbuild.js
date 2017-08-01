@@ -9,6 +9,13 @@ var indexJsContent = fs.readFileSync(indexJsPath);
 indexJsContent += `export const version = "${version}"\n`;
 fs.writeFileSync(indexJsPath, indexJsContent);
 
+// create `.d.ts` file for the DOM module
+console.log("> Creating DOM typescene.d.ts file...");
+var dtsPath = path.resolve(__dirname, "../dist/dom/typescene.d.ts");
+fs.writeFileSync(dtsPath, `export * from "./typings";
+export as namespace typescene;
+`);
+
 // create `.min.js` file for the DOM module
 console.log("> Creating DOM typescene.min.js using Webpack ...");
 const webpack = require("webpack");

@@ -44,7 +44,8 @@ module.exports = {
                         result = result.replace(/\/$/, "");
                         return `${s1}"${result}"`;
                     });
-                    txt = txt.replace(/^export declare /gm, "export ");
+                    txt = txt.replace(/^export declare /gm, "export ")
+                        .replace(/^declare const /gm, "const ");
                     combinedDefs[i] = txt;
                     if (!--count) resolve(combinedDefs.join("\n"));
                 });

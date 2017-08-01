@@ -206,7 +206,7 @@ export class Application extends Async.ObservableObject {
     private static _resolve_ready;
     /** Create the application instance (either from a derived class or from the Application class itself); can be called only once */
     constructor(title?: string);
-    /** The application name to be displayed in the title bar (observed), overridden by the title of the current activity/ies, if any */
+    /** The application name to be displayed in the window title bar (observed) */
     title: string;
     /** The currently active i18n culture service (`CultureService` instance), referred to by ID `culture`; to activate another culture, use `addServiceAlias` to alias another culture to the `culture` identifier; changes will be reflected in this property asynchronously, and will also be reflected in the UI flow direction (`ltr` or `rtl`) and translations using `UI.tl` */
     readonly culture: CultureService;
@@ -357,7 +357,7 @@ export * from "@typescene/core/App/Service/Service";
 declare module "@typescene/core/App/View/Layout/App" {
 import { Component, Container, DrawerContainer, ComponentFactory } from "@typescene/core/UI";
 import { VerticalLayout, ScrollableLayout } from "@typescene/core/App/View/Layout/Single";
-declare const AppBarLayout_base: typeof Container & ComponentFactory<Container>;
+const AppBarLayout_base: typeof Container & ComponentFactory<Container>;
 /** Represents the top header row of an application page, contains only one Row instance; all content passed into the initializer is automatically added to this row, not the container itself */
 export class AppBarLayout extends AppBarLayout_base {
     appendChild(child: Component): this;
@@ -427,7 +427,7 @@ export class BaseDialogLayout extends DialogContainer {
 declare module "@typescene/core/App/View/Layout/Single" {
 import { Container, ComponentFactory } from "@typescene/core/UI";
 import { BaseLayout } from "@typescene/core/App/View/Layout/Base";
-declare const VerticalLayout_base: typeof BaseLayout & ComponentFactory<BaseLayout>;
+const VerticalLayout_base: typeof BaseLayout & ComponentFactory<BaseLayout>;
 /** Represents a strictly vertical layout that contains a header container fragment and a footer container fragment; all other content will be added to the main content area */
 export class VerticalLayout extends VerticalLayout_base {
     /** Layout fragment for the container's fixed header */
@@ -435,7 +435,7 @@ export class VerticalLayout extends VerticalLayout_base {
     /** Layout fragment for the container's fixed footer */
     static Footer: typeof Container;
 }
-declare const ScrollableLayout_base: typeof VerticalLayout & ComponentFactory<VerticalLayout>;
+const ScrollableLayout_base: typeof VerticalLayout & ComponentFactory<VerticalLayout>;
 /** Represents a strictly vertical layout that contains a header container fragment and a footer container fragment, all other content will be added to the _scrollable_ main content container */
 export class ScrollableLayout extends ScrollableLayout_base {
     /** Layout fragment for the scrollable container's fixed header */
@@ -3429,7 +3429,7 @@ import Async from "@typescene/core/Async";
 import * as UI from "@typescene/core/UI";
 import * as App from "@typescene/core/App";
 export { Async, UI, App };
-declare const _default: {
+const _default: {
     Async: typeof Async;
     UI: typeof UI;
     App: typeof App;
@@ -3889,14 +3889,14 @@ export function contains(component: Component, node: Node): boolean;
 
 declare module "@typescene/dom/UI/DOM/styles/controls" {
 import { Stylesheet } from "@typescene/dom/UI/DOM/Stylesheet";
-declare const _default: Stylesheet;
+const _default: Stylesheet;
 export default _default;
 
 }
 
 declare module "@typescene/dom/UI/DOM/styles/reboot" {
 import { Stylesheet } from "@typescene/dom/UI/DOM/Stylesheet";
-declare const _default: Stylesheet;
+const _default: Stylesheet;
 export default _default;
 
 }
@@ -4085,7 +4085,7 @@ import * as Async from "@typescene/dom/Async";
 import * as UI from "@typescene/dom/UI";
 import * as App from "@typescene/dom/App";
 export { Async, UI, App };
-declare const _default: {
+const _default: {
     Async: typeof Async;
     UI: typeof UI;
     App: typeof App;
