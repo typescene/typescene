@@ -43,7 +43,7 @@ export class Application extends Async.ObservableObject {
         Async.inject(NavList.Activation, { activate, isActive });
     }
 
-    /** The application name to be displayed in the title bar (observed), overridden by the title of the current activity/ies, if any */
+    /** The application name to be displayed in the window title bar (observed) */
     @Async.observable_string
     public title = "";
 

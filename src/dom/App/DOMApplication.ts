@@ -28,9 +28,16 @@ export class DOMApplication extends Application {
             });
 
             // set title and keep it updated
-            Async.observe(() => [this.activities.title, this.title]
-                    .filter(s => !!s).join(" - "))
-                .subscribe(title => { document.title = title });
+            Async.observe(() => {
+                var activityTitle = this.activities.title;
+                return [
+                    activityTitle,
+                    this.title !== activityTitle ? this.title : ""
+                ].filter(s => !!s).join(" - ");
+            }).subscribe(title => {
+                // apply to DOM document window
+                document.title = title;
+            });
         });
     }
 
