@@ -4,8 +4,10 @@ import { ComponentFactory, UIValueOrAsync } from "../ComponentFactory";
 
 /** UI control element base class */
 export abstract class ControlElement extends Component {
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: ControlElement.Initializer) => this;
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<ControlElement.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<ControlElement.Initializer>;
 
     /** Width (CSS length), default "auto" (observed) */
     @Async.observable_string

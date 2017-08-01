@@ -7,6 +7,11 @@ import { Block } from "./Block";
 /** Represents a block with an embedded sub container within its margins/padding */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.Container)
 export class ContainerBlock<ContainerT extends Container> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ContainerBlock.Initializer<Container>>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<ContainerBlock.Initializer<ContainerT>>;
+
     /** Create a container block component with given container, if any */
     constructor(container?: ContainerT) {
         super();
@@ -15,9 +20,6 @@ export class ContainerBlock<ContainerT extends Container> extends Block {
         // apply automatic height to start with
         this.style.set("height", Async.observe(() => this.height));
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: ContainerBlock.Initializer<ContainerT>) => this;
 
     /** Container element (created if not set, never undefined; observed) */
     @ComponentFactory.applyComponentRef(ComponentFactory.CLevel.Container)
@@ -67,7 +69,7 @@ export namespace ContainerBlock {
     /** Initializer for .with({ ... }) */
     export interface Initializer<ContainerT extends Container> extends Block.Initializer {
         /** Property initializer: container component or initializer */
-        container?: UIValueOrAsync<ComponentFactory<Container> | Container>
+        container?: UIValueOrAsync<ComponentFactory<ContainerT> | ContainerT>
         | ComponentFactory.SpecList2;
     }
 }

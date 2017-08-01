@@ -1,6 +1,6 @@
 import Async from "../../../Async";
 import { ArrayBinding, _getBatchTransformer } from "../../Binding";
-import { Component, ControlElement, Spacer, Icon, WideLabel, ActionHandler, ComponentFactory } from "../";
+import { Component, ControlElement, Spacer, Icon, WideLabel, ComponentFactory } from "../";
 import { TreeList } from "./TreeList";
 import { CloseRow } from "./Row";
 

@@ -5,8 +5,10 @@ import { Component } from "../Component";
 
 /** Represents a container with sub containers on up to four sides, and a main area with vertically stacked blocks */
 export class LayoutContainer extends Container {
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: LayoutContainer.Initializer) => this;
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<LayoutContainer.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<LayoutContainer.Initializer>;
 
     /** Default inside gutter width, used when inside gutter container has no defined width (CSS value, initially 18rem) */
     public static INSIDE_GUTTER_WIDTH = "18rem";

@@ -36,6 +36,28 @@ export interface ComponentFactory<T extends Component> extends Function {
 }
 
 export namespace ComponentFactory {
+    /** A generic static [ComponentClass].with(...) method that accepts given initializer type, and/or callbacks, but NO child content; used as a type _only_ for static `Component.with` methods */
+    export type WithMethodNoContent<InitializerT> = {
+        /** Create a component factory for this class, based on given properties and with optional callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & { new(): T }, initializerSpec: InitializerT, ...args: Array<(component: T, base: Component) => void>): ClassT & ComponentFactory<T>;
+        /** Create a component factory for this class, based on given properties and with optional callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & { new(): T }, ...args: Array<(component: T, base: Component) => void>): ClassT & ComponentFactory<T>;
+    };
+
+    /** A generic static [ComponentClass].with(...) method that accepts given initializer type, plus optional callbacks and/or child content; used as a type _only_ for static `Component.with` methods */
+    export type WithMethod<InitializerT> = {
+        /** Create a component factory for this class, based on given properties and with optional content and/or callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & { new(): T }, initializerSpec: InitializerT, ...args: Array<((component: T, base: Component) => void) | SpecEltOrList>): ClassT & ComponentFactory<T>;
+        /** Create a component factory for this class, with given content and/or callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & { new(): T }, ...args: Array<((component: T, base: Component) => void) | SpecEltOrList>): ClassT & ComponentFactory<T>;
+    };
+
+    /** A generic public [Component].initializeWith(...) method; used as a type _only_ for `Component.initializeWith` methods */
+    export type InitializeWithMethod<InitializerT> = {
+        /** Initialize this component with given properties, and with given base component to bind to (if called through a component factory constructor); may be called manually to set additional properties */
+        <T extends Component>(this: T, initializerSpec: InitializerT, baseComponent?: Component): T;
+    }
+
     /** A factory initializer element (e.g. control element) */
     export type SpecElt =
         UIValueOrAsync<ComponentFactory<Component> | TextLabelFactory | Component | typeof Component | undefined>;
@@ -110,9 +132,9 @@ export namespace ComponentFactory {
         }
     }
 
-    /** @internal Initialize given component with properties from given spec, and for given base component, if any; returns the component argument */
-    export function initializeWith<T extends Component>(spec: any, component: T,
-        base: Component = component) {
+    /** @internal Initialize given component with properties from given spec, and for given base component, if any; returns the component itself */
+    export function initializeWith<T extends Component>(this: T, spec: any, base: Component = this) {
+        const component = this;
         if (spec.id) (<any>base)[spec.id] = component;
         for (let key in spec) {
             let value: any = component[<keyof Component>key];

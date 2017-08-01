@@ -3,11 +3,8 @@ import { ControlElement } from "./ControlElement";
 
 /** Represents an empty control element to take up horizontal space within a row */
 export class Spacer extends ControlElement {
-    /** Create a spacer element with given height (default 1px) */
-    constructor(height = "1px") {
-        super();
-        this.height = height;
-    }
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Spacer.Initializer>;
 
     /** Initialize a spacer control factory with given size (CSS lengths); also sets `.shrinkwrap` to true if a width is given */
     public static withSize<T extends typeof Spacer>(this: T,
@@ -17,9 +14,15 @@ export class Spacer extends ControlElement {
             { width, height, shrinkwrap: true } :
             { height });
     }
+    
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Spacer.Initializer>;
 
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Spacer.Initializer) => this;
+    /** Create a spacer element with given height (default 1px) */
+    constructor(height = "1px") {
+        super();
+        this.height = height;
+    }
 }
 
 export namespace Spacer {

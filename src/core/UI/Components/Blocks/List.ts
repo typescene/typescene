@@ -9,6 +9,11 @@ import { Divider } from "./Divider";
 /** Represents a list of blocks */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.Block)
 export class List<BlockT extends Block> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<List.Initializer<Block>>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<List.Initializer<BlockT>>;
+
     /** Create a list component with given items */
     constructor(items: Array<BlockT | undefined> = []) {
         super();
@@ -48,9 +53,6 @@ export class List<BlockT extends Block> extends Block {
             else this.deselectAll();
         });
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: List.Initializer<BlockT>) => this;
 
     /** List content (observed) */
     @ComponentFactory.applyComponentsArray(ComponentFactory.CLevel.Block)
@@ -139,8 +141,8 @@ export class List<BlockT extends Block> extends Block {
             if (this.divider && result.length) {
                 var divider = dividers[item.uid] =
                     this._dividers[item.uid] ||
-                    Async.unobserved(() => ComponentFactory.initializeWith(
-                        this.divider, new Divider()));
+                    Async.unobserved(() => ComponentFactory.initializeWith
+                        .call(new Divider(), this.divider));
                 result.push(divider);
             }
 

@@ -8,6 +8,11 @@ import { TableRow, TableHeader } from "./TableRow";
 /** Represents a table block component */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.TableRow)
 export class Table<TableRowT extends TableRow> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Table.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Table.Initializer>;
+
     /** Create a table with given header and rows, if any */
     constructor(headerColumns?: Array<string | ControlElement | Block>,
         widths?: string[],
@@ -16,9 +21,6 @@ export class Table<TableRowT extends TableRow> extends Block {
         this.header = new TableHeader(headerColumns, widths);
         this.rows = rows;
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Table.Initializer) => this;
 
     /** Header row; not rendered if undefined, or does not contain columns, OR if table itself has no rows (observed) */
     @ComponentFactory.applyComponentRef(ComponentFactory.CLevel.TableHeader)
@@ -74,7 +76,7 @@ export namespace Table {
     /** Initializer for .with({ ... }) */
     export interface Initializer extends Block.Initializer {
         /** Property initializer: list of rows */
-        rows: ComponentFactory.SpecList2TCol;
+        rows?: ComponentFactory.SpecList2TCol;
         /** Property initializer: header row */
         header?: ComponentFactory.SpecEltOrListTCol;
         /** Property initializer: form values list name */

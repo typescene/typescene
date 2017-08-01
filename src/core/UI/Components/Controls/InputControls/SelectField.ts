@@ -1,12 +1,23 @@
 import Async from "../../../../Async";
-import { Style } from "../../../Style";
-import { Component } from "../../Component";
 import { ComponentFactory, UIValueOrAsync } from "../../ComponentFactory";
 import { TextLabelFactory } from "../../TextLabelFactory";
 import { InputControl } from "./InputControl";
 
 /** Represents a native dropdown selection field control */
 export class SelectField extends InputControl {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<SelectField.Initializer>;
+
+    /** Initialize a select field control factory with given name, label, and options */
+    public static withOptions<T extends typeof SelectField>(this: T,
+        name: string, label?: string | TextLabelFactory,
+        options: UIValueOrAsync<SelectField.Option[]> = []) {
+        return this.with({ name, label, options });
+    }
+    
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<SelectField.Initializer>;
+
     /** Create a select field element */
     constructor(name = "select", label?: string | TextLabelFactory,
         options?: SelectField.Option[]) {
@@ -15,16 +26,6 @@ export class SelectField extends InputControl {
         this.options = options || [];
         this.name = name;
     }
-
-    /** Initialize a select field control factory with given name, label, and options */
-    public static withOptions<T extends typeof SelectField>(this: T,
-        name: string, label?: string | TextLabelFactory,
-        options: UIValueOrAsync<SelectField.Option[]> = []) {
-        return this.with({ name, label, options });
-    }
-
-    /** Initialize with given (observable) values; returns this */
-    public initializeWith: (values: SelectField.Initializer) => this;
 
     /** List of options and their values (observed) */
     @Async.observable_not_null

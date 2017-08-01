@@ -1,5 +1,4 @@
 import Async, { Signal } from "../../Async";
-import { Component, Page } from "../../UI";
 import { Activity } from "./Activity";
 
 var currentHistoryIDBase = "_A" + String(Math.random()).slice(-5);

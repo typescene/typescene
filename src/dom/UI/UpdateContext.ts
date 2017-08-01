@@ -261,7 +261,6 @@ export class UpdateContext {
                             cElt && DOM.applyStyleTo(c.style, cElt);
 
                             // when done, check if not re-appeared, and remove
-                            var m = Math.random();
                             playing.done.then(() => {
                                 if (elt.parentNode === this.root &&
                                     elt.hasAttribute(UpdateContext.UNMANAGED_FLAG)) {

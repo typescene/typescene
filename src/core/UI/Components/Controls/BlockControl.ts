@@ -2,11 +2,16 @@ import Async from "../../../Async";
 import { Block } from "../";
 import { ControlElement } from "./ControlElement";
 import { Component } from "../Component";
-import { ComponentFactory,  UIValueOrAsync } from "../ComponentFactory";
+import { ComponentFactory } from "../ComponentFactory";
 
 /** Represents a control element that contains a block */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.Block)
 export class BlockControl<BlockT extends Block> extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<BlockControl.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<BlockControl.Initializer>;
+
     /** Create a new block control element containing the given block, if any */
     constructor(block?: BlockT) {
         super();
@@ -15,9 +20,6 @@ export class BlockControl<BlockT extends Block> extends ControlElement {
         // apply automatic width to start with
         this.style.set("width", Async.observe(() => this.width));
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: BlockControl.Initializer) => this;
 
     /** Block element, if any (observed) */
     @ComponentFactory.applyComponentRef(ComponentFactory.CLevel.Block)

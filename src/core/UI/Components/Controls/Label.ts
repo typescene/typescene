@@ -7,6 +7,19 @@ import { ControlElement } from "./ControlElement";
 
 /** Represents a minimal text control with icon and badge */
 export class Label extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Label.Initializer>;
+
+    /** Initialize a text control factory with given text and style */
+    public static withText<T extends typeof Label>(this: T,
+        text: UIValueOrAsync<string | TextLabelFactory>,
+        style?: UIValueOrAsync<Style | Style.StyleSet>) {
+        return this.with({ text, style });
+    }
+    
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Label.Initializer>;
+
     /** Create a label element */
     constructor(text: string | TextLabelFactory = "", icon?: string,
         remGutter?: number, badge?: string | TextLabelFactory) {
@@ -19,16 +32,6 @@ export class Label extends ControlElement {
         // set focus mode so label is not focusable by default
         this.focusMode = Component.FocusMode.None;
     }
-
-    /** Initialize a text control factory with given text and style */
-    public static withText<T extends typeof Label>(this: T,
-        text: UIValueOrAsync<string | TextLabelFactory>,
-        style?: UIValueOrAsync<Style | Style.StyleSet>) {
-        return this.with({ text, style });
-    }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Label.Initializer) => this;
 
     /** Set to false to expand horizontally within row (default true; observed) */
     public shrinkwrap = true;

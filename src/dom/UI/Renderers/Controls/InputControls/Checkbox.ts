@@ -1,4 +1,3 @@
-import * as Async from "@typescene/core/Async";
 import { Checkbox, Style, mapComponentRenderer } from "@typescene/core/UI";
 import * as DOM from "../../../DOM";
 import { Renderer as ControlRenderer } from "../ControlElement";

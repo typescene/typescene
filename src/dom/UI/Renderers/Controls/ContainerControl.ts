@@ -1,4 +1,4 @@
-import { Container, ContainerControl, Style, mapComponentRenderer } from "@typescene/core/UI";
+import { Container, ContainerControl, mapComponentRenderer } from "@typescene/core/UI";
 import { Renderer as ControlRenderer } from "./ControlElement";
 
 /** @internal DOM-specific component renderer */

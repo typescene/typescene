@@ -1,5 +1,5 @@
 import * as Async from "@typescene/core/Async";
-import { Block, Style, Card, mapComponentRenderer } from "@typescene/core/UI";
+import { Style, Card, mapComponentRenderer } from "@typescene/core/UI";
 import * as DOM from "../../DOM";
 import { Renderer as BlockRenderer } from "./Block";
 

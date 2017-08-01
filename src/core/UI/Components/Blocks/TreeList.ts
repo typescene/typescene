@@ -1,6 +1,6 @@
 import Async from "../../../Async";
 import { Component } from "../Component";
-import { ComponentFactory, UIValueOrAsync } from "../ComponentFactory";
+import { ComponentFactory } from "../ComponentFactory";
 import { ComponentRenderer } from "../ComponentRenderer";
 import { ComponentSignal, ComponentSignalHandler } from "../ComponentSignal";
 import { Block } from "./Block";
@@ -8,6 +8,11 @@ import { Block } from "./Block";
 /** Represents a hierarchical list of blocks */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.Block)
 export class TreeList<BlockT extends TreeList.BlockItem> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<TreeList.Initializer<Block>>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<TreeList.Initializer<BlockT>>;
+
     /** Create a tree list component with given items */
     constructor(items: Array<BlockT | undefined> = []) {
         super();
@@ -95,9 +100,6 @@ export class TreeList<BlockT extends TreeList.BlockItem> extends Block {
             }
         });
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: TreeList.Initializer<BlockT>) => this;
 
     /** Hierarchical list content (observed); items can use the `TreeList.BlockItem` interface to provide sub content, see e.g. `TreeListRow` */
     @ComponentFactory.applyComponentsArray(ComponentFactory.CLevel.Block)

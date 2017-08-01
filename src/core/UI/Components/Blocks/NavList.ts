@@ -10,6 +10,11 @@ import { ContainerBlock } from "./ContainerBlock";
 
 /** Represents a list of tabs or links */
 export class NavList extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<NavList.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<NavList.Initializer>;
+
     /** Create a navigation list component */
     constructor(navItems: NavList.NavItem[] = [], type?: NavList.Type,
         selectedIndex = -1) {
@@ -74,9 +79,6 @@ export class NavList extends Block {
             });
         });
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: NavList.Initializer) => this;
 
     /** Nav labels, icons, and badges (observed) */
     @Async.observable_not_null

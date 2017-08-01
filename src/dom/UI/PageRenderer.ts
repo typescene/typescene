@@ -309,7 +309,7 @@ class DOMPageRenderer extends PageRenderer {
                 (options.modalHorzAlign && options.outerMargin || "0");
             var isRightAligned = options.modalHorzAlign === "right" ||
                 options.modalHorzAlign === "end";
-            var paddingRight = options.modalHorzAlign === "right" ?
+            var paddingRight = isRightAligned ?
                 (options.alignMargin || "0") :
                 (options.modalHorzAlign && options.outerMargin || "0");
             

@@ -1,6 +1,5 @@
 import * as Async from "@typescene/core/Async";
 import { Style, NavList, mapComponentRenderer } from "@typescene/core/UI";
-import * as DOM from "../../DOM";
 import { Renderer as LabelRenderer } from "../Controls/Label";
 import { Renderer as BlockRenderer } from "./Block";
 

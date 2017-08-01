@@ -17,31 +17,13 @@ export abstract class Component extends Async.ObservableObject {
     /** Abstract constructor with any number of arguments */
     constructor(...args: any[]) { super() }
 
-    /** Returns a component factory for this component type, with given (observable) property values and/or sub components; the result is an instance of `ComponentFactory`, a pre-initialized component constructor; this method is only available on component classes that provide a parameterless constructor */
-    public static with<ClassT extends typeof Component, T extends Component, InitializerT>(
-        this: ClassT & { new (): { initializeWith(initializer: InitializerT): T } },
-        properties: InitializerT,
-        ...values: Array<ComponentFactory.SpecEltOrList | ((component: T, base: Component) => void)>):
-        ClassT & ComponentFactory<T>;
-
-    /** Returns a component factory for this component type, with given sub components; the result is an instance of `ComponentFactory`, a pre-initialized component constructor; this method is only available on component classes that provide a parameterless constructor */
-    public static with<ClassT extends typeof Component, T extends Component, InitializerT>(
-        this: ClassT & { new (): { initializeWith(initializer: InitializerT): T } },
-        ...values: Array<ComponentFactory.SpecEltOrList | ((component: T, base: Component) => void)>):
-        ClassT & ComponentFactory<T>;
-
-    /** __Invalid first argument__, use a valid initializer and/or component factories; returns a component factory for this component type, with given (observable) property values and/or sub components */
-    public static with<ClassT extends typeof Component, T extends Component, InitializerT>(
-        this: ClassT & { new (): { initializeWith(initializer: InitializerT): T } },
-        properties: InitializerT | {},
-        ...values: Array<ComponentFactory.SpecEltOrList | ((component: T, base: Component) => void)>):
-        never;
-
-    public static with(): any { /* copied from ComponentFactory below */ }
-
-    /** Initializes this instance with given properties, and with given base component to bind to; may be called more than once, may be overridden (as a function property, not method) to extend the initializer type and transform the initializer spec before calling the base method; returns this */
-    public initializeWith: (values: Component.Initializer, base?: Component) => this
-    = (values, base) => ComponentFactory.initializeWith(values, this, base);
+    /** Create a component factory for this class, based on given properties and with optional content and/or callback(s) */
+    public static with: ComponentFactory.WithMethodNoContent<Component.Initializer>;
+    // ^^^ copied from ComponentFactory below
+    
+    /** Initialize this component with given properties, and with given base component to bind to (if called through a component factory constructor); may be called manually to set additional properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Component.Initializer>;
+    // ^^^ copied from ComponentFactory below
 
     /** Initialize this component, i.e. apply properties from component factories, if any; called automatically by the highest-level component factory constructor with the base component as argument (i.e. component on which `.with` was called), can be overridden to initialize other properties before those from the component factory (and invoke `super.initialize()` manually); returns true only if this component had not been initialized before */
     public initialize(base?: Component) {
@@ -915,8 +897,9 @@ export abstract class Component extends Async.ObservableObject {
     public get ArrowDownKeyPressed() { return this._makeKeyEvent(40) }
 }
 
-// copy .with method from ComponentFactory
+// copy methods from ComponentFactory
 Component.with = <any>makeFactory;
+Component.prototype.initializeWith = ComponentFactory.initializeWith;
 
 export namespace Component {
     /** Specification of which animations to play during the lifetime of a component on screen (can be extended for sub component types) */

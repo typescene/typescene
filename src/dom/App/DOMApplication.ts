@@ -1,6 +1,6 @@
 import * as Async from "@typescene/core/Async";
 import { Screen } from "../UI";
-import { Application, ActivityStack, ActivityTransition } from "@typescene/core/App";
+import { Application, ActivityTransition } from "@typescene/core/App";
 
 /** True if browser history is enabled */
 var useBrowserHistory = true;

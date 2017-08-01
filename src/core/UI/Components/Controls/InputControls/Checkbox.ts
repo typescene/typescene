@@ -1,21 +1,13 @@
 import Async from "../../../../Async";
 import { Style } from "../../../Style";
-import { Component } from "../../Component";
 import { ComponentFactory, UIValueOrAsync } from "../../ComponentFactory";
 import { TextLabelFactory } from "../../TextLabelFactory";
 import { InputControl } from "./InputControl";
 
 /** Represents a single checkbox or radio button control */
 export class Checkbox extends InputControl {
-    /** Create a checkbox element */
-    constructor(name = "checkbox", label?: string | TextLabelFactory,
-        type = Checkbox.Type.Checkbox, checked = false) {
-        super();
-        this.label = <any>label;
-        this.name = name;
-        this.type = type;
-        this.checked = checked;
-    }
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Checkbox.Initializer>;
 
     /** Initialize a checkbox control factory with given values */
     public static withName<T extends typeof Checkbox>(this: T,
@@ -33,9 +25,19 @@ export class Checkbox extends InputControl {
             type: Checkbox.Type.Radio
         });
     }
+    
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Checkbox.Initializer>;
 
-    /** Initialize with given (observable) values; returns this */
-    public initializeWith: (values: Checkbox.Initializer) => this;
+    /** Create a checkbox element */
+    constructor(name = "checkbox", label?: string | TextLabelFactory,
+        type = Checkbox.Type.Checkbox, checked = false) {
+        super();
+        this.label = <any>label;
+        this.name = name;
+        this.type = type;
+        this.checked = checked;
+    }
 
     /** Type: checkbox or radio button (observed), defaults to checkbox */
     @Async.observable

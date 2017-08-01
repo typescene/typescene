@@ -1,18 +1,12 @@
 import Async from "../../../../Async";
-import { Style } from "../../../Style";
 import { ComponentFactory, UIValueOrAsync } from "../../ComponentFactory";
 import { TextLabelFactory } from "../../TextLabelFactory";
 import { InputControl } from "./InputControl";
 
 /** Represents a single- or multi-line text input field control */
 export class TextField extends InputControl {
-    /** Create a text field */
-    constructor(name = "text", label?: string | TextLabelFactory, textareaLines = 0) {
-        super();
-        this.label = <any>label;
-        this.name = name;
-        this.textareaLines = textareaLines;
-    }
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<TextField.Initializer>;
 
     /** Initialize a text field control factory with given name, label, and placeholder */
     public static withName<T extends typeof TextField>(this: T,
@@ -21,8 +15,16 @@ export class TextField extends InputControl {
         return this.with({ name, label, placeholderText });
     }
 
-    /** Initialize with given (observable) values; returns this */
-    public initializeWith: (values: TextField.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<TextField.Initializer>;
+
+    /** Create a text field */
+    constructor(name = "text", label?: string | TextLabelFactory, textareaLines = 0) {
+        super();
+        this.label = <any>label;
+        this.name = name;
+        this.textareaLines = textareaLines;
+    }
 
     /** Number of rows for a multiline text field, default 0 (NOT observed) */
     public textareaLines: number;

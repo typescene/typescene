@@ -6,20 +6,23 @@ import { ControlElement } from "./ControlElement";
 
 /** Represents a progress bar control (full width by default) */
 export class ProgressBar extends ControlElement {
-    /** Create a progress bar control element */
-    constructor(progress = 0) {
-        super();
-        this.progress = progress;
-    }
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<ProgressBar.Initializer>;
 
     /** Initialize a progress bar control factory with given progress value (0-1) */
     public static withProgress<T extends typeof ProgressBar>(this: T,
         progress: UIValueOrAsync<number>) {
         return this.with({ progress });
     }
+    
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<ProgressBar.Initializer>;
 
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: ProgressBar.Initializer) => this;
+    /** Create a progress bar control element */
+    constructor(progress = 0) {
+        super();
+        this.progress = progress;
+    }
 
     /** Current progress value, between 0 and 1, inclusive (observed) */
     @Async.observable_number

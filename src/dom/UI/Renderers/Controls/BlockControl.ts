@@ -1,4 +1,4 @@
-import { Block, BlockControl, Style, mapComponentRenderer } from "@typescene/core/UI";
+import { Block, BlockControl, mapComponentRenderer } from "@typescene/core/UI";
 import { Renderer as ControlRenderer } from "./ControlElement";
 
 /** @internal DOM-specific component renderer */

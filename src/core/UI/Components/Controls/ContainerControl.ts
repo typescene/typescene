@@ -7,6 +7,11 @@ import { ControlElement } from "./ControlElement";
 /** Represents a control element that contains a container */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.Container)
 export class ContainerControl<ContainerT extends Container> extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ContainerControl.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<ContainerControl.Initializer>;
+
     /** Create a container control element that contains the given container, if any */
     constructor(container?: ContainerT) {
         super();
@@ -16,9 +21,6 @@ export class ContainerControl<ContainerT extends Container> extends ControlEleme
         this.style.set("height", Async.observe(() => this.height));
         this.style.set("width", Async.observe(() => this.width));
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: ContainerControl.Initializer) => this;
 
     /** Container element (created if not set, never undefined; observed); if set to a container (other than LayoutContainer) with maxContentWidth other than auto, and this control's width is set to auto, this control will shrinkwrap to the same width as the container */
     @ComponentFactory.applyComponentRef(ComponentFactory.CLevel.Container)

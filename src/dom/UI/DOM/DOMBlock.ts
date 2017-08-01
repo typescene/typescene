@@ -1,7 +1,6 @@
 import * as Async from "@typescene/core/Async";
 import { Block, mapComponentRenderer, Style } from "@typescene/core/UI";
 import { Renderer as BlockRenderer } from "../Renderers/Blocks/Block";
-import * as DOM from "./";
 
 /** Base class name used for CSS style sheet */
 const CSS_CLASS = "UI-DOMBlock";

@@ -1,11 +1,5 @@
-import Async from "../../../Async";
 import { Animation } from "../../Animation";
-import { Screen } from "../../Screen";
-import { Style } from "../../Style";
 import { Block } from "../";
-import { Component } from "../Component";
-import { ComponentFactory, UIValueOrAsync } from "../ComponentFactory";
-import { Container } from "./Container";
 import { DialogContainer } from "./DialogContainer";
 
 /** Represents a modal container displayed on the side of the screen */
@@ -30,9 +24,6 @@ export class DrawerContainer extends DialogContainer {
 
     /** Default "disappear" animation, added to every new `DrawerContainer` instance by the constructor */
     public static DISAPPEAR_ANIMATION?: Animation;
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: DialogContainer.Initializer) => this;
 }
 
 /** Represents a modal container displayed on the right hand side of the screen (i.e. DrawerContainer with different alignment and animations) */
@@ -56,4 +47,3 @@ export class OppositeDrawerContainer extends DrawerContainer {
     /** Default "disappear" animation, added to every new `OppositeDrawerContainer` instance by the constructor */
     public static DISAPPEAR_ANIMATION?: Animation;
 }
-

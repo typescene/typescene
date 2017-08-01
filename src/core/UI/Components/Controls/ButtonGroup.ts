@@ -8,6 +8,11 @@ import { ControlElement } from "./ControlElement";
 /** Represents a button group (toggle, tab, or toolbar) control */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.ControlElement)
 export class ButtonGroup extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ButtonGroup.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<ButtonGroup.Initializer>;
+
     /** Create a button group element */
     constructor(buttons: Button[] = []) {
         super();
@@ -30,9 +35,6 @@ export class ButtonGroup extends ControlElement {
                 this.buttons.forEach(b => b && (b.selected = false));
         });
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: ButtonGroup.Initializer) => this;
 
     /** Buttons to be displayed as part of the button group, in order (observed) */
     @ComponentFactory.applyComponentsArray(ComponentFactory.CLevel.ControlElement)

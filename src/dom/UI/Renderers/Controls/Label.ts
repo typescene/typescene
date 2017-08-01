@@ -94,32 +94,39 @@ export class Renderer<T extends Label> extends ControlRenderer<T> {
         return out;
     }
 }
+/** @internal */
 @mapComponentRenderer(Paragraph)
-class ParagraphRenderer extends Renderer<Paragraph> {
+export class ParagraphRenderer extends Renderer<Paragraph> {
     constructor(component: Paragraph) { super(component, "p") }
 }
+/** @internal */
 @mapComponentRenderer(Heading1)
-class H1Renderer extends Renderer<Heading1> {
+export class H1Renderer extends Renderer<Heading1> {
     constructor(component: Heading1) { super(component, "h1") }
 }
+/** @internal */
 @mapComponentRenderer(Heading2)
-default class H2Renderer extends Renderer<Heading2> {
+export class H2Renderer extends Renderer<Heading2> {
     constructor(component: Heading2) { super(component, "h2") }
 }
+/** @internal */
 @mapComponentRenderer(Heading3)
-class H3Renderer extends Renderer<Heading3> {
+export class H3Renderer extends Renderer<Heading3> {
     constructor(component: Heading3) { super(component, "h3") }
 }
+/** @internal */
 @mapComponentRenderer(Heading4)
-class H4Renderer extends Renderer<Heading4> {
+export class H4Renderer extends Renderer<Heading4> {
     constructor(component: Heading4) { super(component, "h4") }
 }
+/** @internal */
 @mapComponentRenderer(Heading5)
-class H5Renderer extends Renderer<Heading5> {
+export class H5Renderer extends Renderer<Heading5> {
     constructor(component: Heading5) { super(component, "h5") }
 }
+/** @internal */
 @mapComponentRenderer(Heading6)
-class H6Renderer extends Renderer<Heading6> {
+export class H6Renderer extends Renderer<Heading6> {
     constructor(component: Heading6) { super(component, "h6") }
 }
 

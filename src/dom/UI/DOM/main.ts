@@ -1,6 +1,6 @@
 import * as Async from "@typescene/core/Async";
-import { Component, Style, Screen } from "@typescene/core/UI";
-import { Stylesheet, applyStylesheet } from "./Stylesheet";
+import { Component, Screen } from "@typescene/core/UI";
+import { applyStylesheet } from "./Stylesheet";
 import { Styles } from "./Styles";
 
 /** @internal Create a <div> element with given class name and node */

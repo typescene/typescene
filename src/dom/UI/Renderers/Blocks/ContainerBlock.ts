@@ -1,5 +1,5 @@
 import * as DOM from "../../DOM";
-import { Block, Style, ContainerBlock, mapComponentRenderer } from "@typescene/core/UI";
+import { Style, ContainerBlock, mapComponentRenderer } from "@typescene/core/UI";
 import { Renderer as BlockRenderer } from "./Block";
 
 /** Base class name used for CSS style sheet */

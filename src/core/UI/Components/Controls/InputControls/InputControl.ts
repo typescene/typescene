@@ -1,12 +1,17 @@
 import Async from "../../../../Async";
 import { Style } from "../../../Style";
 import { ActionHandler, ComponentSignal } from "../../ComponentSignal";
-import { UIValueOrAsync } from "../../ComponentFactory";
+import { ComponentFactory, UIValueOrAsync } from "../../ComponentFactory";
 import { TextLabelFactory } from "../../TextLabelFactory";
 import { ControlElement } from "../ControlElement";
 
 /** Input field control base class (abstract) */
 export abstract class InputControl extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<InputControl.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<InputControl.Initializer>;
+
     /** Input value (read/write) */
     public value: string;
 

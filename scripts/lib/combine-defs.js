@@ -24,7 +24,13 @@ module.exports = {
                     if (err) throw err;
                     var txt = String(buf);
                     var m = baseID + n;
-                    var decl = m.replace(/\/index$/, "");
+                    var decl = m;
+                    if (decl.endsWith("/index") && f.endsWith("/index.d.ts")) {
+                        // remove /index from module name UNLESS plain path also exists
+                        var rootFileName = f.slice(0, -11) + ".d.ts";
+                        var rootExists = files.some(other => other === rootFileName);
+                        if (!rootExists) decl = decl.slice(0, -6);
+                    }
                     txt = `declare module "${decl}" {\n${txt}\n}\n`;
                     if (/from\s+\'/.test(txt)) throw new Error("Single quote import");
                     txt = txt.replace(/^((?:import|export)[^\n]+from |import )\"(\.[^\"]+)\"/gm, (s, s1, s2) => {

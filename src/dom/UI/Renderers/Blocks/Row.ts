@@ -1,4 +1,4 @@
-import { Style, Row, OppositeRow, CenterRow, mapComponentRenderer } from "@typescene/core/UI";
+import { Style, Row, mapComponentRenderer } from "@typescene/core/UI";
 import * as DOM from "../../DOM";
 import { Renderer as BlockRenderer } from "./Block";
 

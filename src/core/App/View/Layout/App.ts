@@ -1,7 +1,6 @@
 import Async from "../../../Async";
 import { Screen, Component, ControlElement, Container, Row, DrawerContainer, ComponentFactory } from "../../../UI";
-import { FRAG_HASH_PREFIX, FRAG_ID_PROP, layoutFragment } from "../ViewLayout";
-import { BaseDialogLayout } from "./Base";
+import { layoutFragment } from "../ViewLayout";
 import { VerticalLayout, ScrollableLayout } from "./Single";
 
 /** Represents the top header row of an application page, contains only one Row instance; all content passed into the initializer is automatically added to this row, not the container itself */

@@ -5,6 +5,11 @@ import { Block } from "./Block";
 
 /** Represents a divider block element (horizontal line placed between blocks) */
 export class Divider extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Divider.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Divider.Initializer>;
+
     /** Create a new divider with given (optional) properties */
     constructor(color?: string, thickness?: string, margin?: string,
         insetStart?: string, insetEnd?: string) {
@@ -18,9 +23,6 @@ export class Divider extends Block {
         // make sure this component cannot be focused (e.g. in a List)
         this.focusMode = Component.FocusMode.None;
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Divider.Initializer) => this;
 
     /** Divider color (CSS value, platform default used if empty, observed) */
     @Async.observable_string

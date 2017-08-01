@@ -7,6 +7,11 @@ import { Block } from "./Block";
 
 /** Represents a row within a `Table` component */
 export class TableRow extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<TableRow.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<TableRow.Initializer>;
+
     /** Create a table row with given columns, if any */
     constructor(columns: Array<string | ControlElement | Block> = [], widths: string[] = [],
         styles: Array<Style | Style.StyleSet> = []) {
@@ -15,9 +20,6 @@ export class TableRow extends Block {
         this.widths = widths;
         this.styles = styles;
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: TableRow.Initializer) => this;
 
     /** Column content as strings, control elements, or blocks (observed) */
     @ComponentFactory.applyComponentsArray(ComponentFactory.CLevel.ControlElement)
@@ -52,7 +54,7 @@ export namespace TableRow {
     /** Initializer for .with({ ... }) */
     export interface Initializer extends Block.Initializer {
         /** Property initializer: content of all columns, as strings, control elements, or blocks */
-        columns: ComponentFactory.SpecListTCol;
+        columns?: ComponentFactory.SpecListTCol;
         /** Property initializer: widths of all columns */
         widths?: UIValueOrAsync<Array<string | undefined>>;
         /** Property initializer: additional styles for all columns */

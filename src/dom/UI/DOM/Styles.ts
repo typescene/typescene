@@ -1,6 +1,6 @@
 import * as Async from "@typescene/core/Async";
 import { ObservableObject } from "@typescene/core/Async";
-import { Style, Screen } from "@typescene/core/UI";
+import { Style } from "@typescene/core/UI";
 import { Stylesheet, applyStylesheet } from "./Stylesheet";
 import rebootStylesDefinition from "./styles/reboot";
 import controlStylesDefinition from "./styles/controls";

@@ -1,5 +1,5 @@
 ﻿import Async, { Signal } from "../Async";
-import { Component, Page, Screen, NavList, Button } from "../UI";
+import { Screen, NavList, Button } from "../UI";
 import { Activation, Activity, ActivityTransition, ActivityStack } from "./Activity";
 import { injectService } from "./Service";
 import { CultureService } from "./Culture";
@@ -227,7 +227,7 @@ export class Application extends Async.ObservableObject {
 
         // check if given a full URL that is actually on the same domain
         if (proto || host) {
-            let [_, curProto, curHost, curPath, curQuery, curHash] =
+            let [_, curProto, curHost, curPath, curQuery] =
                 this.getCurrentUrl().match(urlRE) || (<string[]>[]);
             if (!_ || curProto !== proto || curHost !== host) {
                 // domain does not match

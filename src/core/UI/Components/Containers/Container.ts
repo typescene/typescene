@@ -1,6 +1,5 @@
 import Async from "../../../Async";
 import { Page } from "../../Page";
-import { Screen } from "../../Screen";
 import { Block, List, ComponentSignal } from "../";
 import { Component } from "../Component";
 import { ComponentFactory, UIValueOrAsync } from "../ComponentFactory";
@@ -8,6 +7,11 @@ import { ComponentFactory, UIValueOrAsync } from "../ComponentFactory";
 /** Represents a container with vertically stacked blocks */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.Block)
 export class Container extends Component {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Container.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Container.Initializer>;
+
     /** Create a container with given content, if any */
     constructor(content: Block[] = []) {
         super();
@@ -16,9 +20,6 @@ export class Container extends Component {
         // containers are not focusable by default:
         this.focusMode = Component.FocusMode.None;
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Container.Initializer) => this;
 
     /** Array of main content blocks, stacked top to bottom (observed) */
     @ComponentFactory.applyComponentsArray(ComponentFactory.CLevel.Block)

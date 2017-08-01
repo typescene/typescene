@@ -1,4 +1,3 @@
-import Async from "../../Async";
 import { Component, ComponentFactory } from "../../UI";
 
 /** @internal */

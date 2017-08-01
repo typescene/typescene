@@ -520,7 +520,7 @@ export * from "@typescene/core/App/View/MessageBox";
 
 }
 
-declare module "@typescene/core/App" {
+declare module "@typescene/core/App/index" {
 export * from "@typescene/core/App/Activity";
 export * from "@typescene/core/App/View";
 export * from "@typescene/core/App/Service";
@@ -809,7 +809,7 @@ export const UnhandledException: Signal.Emittable<Error>;
 
 }
 
-declare module "@typescene/core/Async" {
+declare module "@typescene/core/Async/index" {
 export * from "@typescene/core/Async/Defer";
 export * from "@typescene/core/Async/Signal";
 export * from "@typescene/core/Async/Promise";
@@ -912,12 +912,15 @@ export function bindComponents<ComponentT extends Component>(sourcePath: string,
 declare module "@typescene/core/UI/Components/Blocks/Block" {
 import { Component } from "@typescene/core/UI/Components/Component";
 import { Page } from "@typescene/core/UI/Page";
+import { ComponentFactory } from "@typescene/core/UI/Components/ComponentFactory";
 /** Block base class: full-width block component */
 export class Block extends Component {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Block.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Block.Initializer>;
     /** Create a new empty block component */
     constructor();
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Block.Initializer) => this;
     /** Overlay position (observed); set to one of the `OverlayPosition` enum's values to take this block out of the top-down component flow, and position it relative to its _parent_ container (or to the screen, if displayed directly); note that this block will still move up/down along with the content of the parent container if its `scrollable` property is true */
     overlayPosition?: Block.OverlayPosition;
 }
@@ -962,10 +965,12 @@ import { Component } from "@typescene/core/UI/Components/Component";
 import { ComponentFactory } from "@typescene/core/UI/Components/ComponentFactory";
 /** Represents a card block containing a header, content, and a footer */
 export class Card extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Card.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Card.Initializer>;
     /** Create a card block with given content, if any */
     constructor(content?: Block[]);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Card.Initializer) => this;
     /** Block to be displayed as a header, may be undefined (observed) */
     header?: Block;
     /** Block to be displayed as a footer, may be undefined (observed) */
@@ -998,10 +1003,12 @@ import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/
 import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 /** Represents a block with an embedded sub container within its margins/padding */
 export class ContainerBlock<ContainerT extends Container> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ContainerBlock.Initializer<Container>>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<ContainerBlock.Initializer<ContainerT>>;
     /** Create a container block component with given container, if any */
     constructor(container?: ContainerT);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: ContainerBlock.Initializer<ContainerT>) => this;
     /** Container element (created if not set, never undefined; observed) */
     container: ContainerT;
     /** Overall target height of this component (CSS length; observable, directly modifies `.style` property, does _not_ retrieve actual component height, may be "auto"); if a height has not been set explicitly, or is set to "auto", then the value is taken from the height of the container; for `LayoutContainer`, a value of "100%" is used if the container's height is also "auto" */
@@ -1015,21 +1022,23 @@ export namespace ContainerBlock {
     /** Initializer for .with({ ... }) */
     interface Initializer<ContainerT extends Container> extends Block.Initializer {
         /** Property initializer: container component or initializer */
-        container?: UIValueOrAsync<ComponentFactory<Container> | Container> | ComponentFactory.SpecList2;
+        container?: UIValueOrAsync<ComponentFactory<ContainerT> | ContainerT> | ComponentFactory.SpecList2;
     }
 }
 
 }
 
 declare module "@typescene/core/UI/Components/Blocks/Divider" {
-import { UIValueOrAsync } from "@typescene/core/UI/Components/ComponentFactory";
+import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/ComponentFactory";
 import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 /** Represents a divider block element (horizontal line placed between blocks) */
 export class Divider extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Divider.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Divider.Initializer>;
     /** Create a new divider with given (optional) properties */
     constructor(color?: string, thickness?: string, margin?: string, insetStart?: string, insetEnd?: string);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Divider.Initializer) => this;
     /** Divider color (CSS value, platform default used if empty, observed) */
     color: string;
     /** Divider thickness (CSS value, platform default used if empty, observed) */
@@ -1068,12 +1077,14 @@ import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 import { Divider } from "@typescene/core/UI/Components/Blocks/Divider";
 /** Represents a list of blocks */
 export class List<BlockT extends Block> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<List.Initializer<Block>>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<List.Initializer<BlockT>>;
     /** Create a list component with given items */
     constructor(items?: Array<BlockT | undefined>);
     /** Method that is called immediately after the renderer for this list is constructed; adds observers for item selection */
     protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: List.Initializer<BlockT>) => this;
     /** List content (observed) */
     items: Array<BlockT | undefined>;
     /** Current (last) selected item index (base 0), or -1 if no item is selected (observed) */
@@ -1140,12 +1151,14 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 /** Represents a list of tabs or links */
 export class NavList extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<NavList.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<NavList.Initializer>;
     /** Create a navigation list component */
     constructor(navItems?: NavList.NavItem[], type?: NavList.Type, selectedIndex?: number);
     /** Method that is called immediately after the renderer for this component is constructed; adds observers for nav item selection */
     protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: NavList.Initializer) => this;
     /** Nav labels, icons, and badges (observed) */
     navItems: NavList.NavItem[];
     /** Space reserved for icons (rem units), if > 0 (observed) */
@@ -1245,10 +1258,12 @@ import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/
 import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 /** Represents a row containing control elements placed horizontally */
 export class Row extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Row.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Row.Initializer>;
     /** Create a row block with given content, if any */
     constructor(content?: ControlElement[]);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Row.Initializer) => this;
     /** Array of elements that go into this row (observed) */
     content: Array<ControlElement | undefined>;
     /** Spacing between elements (CSS value, platform default used if empty, observed) */
@@ -1300,10 +1315,12 @@ import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 import { TableRow, TableHeader } from "@typescene/core/UI/Components/Blocks/TableRow";
 /** Represents a table block component */
 export class Table<TableRowT extends TableRow> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Table.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Table.Initializer>;
     /** Create a table with given header and rows, if any */
     constructor(headerColumns?: Array<string | ControlElement | Block>, widths?: string[], rows?: TableRowT[] | Async.ObservableArray<TableRowT>);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Table.Initializer) => this;
     /** Header row; not rendered if undefined, or does not contain columns, OR if table itself has no rows (observed) */
     header?: TableHeader;
     /** List of rows; each row should have the same number of columns (observed) */
@@ -1323,7 +1340,7 @@ export namespace Table {
     /** Initializer for .with({ ... }) */
     interface Initializer extends Block.Initializer {
         /** Property initializer: list of rows */
-        rows: ComponentFactory.SpecList2TCol;
+        rows?: ComponentFactory.SpecList2TCol;
         /** Property initializer: header row */
         header?: ComponentFactory.SpecEltOrListTCol;
         /** Property initializer: form values list name */
@@ -1341,10 +1358,12 @@ import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/
 import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 /** Represents a row within a `Table` component */
 export class TableRow extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<TableRow.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<TableRow.Initializer>;
     /** Create a table row with given columns, if any */
     constructor(columns?: Array<string | ControlElement | Block>, widths?: string[], styles?: Array<Style | Style.StyleSet>);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: TableRow.Initializer) => this;
     /** Column content as strings, control elements, or blocks (observed) */
     columns: Array<string | ControlElement | Block | undefined>;
     /** Column widths for all columns (CSS values, observed) */
@@ -1362,7 +1381,7 @@ export namespace TableRow {
     /** Initializer for .with({ ... }) */
     interface Initializer extends Block.Initializer {
         /** Property initializer: content of all columns, as strings, control elements, or blocks */
-        columns: ComponentFactory.SpecListTCol;
+        columns?: ComponentFactory.SpecListTCol;
         /** Property initializer: widths of all columns */
         widths?: UIValueOrAsync<Array<string | undefined>>;
         /** Property initializer: additional styles for all columns */
@@ -1387,12 +1406,14 @@ import { ComponentSignal, ComponentSignalHandler } from "@typescene/core/UI/Comp
 import { Block } from "@typescene/core/UI/Components/Blocks/Block";
 /** Represents a hierarchical list of blocks */
 export class TreeList<BlockT extends TreeList.BlockItem> extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<TreeList.Initializer<Block>>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<TreeList.Initializer<BlockT>>;
     /** Create a tree list component with given items */
     constructor(items?: Array<BlockT | undefined>);
     /** Method that is called immediately after the renderer for this list is constructed; adds observers for item selection */
     protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: TreeList.Initializer<BlockT>) => this;
     /** Hierarchical list content (observed); items can use the `TreeList.BlockItem` interface to provide sub content, see e.g. `TreeListRow` */
     items: Array<BlockT | undefined>;
     /** Select given item (block), and immediately deselect others if `.selectionMode` is `ItemClick` or `ItemFocus`; does _not_ check if the item is included in `.items` at all for performance reasons */
@@ -1540,26 +1561,10 @@ import { ComponentRenderHandler, ComponentRenderer } from "@typescene/core/UI/Co
 export abstract class Component extends Async.ObservableObject {
     /** Abstract constructor with any number of arguments */
     constructor(...args: any[]);
-    /** Returns a component factory for this component type, with given (observable) property values and/or sub components; the result is an instance of `ComponentFactory`, a pre-initialized component constructor; this method is only available on component classes that provide a parameterless constructor */
-    static with<ClassT extends typeof Component, T extends Component, InitializerT>(this: ClassT & {
-        new (): {
-            initializeWith(initializer: InitializerT): T;
-        };
-    }, properties: InitializerT, ...values: Array<ComponentFactory.SpecEltOrList | ((component: T, base: Component) => void)>): ClassT & ComponentFactory<T>;
-    /** Returns a component factory for this component type, with given sub components; the result is an instance of `ComponentFactory`, a pre-initialized component constructor; this method is only available on component classes that provide a parameterless constructor */
-    static with<ClassT extends typeof Component, T extends Component, InitializerT>(this: ClassT & {
-        new (): {
-            initializeWith(initializer: InitializerT): T;
-        };
-    }, ...values: Array<ComponentFactory.SpecEltOrList | ((component: T, base: Component) => void)>): ClassT & ComponentFactory<T>;
-    /** __Invalid first argument__, use a valid initializer and/or component factories; returns a component factory for this component type, with given (observable) property values and/or sub components */
-    static with<ClassT extends typeof Component, T extends Component, InitializerT>(this: ClassT & {
-        new (): {
-            initializeWith(initializer: InitializerT): T;
-        };
-    }, properties: InitializerT | {}, ...values: Array<ComponentFactory.SpecEltOrList | ((component: T, base: Component) => void)>): never;
-    /** Initializes this instance with given properties, and with given base component to bind to; may be called more than once, may be overridden (as a function property, not method) to extend the initializer type and transform the initializer spec before calling the base method; returns this */
-    initializeWith: (values: Component.Initializer, base?: Component) => this;
+    /** Create a component factory for this class, based on given properties and with optional content and/or callback(s) */
+    static with: ComponentFactory.WithMethodNoContent<Component.Initializer>;
+    /** Initialize this component with given properties, and with given base component to bind to (if called through a component factory constructor); may be called manually to set additional properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Component.Initializer>;
     /** Initialize this component, i.e. apply properties from component factories, if any; called automatically by the highest-level component factory constructor with the base component as argument (i.e. component on which `.with` was called), can be overridden to initialize other properties before those from the component factory (and invoke `super.initialize()` manually); returns true only if this component had not been initialized before */
     initialize(base?: Component): boolean;
     /** True if this component has been initialized (synchronous) */
@@ -1897,6 +1902,33 @@ export interface ComponentFactory<T extends Component> extends Function {
     new (): T;
 }
 export namespace ComponentFactory {
+    /** A generic static [ComponentClass].with(...) method that accepts given initializer type, and/or callbacks, but NO child content; used as a type _only_ for static `Component.with` methods */
+    type WithMethodNoContent<InitializerT> = {
+        /** Create a component factory for this class, based on given properties and with optional callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & {
+            new (): T;
+        }, initializerSpec: InitializerT, ...args: Array<(component: T, base: Component) => void>): ClassT & ComponentFactory<T>;
+        /** Create a component factory for this class, based on given properties and with optional callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & {
+            new (): T;
+        }, ...args: Array<(component: T, base: Component) => void>): ClassT & ComponentFactory<T>;
+    };
+    /** A generic static [ComponentClass].with(...) method that accepts given initializer type, plus optional callbacks and/or child content; used as a type _only_ for static `Component.with` methods */
+    type WithMethod<InitializerT> = {
+        /** Create a component factory for this class, based on given properties and with optional content and/or callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & {
+            new (): T;
+        }, initializerSpec: InitializerT, ...args: Array<((component: T, base: Component) => void) | SpecEltOrList>): ClassT & ComponentFactory<T>;
+        /** Create a component factory for this class, with given content and/or callback(s) */
+        <ClassT extends typeof Component, T extends Component>(this: ClassT & {
+            new (): T;
+        }, ...args: Array<((component: T, base: Component) => void) | SpecEltOrList>): ClassT & ComponentFactory<T>;
+    };
+    /** A generic public [Component].initializeWith(...) method; used as a type _only_ for `Component.initializeWith` methods */
+    type InitializeWithMethod<InitializerT> = {
+        /** Initialize this component with given properties, and with given base component to bind to (if called through a component factory constructor); may be called manually to set additional properties */
+        <T extends Component>(this: T, initializerSpec: InitializerT, baseComponent?: Component): T;
+    };
     /** A factory initializer element (e.g. control element) */
     type SpecElt = UIValueOrAsync<ComponentFactory<Component> | TextLabelFactory | Component | typeof Component | undefined>;
     /** A factory initializer element (e.g. control element) or table content */
@@ -2093,10 +2125,12 @@ import { Component } from "@typescene/core/UI/Components/Component";
 import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/ComponentFactory";
 /** Represents a container with vertically stacked blocks */
 export class Container extends Component {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Container.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Container.Initializer>;
     /** Create a container with given content, if any */
     constructor(content?: Block[]);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Container.Initializer) => this;
     /** Array of main content blocks, stacked top to bottom (observed) */
     content: Array<Block | undefined>;
     /** Vertical positioning of main content area within the outer boundaries of the container (observed), defaults to "top" if not defined */
@@ -2176,14 +2210,16 @@ import { Container } from "@typescene/core/UI/Components/Containers/Container";
 import { TextButton } from "@typescene/core/UI/Components/Controls/Button";
 /** Represents a modal dialog container */
 export class DialogContainer extends Container {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<DialogContainer.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<DialogContainer.Initializer>;
     /** Create a new modal dialog with given content, if any */
     constructor(content?: Block[], width?: string);
     /** Default "appear" animation, added to every new DialogContainer instance by the constructor */
     static APPEAR_ANIMATION?: Animation;
     /** Default "disappear" animation, added to every new DialogContainer instance by the constructor */
     static DISAPPEAR_ANIMATION?: Animation;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: DialogContainer.Initializer) => this;
     /** Block to be displayed as a header, may be undefined (observed) */
     header?: Block;
     /** Block to be displayed as a footer, may be undefined (observed) */
@@ -2238,8 +2274,6 @@ export class DrawerContainer extends DialogContainer {
     static APPEAR_ANIMATION?: Animation;
     /** Default "disappear" animation, added to every new `DrawerContainer` instance by the constructor */
     static DISAPPEAR_ANIMATION?: Animation;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: DialogContainer.Initializer) => this;
 }
 /** Represents a modal container displayed on the right hand side of the screen (i.e. DrawerContainer with different alignment and animations) */
 export class OppositeDrawerContainer extends DrawerContainer {
@@ -2259,8 +2293,10 @@ import { ComponentFactory } from "@typescene/core/UI/Components/ComponentFactory
 import { Component } from "@typescene/core/UI/Components/Component";
 /** Represents a container with sub containers on up to four sides, and a main area with vertically stacked blocks */
 export class LayoutContainer extends Container {
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: LayoutContainer.Initializer) => this;
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<LayoutContainer.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<LayoutContainer.Initializer>;
     /** Default inside gutter width, used when inside gutter container has no defined width (CSS value, initially 18rem) */
     static INSIDE_GUTTER_WIDTH: string;
     /** Default outside gutter width, used when outside gutter container has no defined width (CSS value, initially 22rem) */
@@ -2305,10 +2341,12 @@ import { Component } from "@typescene/core/UI/Components/Component";
 import { ComponentFactory } from "@typescene/core/UI/Components/ComponentFactory";
 /** Represents a control element that contains a block */
 export class BlockControl<BlockT extends Block> extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<BlockControl.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<BlockControl.Initializer>;
     /** Create a new block control element containing the given block, if any */
     constructor(block?: BlockT);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: BlockControl.Initializer) => this;
     /** Block element, if any (observed) */
     block?: BlockT;
     /** Overall target width of this component (CSS length; observable, directly modifies `.style` property, does _not_ retrieve actual component height, may be "auto"); if a width has not been set explicitly, or is set to "auto", then the value is taken from the width of the container */
@@ -2337,14 +2375,16 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents a button control */
 export class Button extends ControlElement {
-    /** Create a button control element */
-    constructor(label?: string | TextLabelFactory, icon?: string);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Button.Initializer>;
     /** Initialize a button control factory with given label and handler */
     static withLabel<T extends typeof Button>(this: T, label: UIValueOrAsync<string | TextLabelFactory>, clickedHandler?: string | PointerHandler): T & ComponentFactory<Button>;
     /** Initialize a button control factory with given icon and handler */
     static withIcon<T extends typeof Button>(this: T, icon: UIValueOrAsync<string>, clickedHandler?: string | PointerHandler): T & ComponentFactory<Button>;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Button.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Button.Initializer>;
+    /** Create a button control element */
+    constructor(label?: string | TextLabelFactory, icon?: string);
     /** Button label (observed) */
     label: string;
     /** Optional icon (see `Label#icon`; observed) */
@@ -2440,12 +2480,14 @@ import { Button } from "@typescene/core/UI/Components/Controls/Button";
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents a button group (toggle, tab, or toolbar) control */
 export class ButtonGroup extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ButtonGroup.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<ButtonGroup.Initializer>;
     /** Create a button group element */
     constructor(buttons?: Button[]);
     /** Method that is called immediately after the renderer for this button group is constructed; adds observers for button activation */
     protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: ButtonGroup.Initializer) => this;
     /** Buttons to be displayed as part of the button group, in order (observed) */
     buttons: Array<Button | undefined>;
     /** Set to true to show buttons from top to bottom (observed) */
@@ -2481,10 +2523,12 @@ import { UIValueOrAsync, ComponentFactory } from "@typescene/core/UI/Components/
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents a control element that contains a container */
 export class ContainerControl<ContainerT extends Container> extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ContainerControl.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<ContainerControl.Initializer>;
     /** Create a container control element that contains the given container, if any */
     constructor(container?: ContainerT);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: ContainerControl.Initializer) => this;
     /** Container element (created if not set, never undefined; observed); if set to a container (other than LayoutContainer) with maxContentWidth other than auto, and this control's width is set to auto, this control will shrinkwrap to the same width as the container */
     container: ContainerT;
     /** Overall target height of this component (CSS length; observable, directly modifies `.style` property, does _not_ retrieve actual component height, may be "auto"); if a height has not been set explicitly, or is set to "auto", then the value is taken from the height of the container; for `LayoutContainer`, a value of "100%" is used if the container's height is also "auto" */
@@ -2508,11 +2552,13 @@ export namespace ContainerControl {
 
 declare module "@typescene/core/UI/Components/Controls/ControlElement" {
 import { Component } from "@typescene/core/UI/Components/Component";
-import { UIValueOrAsync } from "@typescene/core/UI/Components/ComponentFactory";
+import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/ComponentFactory";
 /** UI control element base class */
 export abstract class ControlElement extends Component {
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: ControlElement.Initializer) => this;
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<ControlElement.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<ControlElement.Initializer>;
     /** Width (CSS length), default "auto" (observed) */
     width: string;
     /** Set to true to shrink this element to use as little horizontal space as possible in a row; set to false to expand (observed) */
@@ -2540,10 +2586,12 @@ import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents a stack control containing control elements with equal widths placed from top to bottom */
 export class ControlStack extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ControlStack.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<ControlStack.Initializer>;
     /** Create a stack element with given content, if any */
     constructor(content?: ControlElement[]);
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: ControlStack.Initializer) => this;
     /** Controls to be displayed (observed) */
     content: Array<ControlElement | undefined>;
     /** Spacing between elements (CSS value, platform default used if empty, observed) */
@@ -2581,12 +2629,14 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents an icon control (horizontally centered) */
 export class Icon extends ControlElement {
-    /** Create an icon element */
-    constructor(icon?: string);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Icon.Initializer>;
     /** Initialize an icon control with given icon name */
     static withIcon<T extends typeof Icon>(this: T, icon: UIValueOrAsync<string>): T & ComponentFactory<Icon>;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Icon.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Icon.Initializer>;
+    /** Create an icon element */
+    constructor(icon?: string);
     /** Icon name as CSS class(es), e.g. "glyphicon-edit" or "fa-edit fa-2x" or "material-icons:file_download"; first part is repeated Bootstrap-style automatically, e.g. "fa-edit" becomes "fa fa-edit"; observed); style properties can be appended like "fa-edit color=#ccc fontSize=200%" (or font-size); use quotes to wrap values with spaces, e.g. 'fa-edit border="1px solid #ccc"' */
     icon: string;
     /** Tooltip text (observed) */
@@ -2613,12 +2663,14 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents an image control */
 export class Image extends ControlElement {
-    /** Create an image element */
-    constructor(imageUrl?: string);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Image.Initializer>;
     /** Initialize an image control with given URL */
     static withUrl<T extends typeof Image>(this: T, imageUrl: UIValueOrAsync<string>): T & ComponentFactory<Image>;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Image.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Image.Initializer>;
+    /** Create an image element */
+    constructor(imageUrl?: string);
     /** Image URL (observed) */
     imageUrl: string;
     /** Tooltip text (observed) */
@@ -2653,14 +2705,16 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { InputControl } from "@typescene/core/UI/Components/Controls/InputControls/InputControl";
 /** Represents a single checkbox or radio button control */
 export class Checkbox extends InputControl {
-    /** Create a checkbox element */
-    constructor(name?: string, label?: string | TextLabelFactory, type?: Checkbox.Type, checked?: boolean);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Checkbox.Initializer>;
     /** Initialize a checkbox control factory with given values */
     static withName<T extends typeof Checkbox>(this: T, name: string, label?: string | TextLabelFactory, checked?: boolean, value?: string): T & ComponentFactory<Checkbox>;
     /** Initialize a radio button control factory with given values */
     static withRadioName<T extends typeof Checkbox>(this: T, name: string, label?: string | TextLabelFactory, checked?: boolean, value?: string): T & ComponentFactory<Checkbox>;
-    /** Initialize with given (observable) values; returns this */
-    initializeWith: (values: Checkbox.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Checkbox.Initializer>;
+    /** Create a checkbox element */
+    constructor(name?: string, label?: string | TextLabelFactory, type?: Checkbox.Type, checked?: boolean);
     /** Type: checkbox or radio button (observed), defaults to checkbox */
     type: Checkbox.Type;
     /** Text value used when selected (observed), defaults to "checked" */
@@ -2697,11 +2751,15 @@ export namespace Checkbox {
 declare module "@typescene/core/UI/Components/Controls/InputControls/InputControl" {
 import { Style } from "@typescene/core/UI/Style";
 import { ActionHandler, ComponentSignal } from "@typescene/core/UI/Components/ComponentSignal";
-import { UIValueOrAsync } from "@typescene/core/UI/Components/ComponentFactory";
+import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/ComponentFactory";
 import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory";
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Input field control base class (abstract) */
 export abstract class InputControl extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<InputControl.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<InputControl.Initializer>;
     /** Input value (read/write) */
     value: string;
     /** Form input property name, if any (observed) */
@@ -2753,12 +2811,14 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { InputControl } from "@typescene/core/UI/Components/Controls/InputControls/InputControl";
 /** Represents a native dropdown selection field control */
 export class SelectField extends InputControl {
-    /** Create a select field element */
-    constructor(name?: string, label?: string | TextLabelFactory, options?: SelectField.Option[]);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<SelectField.Initializer>;
     /** Initialize a select field control factory with given name, label, and options */
     static withOptions<T extends typeof SelectField>(this: T, name: string, label?: string | TextLabelFactory, options?: UIValueOrAsync<SelectField.Option[]>): T & ComponentFactory<SelectField>;
-    /** Initialize with given (observable) values; returns this */
-    initializeWith: (values: SelectField.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<SelectField.Initializer>;
+    /** Create a select field element */
+    constructor(name?: string, label?: string | TextLabelFactory, options?: SelectField.Option[]);
     /** List of options and their values (observed) */
     options: Array<SelectField.Option | undefined>;
     /** Currently selected value (read/write observable) */
@@ -2791,12 +2851,14 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { InputControl } from "@typescene/core/UI/Components/Controls/InputControls/InputControl";
 /** Represents a single- or multi-line text input field control */
 export class TextField extends InputControl {
-    /** Create a text field */
-    constructor(name?: string, label?: string | TextLabelFactory, textareaLines?: number);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<TextField.Initializer>;
     /** Initialize a text field control factory with given name, label, and placeholder */
     static withName<T extends typeof TextField>(this: T, name: string, label?: string | TextLabelFactory, placeholderText?: string | TextLabelFactory): T & ComponentFactory<TextField>;
-    /** Initialize with given (observable) values; returns this */
-    initializeWith: (values: TextField.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<TextField.Initializer>;
+    /** Create a text field */
+    constructor(name?: string, label?: string | TextLabelFactory, textareaLines?: number);
     /** Number of rows for a multiline text field, default 0 (NOT observed) */
     textareaLines: number;
     /** Text field type (text, password, number, etc.; observed) */
@@ -2853,12 +2915,14 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents a minimal text control with icon and badge */
 export class Label extends ControlElement {
-    /** Create a label element */
-    constructor(text?: string | TextLabelFactory, icon?: string, remGutter?: number, badge?: string | TextLabelFactory);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Label.Initializer>;
     /** Initialize a text control factory with given text and style */
     static withText<T extends typeof Label>(this: T, text: UIValueOrAsync<string | TextLabelFactory>, style?: UIValueOrAsync<Style | Style.StyleSet>): T & ComponentFactory<Label>;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Label.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Label.Initializer>;
+    /** Create a label element */
+    constructor(text?: string | TextLabelFactory, icon?: string, remGutter?: number, badge?: string | TextLabelFactory);
     /** Set to false to expand horizontally within row (default true; observed) */
     shrinkwrap: boolean;
     /** Text to display (observed) */
@@ -2935,12 +2999,14 @@ import { TextLabelFactory } from "@typescene/core/UI/Components/TextLabelFactory
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents a progress bar control (full width by default) */
 export class ProgressBar extends ControlElement {
-    /** Create a progress bar control element */
-    constructor(progress?: number);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<ProgressBar.Initializer>;
     /** Initialize a progress bar control factory with given progress value (0-1) */
     static withProgress<T extends typeof ProgressBar>(this: T, progress: UIValueOrAsync<number>): T & ComponentFactory<ProgressBar>;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: ProgressBar.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<ProgressBar.Initializer>;
+    /** Create a progress bar control element */
+    constructor(progress?: number);
     /** Current progress value, between 0 and 1, inclusive (observed) */
     progress: number;
     /** Tooltip text (observed) */
@@ -2967,12 +3033,14 @@ import { ComponentFactory, UIValueOrAsync } from "@typescene/core/UI/Components/
 import { ControlElement } from "@typescene/core/UI/Components/Controls/ControlElement";
 /** Represents an empty control element to take up horizontal space within a row */
 export class Spacer extends ControlElement {
-    /** Create a spacer element with given height (default 1px) */
-    constructor(height?: string);
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Spacer.Initializer>;
     /** Initialize a spacer control factory with given size (CSS lengths); also sets `.shrinkwrap` to true if a width is given */
     static withSize<T extends typeof Spacer>(this: T, width?: UIValueOrAsync<string>, height?: UIValueOrAsync<string>): T & ComponentFactory<Spacer>;
-    /** Initialize with given (observable) properties; returns this */
-    initializeWith: (values: Spacer.Initializer) => this;
+    /** Initialize this component with given properties; returns this */
+    initializeWith: ComponentFactory.InitializeWithMethod<Spacer.Initializer>;
+    /** Create a spacer element with given height (default 1px) */
+    constructor(height?: string);
 }
 export namespace Spacer {
     /** Initializer for .with({ ... }) */
@@ -3337,7 +3405,7 @@ export namespace Style {
 
 }
 
-declare module "@typescene/core/UI" {
+declare module "@typescene/core/UI/index" {
 export * from "@typescene/core/UI/Components";
 export * from "@typescene/core/UI/Style";
 export * from "@typescene/core/UI/Page";
@@ -3522,7 +3590,7 @@ declare module "@typescene/dom/App/Layout" {
 
 }
 
-declare module "@typescene/dom/App" {
+declare module "@typescene/dom/App/index" {
 export * from "@typescene/core/App";
 export * from "@typescene/dom/App/DOMApplication";
 export * from "@typescene/dom/App/Http";
@@ -3992,7 +4060,7 @@ declare module "@typescene/dom/UI/UpdateContext" {
 
 }
 
-declare module "@typescene/dom/UI" {
+declare module "@typescene/dom/UI/index" {
 export * from "@typescene/core/UI";
 import * as DOM from "@typescene/dom/UI/DOM";
 export { DOM };

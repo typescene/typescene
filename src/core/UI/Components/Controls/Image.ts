@@ -6,20 +6,23 @@ import { ControlElement } from "./ControlElement";
 
 /** Represents an image control */
 export class Image extends ControlElement {
-    /** Create an image element */
-    constructor(imageUrl = "") {
-        super();
-        this.imageUrl = imageUrl;
-    }
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Image.Initializer>;
 
     /** Initialize an image control with given URL */
     public static withUrl<T extends typeof Image>(this: T,
         imageUrl: UIValueOrAsync<string>) {
         return this.with({ imageUrl });
     }
+    
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Image.Initializer>;
 
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Image.Initializer) => this;
+    /** Create an image element */
+    constructor(imageUrl = "") {
+        super();
+        this.imageUrl = imageUrl;
+    }
 
     /** Image URL (observed) */
     @Async.observable_string

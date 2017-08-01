@@ -6,14 +6,16 @@ import { ComponentFactory } from "../ComponentFactory";
 /** Represents a card block containing a header, content, and a footer */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.Block)
 export class Card extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Card.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Card.Initializer>;
+
     /** Create a card block with given content, if any */
     constructor(content: Block[] = []) {
         super();
         this.content = content;
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Card.Initializer) => this;
 
     /** Block to be displayed as a header, may be undefined (observed) */
     @ComponentFactory.applyComponentRef(ComponentFactory.CLevel.Block)

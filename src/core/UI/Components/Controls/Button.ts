@@ -1,16 +1,34 @@
 import Async from "../../../Async";
-import { Animation } from "../../Animation";
 import { Style } from "../../Style";
-import { Container } from "../";
 import { Component } from "../Component";
 import { ComponentFactory, UIValueOrAsync } from "../ComponentFactory";
-import { ComponentSignalHandler, ComponentSignal,  PointerEventSignal,   PointerHandler } from "../ComponentSignal";
+import { ComponentSignalHandler, ComponentSignal, PointerHandler } from "../ComponentSignal";
 import { Menu } from "../../Menu";
 import { TextLabelFactory } from "../TextLabelFactory";
 import { ControlElement } from "./ControlElement";
 
 /** Represents a button control */
 export class Button extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethodNoContent<Button.Initializer>;
+
+    /** Initialize a button control factory with given label and handler */
+    public static withLabel<T extends typeof Button>(this: T,
+        label: UIValueOrAsync<string | TextLabelFactory>,
+        clickedHandler?: string | PointerHandler) {
+        return this.with({ label, Clicked: clickedHandler });
+    }
+
+    /** Initialize a button control factory with given icon and handler */
+    public static withIcon<T extends typeof Button>(this: T,
+        icon: UIValueOrAsync<string>,
+        clickedHandler?: string | PointerHandler) {
+        return this.with({ label: "", icon, Clicked: clickedHandler });
+    }
+    
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Button.Initializer>;
+
     /** Create a button control element */
     constructor(label: string | TextLabelFactory = "", icon?: string) {
         super();
@@ -30,23 +48,6 @@ export class Button extends ControlElement {
             }
         });
     }
-
-    /** Initialize a button control factory with given label and handler */
-    public static withLabel<T extends typeof Button>(this: T,
-        label: UIValueOrAsync<string | TextLabelFactory>,
-        clickedHandler?: string | PointerHandler) {
-        return this.with({ label, Clicked: clickedHandler });
-    }
-
-    /** Initialize a button control factory with given icon and handler */
-    public static withIcon<T extends typeof Button>(this: T,
-        icon: UIValueOrAsync<string>,
-        clickedHandler?: string | PointerHandler) {
-        return this.with({ label: "", icon, Clicked: clickedHandler });
-    }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Button.Initializer) => this;
 
     /** Button label (observed) */
     @Async.observable_string

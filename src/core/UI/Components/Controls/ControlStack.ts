@@ -1,5 +1,4 @@
 import Async from "../../../Async";
-import { Row } from "../";
 import { Component } from "../Component";
 import { ComponentFactory,  UIValueOrAsync } from "../ComponentFactory";
 import { ControlElement } from "./ControlElement";
@@ -7,14 +6,16 @@ import { ControlElement } from "./ControlElement";
 /** Represents a stack control containing control elements with equal widths placed from top to bottom */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.ControlElement)
 export class ControlStack extends ControlElement {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<ControlStack.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<ControlStack.Initializer>;
+
     /** Create a stack element with given content, if any */
     constructor(content: ControlElement[] = []) {
         super();
         this.content = content;
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: ControlStack.Initializer) => this;
 
     /** Controls to be displayed (observed) */
     @ComponentFactory.applyComponentsArray(ComponentFactory.CLevel.ControlElement)

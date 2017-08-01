@@ -7,14 +7,16 @@ import { Block } from "./Block";
 /** Represents a row containing control elements placed horizontally */
 @ComponentFactory.appendChildComponents(ComponentFactory.CLevel.ControlElement)
 export class Row extends Block {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<Row.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<Row.Initializer>;
+
     /** Create a row block with given content, if any */
     constructor(content: ControlElement[] = []) {
         super();
         this.content = content;
     }
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: Row.Initializer) => this;
 
     /** Array of elements that go into this row (observed) */
     @ComponentFactory.applyComponentsArray(ComponentFactory.CLevel.ControlElement)

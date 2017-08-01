@@ -14,6 +14,11 @@ import { TextButton } from "../Controls/Button";
 
 /** Represents a modal dialog container */
 export class DialogContainer extends Container {
+    /** Create a component factory for this class */
+    static with: ComponentFactory.WithMethod<DialogContainer.Initializer>;
+    /** Initialize this component with given properties; returns this */
+    public initializeWith: ComponentFactory.InitializeWithMethod<DialogContainer.Initializer>;
+
     /** Create a new modal dialog with given content, if any */
     constructor(content?: Block[], width = "27rem") {
         super(content);
@@ -48,9 +53,6 @@ export class DialogContainer extends Container {
 
     /** Default "disappear" animation, added to every new DialogContainer instance by the constructor */
     public static DISAPPEAR_ANIMATION?: Animation;
-
-    /** Initialize with given (observable) properties; returns this */
-    public initializeWith: (values: DialogContainer.Initializer) => this;
 
     /** Block to be displayed as a header, may be undefined (observed) */
     @ComponentFactory.applyComponentRef(ComponentFactory.CLevel.Block)

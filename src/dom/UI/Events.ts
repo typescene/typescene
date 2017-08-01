@@ -1,5 +1,5 @@
 ﻿import * as Async from "@typescene/core/Async";
-import { Component, ComponentSignal, PointerEventSignal, KeyEventSignal, DragEventSignal, defineComponentSignal, KeyboardEvent, PointerEvent } from "@typescene/core/UI";
+import { Component, ComponentSignal, defineComponentSignal, PointerEvent } from "@typescene/core/UI";
 
 // lookup table for custom event names
 const customEventNames: { [name: string]: string | undefined } = {
@@ -88,8 +88,8 @@ function onHandlersDisconnected(this: DOMSignalClass) {
 
 // inject a method to create DOM event signals into the Component class
 Async.inject(Component, {
-    "@createEventSignal": function <T>(
-        this: Component, id: string, signalClass: any, opt?: any) {
+    "@createEventSignal": function (this: Component,
+        id: string, signalClass: any, opt?: any) {
         var result: ComponentSignal.Emittable<any>;
         var domEventFilter: ((event: any) => (boolean | undefined)) | undefined;
         var useCapture = true;
