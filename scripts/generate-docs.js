@@ -8,7 +8,7 @@ require("./update-docs");
 // initialize folder with assets, including bootstrap css and the Monaco editor
 console.log("> Compiling docs viewer ...");
 const copy = require("./lib/copy");
-copy.folder("./src/docs-pages", "./docs");
+copy.folder("./src/docs-viewer/assets", "./docs");
 copy.file("./node_modules/bootstrap/dist/css/bootstrap.min.css", "./docs");
 if (!fs.existsSync("./docs/monaco-editor")) fs.mkdirSync("./docs/monaco-editor");
 if (!fs.existsSync("./docs/monaco-editor/min")) fs.mkdirSync("./docs/monaco-editor/min");

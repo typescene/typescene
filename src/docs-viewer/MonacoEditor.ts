@@ -50,7 +50,8 @@ export class MonacoEditor {
             scrollBeyondLastLine: false,
             formatOnType: true,
             formatOnPaste: true,
-            wordBasedSuggestions: false
+            wordBasedSuggestions: false,
+            minimap: { enabled: false }
         });
         monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
             target: monaco.languages.typescript.ScriptTarget.ES5,

@@ -16,7 +16,7 @@ export class TOCView extends MainView.TOCView.with(
                 atTop ? 0 : .35)
         },
         UI.CloseRow.with(
-            { style: { border: "1px solid #eee" } },
+            { style: { border: "2px solid #eee" } },
             UI.TextField.with({
                 name: "filter",
                 value: UI.bind2("filterText"),
@@ -38,7 +38,7 @@ export class TOCView extends MainView.TOCView.with(
 
     // add a label for this documentation file
     UI.CloseRow.with(
-        { height: "2rem" },
+        { height: "2rem", style: { marginTop: "1rem" } },
         UI.Icon.with({
             icon: "fa-chevron-down",
             width: "2rem",

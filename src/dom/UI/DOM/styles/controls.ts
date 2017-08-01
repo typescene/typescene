@@ -177,22 +177,20 @@ export default new Stylesheet("", {
 
     // cards:
     ".card": {
+        background: Async.observe(() => Styles.color.background),
+        color: Async.observe(() => Styles.color.text),
         borderWidth: "1px",
         borderStyle: "solid",
         borderColor: Async.observe(() => Styles.color.divider),
         borderRadius: Async.observe(() => Styles.size.cardBorderRadius)
     },
     ".card-header": {
-        background: "rgba(0,0,0,.1)",
-        borderBottomWidth: "1px",
-        borderBottomStyle: "solid",
-        borderBottomColor: Async.observe(() => Styles.color.divider)
+        background: Async.observe(() => Styles.color.primary),
+        color: Async.observe(() => Styles.color.primaryText)
     },
     ".card-footer": {
-        background: "rgba(0,0,0,.1)",
-        borderTopWidth: "1px",
-        borderTopStyle: "solid",
-        borderTopColor: Async.observe(() => Styles.color.divider)
+        background: Async.observe(() => Styles.color.primary),
+        color: Async.observe(() => Styles.color.primaryText)
     },
 
     // dropdowns (menus):

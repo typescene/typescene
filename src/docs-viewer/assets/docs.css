@@ -43,8 +43,9 @@ h5 {
     overflow: auto;
 }
 .doc-text-article pre > code {
-    font-family: Menlo, Monaco, "Courier New", monospace;
+    font-family: Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
     font-size: .8em;
+    line-height: 1.5em;
     background: #222;
     white-space: pre !important;
 }

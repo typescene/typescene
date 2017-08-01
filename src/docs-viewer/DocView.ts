@@ -16,7 +16,7 @@ class DocView extends MainView.DocView.with(
     UI.Row.with(
         {
             height: Async.observe(() =>
-                UI.Screen.dimensions.isSmall ? "auto" : "4.5rem"),
+                UI.Screen.dimensions.isSmall ? "auto" : "4rem"),
             spacing: ".5rem",
             verticalSpacing: "1rem"
         },
