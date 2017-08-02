@@ -1,7 +1,7 @@
 {
   "name": "typescene",
   "private": true,
-  "version": "0.9.9",
+  "version": "0.9.10",
   "description": "Strongly typed GUI toolkit for Web applications",
   "author": "Jelmer Cormont",
   "license": "MIT",
