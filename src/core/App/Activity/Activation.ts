@@ -152,12 +152,12 @@ class ActivationRouter {
             if (spec[0] === ":") {
                 // match parameter: store next segment in a parameter
                 parameters[spec.slice(1)] = path.slice(idx, end);
-                idx = end;
             }
             else if (spec !== path.slice(idx, end)) {
                 // segment does not match
                 return undefined;
             }
+            idx = end;
         }
 
         // all segments matched, if path is fully consumed then create the activation
