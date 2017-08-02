@@ -82,7 +82,7 @@ function generateAsync(sourceDir, version) {
             populateInheritance();
             var toc = makeTOC(result);
             var title = findDocTitle(toc) || DEFAULT_DOC_TITLE;
-            return JSON.stringify({ version, title, toc, items: result });
+            return { version, title, toc, items: result };
         });
 
 

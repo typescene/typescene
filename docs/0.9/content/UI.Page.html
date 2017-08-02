@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>UI.Page - Typescene Documentation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>pre { white-space: pre-wrap }</style>
+<body style="margin: 0; padding: 0; font: menu; text-align: center">
+    <header style="background: #222; color: #eee; padding: 1rem">
+        <p>Loading documentation viewer...</p>
+    </header>
+    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
+        <p>
+            <a href="index.html">&lt; Text Index</a>
+             | <a href="UI.html">UI</a>
+        </p>
+<h1>Page</h1><pre><code>class Page</pre></code><p>Represents a page to be displayed on screen.</p>
+<ul><li><a href="UI.Page.DisplayOptions.html">UI &gt; Page &gt; DisplayOptions (interface)</a></li><li><a href="UI.Page.getCurrentPage.html">UI &gt; Page &gt; getCurrentPage</a></li><li><a href="UI.Page.withContent.html">UI &gt; Page &gt; withContent</a></li><li><a href="UI.Page__Displayed.html">UI &gt; Page &gt; Displayed</a></li><li><a href="UI.Page__Removed.html">UI &gt; Page &gt; Removed</a></li><li><a href="UI.Page__Rendered.html">UI &gt; Page &gt; Rendered</a></li><li><a href="UI.Page.constructor.html">UI &gt; Page &gt; constructor</a></li><li><a href="UI.Page__contains.html">UI &gt; Page &gt; contains</a></li><li><a href="UI.Page__content.html">UI &gt; Page &gt; content</a></li><li><a href="UI.Page__disable.html">UI &gt; Page &gt; disable</a></li><li><a href="UI.Page__displayAsync.html">UI &gt; Page &gt; displayAsync</a></li><li><a href="UI.Page__flowDirection.html">UI &gt; Page &gt; flowDirection</a></li><li><a href="UI.Page__getComponentById.html">UI &gt; Page &gt; getComponentById</a></li><li><a href="UI.Page__getComponentsByType.html">UI &gt; Page &gt; getComponentsByType</a></li><li><a href="UI.Page__handleEsc.html">UI &gt; Page &gt; handleEsc</a></li><li><a href="UI.Page__remove.html">UI &gt; Page &gt; remove</a></li><li><a href="UI.Page__scrollTo.html">UI &gt; Page &gt; scrollTo</a></li><li><a href="UI.Page__uid.html">UI &gt; Page &gt; uid</a></li><li><a href="UI.Page__KeyDown.html">UI &gt; Page &gt; KeyDown</a></li></ul>
+    </section>
+    
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                location.hash = "#/UI.Page";
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                            window.typescene.Async.sleep(10).then(function () {
+                                history.replaceState && history.replaceState(
+                                    history.state || {},
+                                    window.title, "/index.0.9.html" + location.hash)
+                            });
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+</body>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>UI.Style - Typescene Documentation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>pre { white-space: pre-wrap }</style>
+<body style="margin: 0; padding: 0; font: menu; text-align: center">
+    <header style="background: #222; color: #eee; padding: 1rem">
+        <p>Loading documentation viewer...</p>
+    </header>
+    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
+        <p>
+            <a href="index.html">&lt; Text Index</a>
+             | <a href="UI.html">UI</a>
+        </p>
+<h1>Style</h1><pre><code>class Style</pre></code><p>Encapsulates CSS style properties, classes, and hidden/selected attributes; these styles are observed when applied to components on screen, by themselves or overridden using another Style instance (see <code>.override(...)</code>); properties are always applied in alphabetical order, i.e <code>backgroundColor</code> after <code>background</code>, <code>paddingTop</code> after <code>padding</code>, etc.</p>
+<ul><li><a href="UI.Style.StyleSet.html">UI &gt; Style &gt; StyleSet (interface)</a></li><li><a href="UI.Style.withClass.html">UI &gt; Style &gt; withClass</a></li><li><a href="UI.Style.constructor.html">UI &gt; Style &gt; constructor</a></li><li><a href="UI.Style__addClass.html">UI &gt; Style &gt; addClass</a></li><li><a href="UI.Style__addShadowEffect.html">UI &gt; Style &gt; addShadowEffect</a></li><li><a href="UI.Style__deselect.html">UI &gt; Style &gt; deselect</a></li><li><a href="UI.Style__get.html">UI &gt; Style &gt; get</a></li><li><a href="UI.Style__getClassName.html">UI &gt; Style &gt; getClassName</a></li><li><a href="UI.Style__getOverrides.html">UI &gt; Style &gt; getOverrides</a></li><li><a href="UI.Style__hide.html">UI &gt; Style &gt; hide</a></li><li><a href="UI.Style__isHidden.html">UI &gt; Style &gt; isHidden</a></li><li><a href="UI.Style__isSelected.html">UI &gt; Style &gt; isSelected</a></li><li><a href="UI.Style__override.html">UI &gt; Style &gt; override</a></li><li><a href="UI.Style__removeClass.html">UI &gt; Style &gt; removeClass</a></li><li><a href="UI.Style__select.html">UI &gt; Style &gt; select</a></li><li><a href="UI.Style__set.html">UI &gt; Style &gt; set</a></li><li><a href="UI.Style__setClass.html">UI &gt; Style &gt; setClass</a></li><li><a href="UI.Style__show.html">UI &gt; Style &gt; show</a></li><li><a href="UI.Style__uid.html">UI &gt; Style &gt; uid</a></li></ul>
+    </section>
+    
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                location.hash = "#/UI.Style";
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                            window.typescene.Async.sleep(10).then(function () {
+                                history.replaceState && history.replaceState(
+                                    history.state || {},
+                                    window.title, "/index.0.9.html" + location.hash)
+                            });
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+</body>

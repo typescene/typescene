@@ -16,7 +16,12 @@ export class TOCView extends MainView.TOCView.with(
                 atTop ? 0 : .35)
         },
         UI.CloseRow.with(
-            { style: { border: "2px solid #eee" } },
+            {
+                style: {
+                    background: "#fff",
+                    border: "2px solid #eee"
+                }
+            },
             UI.TextField.with({
                 name: "filter",
                 value: UI.bind2("filterText"),

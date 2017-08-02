@@ -9,7 +9,6 @@ require("./update-docs");
 console.log("> Compiling docs viewer ...");
 const copy = require("./lib/copy");
 copy.folder("./src/docs-viewer/assets", "./docs");
-copy.file("./node_modules/bootstrap/dist/css/bootstrap.min.css", "./docs");
 if (!fs.existsSync("./docs/monaco-editor")) fs.mkdirSync("./docs/monaco-editor");
 if (!fs.existsSync("./docs/monaco-editor/min")) fs.mkdirSync("./docs/monaco-editor/min");
 copy.folder("./node_modules/monaco-editor/min", "./docs/monaco-editor/min");
@@ -21,7 +20,10 @@ version = version.replace(/^(\d+\.\d+)\..*/, "$1");
 const indexHtmlPath = path.resolve(__dirname, "../docs/index.html");
 var indexHtmlContent = fs.readFileSync(indexHtmlPath).toString();
 indexHtmlContent = indexHtmlContent.replace("src=\"main.min.js\"",
-    "src=\"" + version + "/main.min.js\"");
+    "src=\"/" + version + "/main.min.js\"");
+indexHtmlContent += "\n\n<footer style=\"text-align: center\">" +
+    "<a style=\"color: #eee; font: menu\" href=\"/" +
+    version + "/content/\">Sitemap (Text Index)</a></footer>\n";
 fs.writeFileSync(indexHtmlPath, indexHtmlContent);
 
 // also create versioned html to reference this JS version

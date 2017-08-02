@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>App.ActivityStack - Typescene Documentation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>pre { white-space: pre-wrap }</style>
+<body style="margin: 0; padding: 0; font: menu; text-align: center">
+    <header style="background: #222; color: #eee; padding: 1rem">
+        <p>Loading documentation viewer...</p>
+    </header>
+    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
+        <p>
+            <a href="index.html">&lt; Text Index</a>
+             | <a href="App.html">App</a>
+        </p>
+<h1>ActivityStack</h1><pre><code>class ActivityStack</pre></code><p>Represents a stack of activated activities (like browser history).</p>
+<ul><li><a href="App.ActivityStack.Cursor.html">App &gt; ActivityStack &gt; Cursor (interface)</a></li><li><a href="App.ActivityStack__contains.html">App &gt; ActivityStack &gt; contains</a></li><li><a href="App.ActivityStack__getCursor.html">App &gt; ActivityStack &gt; getCursor</a></li><li><a href="App.ActivityStack__getHistoryState.html">App &gt; ActivityStack &gt; getHistoryState</a></li><li><a href="App.ActivityStack__getParent.html">App &gt; ActivityStack &gt; getParent</a></li><li><a href="App.ActivityStack__length.html">App &gt; ActivityStack &gt; length</a></li><li><a href="App.ActivityStack__popAsync.html">App &gt; ActivityStack &gt; popAsync</a></li><li><a href="App.ActivityStack__pushAsync.html">App &gt; ActivityStack &gt; pushAsync</a></li><li><a href="App.ActivityStack__replaceAsync.html">App &gt; ActivityStack &gt; replaceAsync</a></li><li><a href="App.ActivityStack__restoreHistoryStateAsync.html">App &gt; ActivityStack &gt; restoreHistoryStateAsync</a></li><li><a href="App.ActivityStack__title.html">App &gt; ActivityStack &gt; title</a></li><li><a href="App.ActivityStack__top.html">App &gt; ActivityStack &gt; top</a></li><li><a href="App.ActivityStack__upAsync.html">App &gt; ActivityStack &gt; upAsync</a></li><li><a href="App.ActivityStack__Transition.html">App &gt; ActivityStack &gt; Transition</a></li></ul>
+    </section>
+    
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                location.hash = "#/App.ActivityStack";
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                            window.typescene.Async.sleep(10).then(function () {
+                                history.replaceState && history.replaceState(
+                                    history.state || {},
+                                    window.title, "/index.0.9.html" + location.hash)
+                            });
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+</body>

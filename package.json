@@ -31,7 +31,6 @@
   },
   "devDependencies": {
     "awesome-typescript-loader": "^3.2.1",
-    "bootstrap": "^3.3.7",
     "markdown-it": "^8.3.1",
     "monaco-editor": "^0.9.0",
     "rimraf": "^2.6.1",

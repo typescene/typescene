@@ -353,7 +353,7 @@ export class TagLabelRow extends UI.CloseRow {
 class ItemListPanel extends UI.ContainerBlock.with(
     {
         style: new UI.Style({ margin: "0 0 1rem" })
-            .addShadowEffect(.5)
+            .addShadowEffect(.1)
     },
     UI.Container.with(
         {

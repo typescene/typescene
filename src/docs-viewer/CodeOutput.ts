@@ -35,7 +35,7 @@ var _loaded = UI.Screen.ready.then(() => {
         return svc.loadAsync().then(() => {
             var version = svc.getVersion();
             version = version.replace(/^(\d+\.\d+)\..*/, "$1");
-            return App.Http.getTextAsync(version + "/typescene.d.ts.txt")
+            return App.Http.getTextAsync("/" + version + "/typescene.d.ts.txt")
         }).then(defs => {
             MonacoEditor.loadDeclarations("typescene.d.ts", defs);
             MonacoEditor.loadDeclarations("editor.d.ts",

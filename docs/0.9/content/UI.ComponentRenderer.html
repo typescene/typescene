@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>UI.ComponentRenderer - Typescene Documentation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>pre { white-space: pre-wrap }</style>
+<body style="margin: 0; padding: 0; font: menu; text-align: center">
+    <header style="background: #222; color: #eee; padding: 1rem">
+        <p>Loading documentation viewer...</p>
+    </header>
+    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
+        <p>
+            <a href="index.html">&lt; Text Index</a>
+             | <a href="UI.html">UI</a>
+        </p>
+<h1>ComponentRenderer</h1><pre><code>class ComponentRenderer&lt;ComponentT extends Component, ElementT&gt;</pre></code><p>Class that contains the code necessary to render a component; to retrieve rendering output, Component methods only use the <code>.output</code> property, which is an ObservableValue instance that is populated using the (protected) <code>.render</code> method.</p>
+<ul><li><a href="UI.ComponentRenderer.Output.html">UI &gt; ComponentRenderer &gt; Output (class)</a></li><li><a href="UI.ComponentRenderer.RenderOptions.html">UI &gt; ComponentRenderer &gt; RenderOptions (interface)</a></li><li><a href="UI.ComponentRenderer.constructor.html">UI &gt; ComponentRenderer &gt; constructor</a></li><li><a href="UI.ComponentRenderer__component.html">UI &gt; ComponentRenderer &gt; component</a></li><li><a href="UI.ComponentRenderer__output.html">UI &gt; ComponentRenderer &gt; output</a></li><li><a href="UI.ComponentRenderer__watch.html">UI &gt; ComponentRenderer &gt; watch</a></li><li><a href="UI.ComponentRenderer__render.html">UI &gt; ComponentRenderer &gt; render</a></li><li><a href="UI.ComponentRenderer__Rendered.html">UI &gt; ComponentRenderer &gt; Rendered</a></li></ul>
+    </section>
+    
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                location.hash = "#/UI.ComponentRenderer";
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                            window.typescene.Async.sleep(10).then(function () {
+                                history.replaceState && history.replaceState(
+                                    history.state || {},
+                                    window.title, "/index.0.9.html" + location.hash)
+                            });
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+</body>

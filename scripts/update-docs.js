@@ -11,7 +11,10 @@ if (!fs.existsSync(docsVersionPath)) fs.mkdirSync(docsVersionPath);
 
 // generate documentation JSON file
 const docgen = require("./lib/docgen");
-docgen.generateAsync("./src/docs-md", version)
+const splitContent = require("./lib/split-content");
+var contentPath = docsVersionPath + "/content";
+docgen.generateAsync("./src/docs", version)    
+    .then(data => splitContent(data, contentPath).then(() => JSON.stringify(data)))
     .then(json => { console.log("+ documentation.json (" + json.length + " bytes)"); return json })
     .then(json => { fs.writeFileSync(docsVersionPath + "/documentation.json", json) })
     .catch(err => { console.error(err) });

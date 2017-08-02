@@ -3,8 +3,9 @@ import { MainActivity } from "./MainActivity";
 
 @App.mapViewActivity(MainActivity)
 export class MainView extends App.HubViewLayout.with(
-    { horzAlign: "center", maxContentWidth: "55rem" },
+    { horzAlign: "center", maxContentWidth: "46rem" },
     App.HubViewLayout.Header.with(
+        { style: { background: "linear-gradient(120deg, #43a, #346) || #4ae" } },
         UI.TextButton.with({
             hidden: UI.bind("!sidebarCollapsed"),
             label: "",
@@ -12,10 +13,10 @@ export class MainView extends App.HubViewLayout.with(
             Click: "showDrawer"
         }),
         UI.Image.with({
-            imageUrl: "../logo.png",
+            imageUrl: "/logo.png",
             width: "1.5rem"
         }),
-        UI.tl`{h1|1.5rem|500|letterSpacing=-1px}Documentation`,
+        UI.tl`{h1|1.5rem|500|#fff|letterSpacing=-1px}Documentation`,
         UI.Spacer,
         UI.LinkButton.with({
             hidden: UI.bind("sidebarCollapsed"),
@@ -32,7 +33,7 @@ export class MainView extends App.HubViewLayout.with(
         {
             style: {
                 borderRight: "1px solid #eee",
-                background: "#fff"
+                background: "#f8f8f8"
             },
             scrollable: false
         },
@@ -40,7 +41,7 @@ export class MainView extends App.HubViewLayout.with(
             {
                 hidden: UI.bind("!sidebarCollapsed"),
                 height: "7rem",
-                style: { background: "#38e", color: "#fff" },
+                style: { background: "#333", color: "#fff" },
                 vertAlign: "bottom"
             },
             UI.tl`{h4}Table of Contents`

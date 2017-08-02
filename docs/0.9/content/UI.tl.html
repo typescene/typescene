@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>UI.tl - Typescene Documentation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>pre { white-space: pre-wrap }</style>
+<body style="margin: 0; padding: 0; font: menu; text-align: center">
+    <header style="background: #222; color: #eee; padding: 1rem">
+        <p>Loading documentation viewer...</p>
+    </header>
+    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
+        <p>
+            <a href="index.html">&lt; Text Index</a>
+             | <a href="UI.html">UI</a>
+        </p>
+<h1>tl</h1><pre><code>function tl(strings: TemplateStringsArray, ...values: any[]): TextLabelFactory;
+function tl(text: string | Async.ObservableValue&lt;string&gt;, baseClass?: typeof Label): TextLabelFactory;
+function tl(getter: () =&gt; (string | Async.ObservableValue&lt;string&gt;), baseClass?: typeof Label): TextLabelFactory;
+function tl(getter: Binding&lt;string&gt;, baseClass?: typeof Label): TextLabelFactory;</pre></code><p>[1]. Tagged template string function that returns a text label factory instance to be used with component factory content lists; functions in the expanded values (i.e. result of <code>${...}</code>), and bindings (instanceof Binding), are used as getters for nested observable string values (e.g. <code>${() =&gt; ...}</code> is observed and converted to a string); pluralization forms can be substituted based on existing arguments by number (base 1) using e.g. <code>%{1|is|are}</code>; prefixes can be used to change the type of component factory created and its styles and properties:</p>
+<ul>
+<li><code>{p}</code> for Paragraph,</li>
+<li><code>{h1-6}</code> for Heading,</li>
+<li><code>{w}</code> for WideLabel,</li>
+<li><code>{b|i|u}</code> for text styles,</li>
+<li><code>{left|center|right}</code> for alignment,</li>
+<li><code>{#...}</code> for text colors,</li>
+<li><code>{nnn}</code> for font weights,</li>
+<li><code>{icon:...}</code> for icons,</li>
+<li><code>{icon:... property-name=...}</code> for icon style properties,</li>
+<li><code>{property-name=...}</code> or <code>{propertyName=...}</code> for individual style properties,</li>
+<li><code>{.classname}</code> and <code>{.class1.class2}</code> for class name(s),</li>
+<li><code>{...%|...em|...rem| etc.}</code> for font sizes, and</li>
+<li><code>{l:...%|...rem| etc.}</code> for Label with given width;</li>
+</ul>
+<p>Prefixes can be combined using the pipe | symbol and may also be the result of an expanded value (i.e. first ${…} part).</p>
+<p>[2]. Simplified version of tagged template helper .tl`…` with a single piece of text, possibly with a base Label class that is used if given string does not override the class using e.g. <code>{p}</code> or <code>{h1}</code>.</p>
+<p>[3]. Simplified version of tagged template helper .tl`…` observing a single piece of text, possibly with a base Label class that is used if given string does not override the class using e.g. <code>{p}</code> or <code>{h1}</code>.</p>
+<p>[4]. Simplified version of tagged template helper .tl`…` observing a single binding, possibly with a base Label class that is used if given string does not override the class using e.g. <code>{p}</code> or <code>{h1}</code>.</p>
+
+    </section>
+    
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                location.hash = "#/UI.tl";
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                            window.typescene.Async.sleep(10).then(function () {
+                                history.replaceState && history.replaceState(
+                                    history.state || {},
+                                    window.title, "/index.0.9.html" + location.hash)
+                            });
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+</body>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>UI.ContainerControl - Typescene Documentation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>pre { white-space: pre-wrap }</style>
+<body style="margin: 0; padding: 0; font: menu; text-align: center">
+    <header style="background: #222; color: #eee; padding: 1rem">
+        <p>Loading documentation viewer...</p>
+    </header>
+    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
+        <p>
+            <a href="index.html">&lt; Text Index</a>
+             | <a href="UI.html">UI</a>
+        </p>
+<h1>ContainerControl</h1><pre><code>class ContainerControl&lt;ContainerT extends Container&gt; extends ControlElement</pre></code><p>Represents a control element that contains a container.</p>
+<ul><li><a href="UI.ContainerControl.Initializer.html">UI &gt; ContainerControl &gt; Initializer (interface)</a></li><li><a href="UI.ContainerControl.with.html">UI &gt; ContainerControl &gt; with</a></li><li><a href="UI.ContainerControl.constructor.html">UI &gt; ContainerControl &gt; constructor</a></li><li><a href="UI.ContainerControl__appendChild.html">UI &gt; ContainerControl &gt; appendChild</a></li><li><a href="UI.ContainerControl__container.html">UI &gt; ContainerControl &gt; container</a></li><li><a href="UI.ContainerControl__getChildren.html">UI &gt; ContainerControl &gt; getChildren</a></li><li><a href="UI.ContainerControl__height.html">UI &gt; ContainerControl &gt; height</a></li><li><a href="UI.ContainerControl__initializeWith.html">UI &gt; ContainerControl &gt; initializeWith</a></li><li><a href="UI.ContainerControl__width.html">UI &gt; ContainerControl &gt; width</a></li></ul>
+    </section>
+    
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                location.hash = "#/UI.ContainerControl";
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                            window.typescene.Async.sleep(10).then(function () {
+                                history.replaceState && history.replaceState(
+                                    history.state || {},
+                                    window.title, "/index.0.9.html" + location.hash)
+                            });
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+</body>

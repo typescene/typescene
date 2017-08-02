@@ -43,11 +43,11 @@ export class TextLabelFactory {
         }
     }
 
-    /** Injectable method to translate given text (including substitution and pluralization placeholders); injected by App sub module to proxy the `culture` service */
+    /** @internal Injectable method to translate given text (including substitution and pluralization placeholders); injected by App sub module to proxy the `culture` service */
     @Async.injectable
     public ["@translateText"](text: string) { return text }
 
-    /** Injectable method to pick a plural form for given number; defaults to English (singular/plural) forms; injected by App sub module to proxy the `culture` service */
+    /** @internal Injectable method to pick a plural form for given number; defaults to English (singular/plural) forms; injected by App sub module to proxy the `culture` service */
     @Async.injectable
     public ["@pluralizeText"](n: number, forms: string[]) {
         return (n > 1 || n < -1) ? (forms[1] || forms[0]) : forms[0];

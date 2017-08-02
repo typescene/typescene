@@ -2,7 +2,7 @@
 import { Async } from "@typescene/dom";
 
 /** The relative path that refers to the Monaco Editor "vs" directory */
-const VS_PATH = "../monaco-editor/min/vs";
+const VS_PATH = "/monaco-editor/min/vs";
 
 /** Global variable defined by the Monaco editor loader.js script */
 declare var AMDLoader: any;

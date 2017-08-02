@@ -3067,10 +3067,6 @@ export class TextLabelFactory {
     toString(): string;
     /** Get the encapsulated text wrapped in a new Label (or derived) instance, or an observable value representing the instance; uses {...} prefix to control component type and its properties; parameters are used by component factory to initialize bindings used in `tl` strings, if any */
     getComponent(baseComponent?: Component, propertyName?: string): Label | Async.ObservableValue<Label>;
-    /** Injectable method to translate given text (including substitution and pluralization placeholders); injected by App sub module to proxy the `culture` service */
-    ["@translateText"](text: string): string;
-    /** Injectable method to pick a plural form for given number; defaults to English (singular/plural) forms; injected by App sub module to proxy the `culture` service */
-    ["@pluralizeText"](n: number, forms: string[]): string;
     /** Returns string value with specific substituted arguments */
     private _toString(args?);
     /** Helper function to turn text into a component instance (possibly reusing given old Label instance) */
