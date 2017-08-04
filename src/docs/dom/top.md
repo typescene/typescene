@@ -6,6 +6,10 @@
 
 **Typescene** is a strongly typed front-end toolkit for modern web applications built with TypeScript. It combines best practices from the realms of traditional desktop GUI development, mobile app development, and JavaScript web development in a single framework.
 
+[Get started &gt;](#/start/setup)
+
+---
+
 Why build web apps with Typescene?
 
 * **Single-source development** -- everything written in TypeScript, no need to switch among HTML, CSS and JS files.

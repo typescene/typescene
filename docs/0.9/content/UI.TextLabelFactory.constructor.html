@@ -1,21 +1,38 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<title>UI.TextLabelFactory.constructor - Typescene Documentation</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>pre { white-space: pre-wrap }</style>
-<body style="margin: 0; padding: 0; font: menu; text-align: center">
-    <header style="background: #222; color: #eee; padding: 1rem">
-        <p>Loading documentation viewer...</p>
-    </header>
-    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
-        <p>
-            <a href="index.html">&lt; Text Index</a>
-             | <a href="UI.TextLabelFactory.html">UI.TextLabelFactory</a>
-        </p>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>new TextLabelFactory (UI.TextLabelFactory.constructor)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: new TextLabelFactory (UI.TextLabelFactory.constructor) - Create the text label factory using the given string, stringable (object with a toString method), or observable value, along with an optional array of (observable) substitution arguments or a function that returns such an array for a component to bind to, and a Label base class that is used if not overridden by string content prefix.
+" />
+        <style>
+            body { margin: 0; padding: 0; font: menu; text-align: center }
+            header { background: #222; color: #eee; padding: 1rem }
+            body > section { padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p>Loading documentation viewer...</p>
+        </header>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="UI.TextLabelFactory.html">UI.TextLabelFactory</a>
+            </p>
 <h1>new TextLabelFactory</h1><pre><code>constructor(text: { toString: () =&gt; string; } | Async.ObservableValue&lt;{ toString: () =&gt; string; }&gt;, args?: Array&lt;string | Async.ObservableValue&lt;string&gt;&gt; | ((baseComponent: Component, propertyName: string) =&gt; Array&lt;string | Async.ObservableValue&lt;string&gt;&gt;), observeArgs?: boolean, baseClass?: typeof Label);</pre></code><p>Create the text label factory using the given string, stringable (object with a <code>toString</code> method), or observable value, along with an optional array of (observable) substitution arguments or a function that returns such an array for a component to bind to, and a Label base class that is used if not overridden by string content prefix.</p>
 
-    </section>
-    
+            <hr>
+            <p>This is the documentation page for &ldquo;new TextLabelFactory (UI.TextLabelFactory.constructor)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/0.9/content">Sitemap</a>
+            </p>
+        </section>
+        
     <script>
         !(function () {
             var xhr = new XMLHttpRequest();
@@ -69,4 +86,5 @@
         })();
     </script>
 
-</body>
+    </body>
+</html>

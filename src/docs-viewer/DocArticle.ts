@@ -176,8 +176,7 @@ export class DocArticle extends UI.Container {
             var textBlock = new UI.DOM.DOMBlock(frag);
             textBlock.style.addClass("doc-text-article");
             textBlock.style.set({ margin: "1rem 1rem 2rem" });
-            var divider = new UI.Divider(undefined, undefined, "1rem");
-            this.content.push(textBlock, divider);
+            this.content.push(textBlock);
         }
 
         // append lists of sub items, if any, including inherited ones

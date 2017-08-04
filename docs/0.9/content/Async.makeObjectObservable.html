@@ -1,21 +1,37 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<title>Async.makeObjectObservable - Typescene Documentation</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>pre { white-space: pre-wrap }</style>
-<body style="margin: 0; padding: 0; font: menu; text-align: center">
-    <header style="background: #222; color: #eee; padding: 1rem">
-        <p>Loading documentation viewer...</p>
-    </header>
-    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
-        <p>
-            <a href="index.html">&lt; Text Index</a>
-             | <a href="Async.html">Async</a>
-        </p>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>makeObjectObservable (Async.makeObjectObservable)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: makeObjectObservable (Async.makeObjectObservable) - Returns a new ObservableObject with properties copied from given object; ObservableValue instances are referenced directly (including getter and setter), Array properties are turned into ObservableArray instances, and plain Object instances into ObservableObject instances; also seals the new instance if the object parameter was sealed, and..." />
+        <style>
+            body { margin: 0; padding: 0; font: menu; text-align: center }
+            header { background: #222; color: #eee; padding: 1rem }
+            body > section { padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p>Loading documentation viewer...</p>
+        </header>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="Async.html">Async</a>
+            </p>
 <h1>makeObjectObservable</h1><pre><code>function makeObjectObservable&lt;T extends object&gt;(obj: T): T &amp; ObservableObject;</pre></code><p>Returns a new <code>ObservableObject</code> with properties copied from given object; <code>ObservableValue</code> instances are referenced directly (including getter and setter), Array properties are turned into <code>ObservableArray</code> instances, and plain Object instances into <code>ObservableObject</code> instances; also seals the new instance if the object parameter was sealed, and freezes it if the object parameter was frozen.</p>
 
-    </section>
-    
+            <hr>
+            <p>This is the documentation page for &ldquo;makeObjectObservable (Async.makeObjectObservable)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/0.9/content">Sitemap</a>
+            </p>
+        </section>
+        
     <script>
         !(function () {
             var xhr = new XMLHttpRequest();
@@ -69,4 +85,5 @@
         })();
     </script>
 
-</body>
+    </body>
+</html>

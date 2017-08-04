@@ -36,13 +36,27 @@ yo typescene:module my-new-module
 
 See the [documentation](https://www.npmjs.com/package/generator-typescene) for the Typescene generator package for more detail.
 
+## Running Your Application
+
+You can compile and run your application with a few simple commands:
+
+* `npm run build` to compile your code for production (into the `dist/` and/or `public/` folders).
+* `npm run start:dev` to open a browser and view the result of your application as bundled by Webpack.
+* If you used the `systemjs` option of the Yeoman generator, run `npm run watch` to compile your code and watch for changes. You can then use a tool such as `http-server` (from [this package](https://www.npmjs.com/package/http-server)) or equivalent to serve the result.
+
+## Next steps
+
+Add code to your application inside of the `src/` folder.
+
+Learn about [async concepts](#/start/async) and [creating a UI](#/start/ui).
+
 ---
 
 ## 2. Creating a project manually
 
-If you choose not to use Yeoman, you can set up a project structure manually. This isn't as laborious as for some other web app frameworks, because Typescene itself has no dependencies and isn't very picky about the way you organize, compile, or bundle your TypeScript code.
+If you choose not to use Yeoman, you can set up a project structure manually. This isn't such a laborious process as for some other web app frameworks, because Typescene itself has no dependencies and isn't picky about the way you organize, compile, or bundle your TypeScript code.
 
-To set up a new project, you'll need to complete the following steps:
+Still, there are a number of different tools involved. You'll need to complete the following steps:
 
 1. Create a project folder
 2. Set up NPM and add dependencies
@@ -53,9 +67,9 @@ These steps are described below.
 
 ## Create a project folder
 
-Your application code needs to live in a folder on your hard drive, along with its dependencies (libraries, such as Typescene itself).
+Your application code needs to live in a folder on your hard drive, along with its dependencies (i.e. libraries and tools, such as Typescene itself).
 
-Create this folder using the Finder (Mac), Explorer (Windows) or the terminal:
+Create a folder using the Finder (Mac), Explorer (Windows) or the terminal:
 
 ```bash
 mkdir my-project
@@ -67,7 +81,7 @@ cd my-project
 
 Your project is actually a _package_ just by itself. This means it can refer to other packages as its dependencies, which are all managed by the NPM package manager.
 
-To configure an NPM package, you need a `package.json` file. Here's a version of the package configuration file that can be used to set up a simple Typescene project, and introduce Webpack as a bundler:
+To configure an NPM package, you need a `package.json` file. Here's a version of the package configuration file that can be used to set up a simple Typescene project, and loads up Webpack as a bundler:
 
 ```json
 {
@@ -89,7 +103,7 @@ To configure an NPM package, you need a `package.json` file. Here's a version of
 }
 ```
 
-With this `package.json` file, NPM is able to initialize the package and install dependencies. At the command prompt (or using your IDE, if it has NPM integration), run the following command:
+With this `package.json` file, NPM is able to initialize your package and install its dependencies. At the command prompt (or using your IDE, if it has NPM integration), run the following command:
 
 ```bash
 npm install
@@ -100,13 +114,13 @@ This creates a `node_modules/` folder within your project folder.
 
 ## Configure TypeScript
 
-TypeScript needs its own configuration file. For this minimal example, you'll need to specify the following options:
+TypeScript needs its own configuration file. At a minimum, you'll need to specify the following options:
 
 * Output should be generated in the 'ES5' version of the JavaScript standard, for general compatibility with IE9+ and all modern browsers.
-* Modules should be using the _newer_ 'ES6' standard (also known as 'ES2015'), for better results with Webpack. TypeScript should still look for modules in the standard NPM directories though (the 'Node' module resolution model).
+* Module output should follow the _newer_ 'ES6' standard (also known as 'ES2015'), for better results with Webpack. TypeScript should still look for modules in the standard NPM directories though (the 'Node' module resolution model).
 * Typescene uses a TypeScript feature called 'decorators', which needs to be declared separately.
 
-Putting it all together, your project's `tsconfig.json` file should contain the following as a minimum:
+Putting it all together, your project's `tsconfig.json` file should at least contain the following properties:
 
 ```json
 {
@@ -120,9 +134,9 @@ Putting it all together, your project's `tsconfig.json` file should contain the 
 }
 ```
 
-You can place this file at the root of your project folder, but it's generally better to keep it right next to your source code, which we'll put in a `src/` sub folder.
+You can place this file at the root of your project folder, but it's generally better to keep it right next to your source code, so we'll put in a `src/` sub folder.
 
-You can use this folder to contain all of your application code. It's a good idea to create more folders within the `src/` folder for all parts and/or features of your application, but for this example you'll need only a single file, `src/main.ts`:
+You can use the `src/` folder to contain all of your application code. It's a good idea to create more folders _within_ this folder for all parts and/or features of your application, but for this example you'll need only a single file, `src/main.ts`:
 
 ```typescript
 import { App } from "@typescene/dom";
@@ -167,11 +181,9 @@ module.exports = {
 
 Using Webpack to bundle the application output is optional. You can use any other method to load your TypeScript or JavaScript code into a browser (or application platform such as Electron or a mobile app framework based on Web technologies), as long as the Typescene DOM package code is either included in your `.js` file(s), or loaded separately as a `.min.js` file.
 
+## Running your application
 
-## Running Your Application
+You can now use NPM scripts to compile and run your app:
 
-Whether you used Yeoman as a generator or set up the project structure yourself with the above files, you should now be able to compile and run your application with a few simple commands:
-
-* Run `npm run build` to compile your code for production (into the `dist/` and/or `public/` folders).
-* Run `npm run start:dev` to open a browser and view the result of your application as bundled by Webpack.
-* If you used the `systemjs` option of the Yeoman generator, run `npm run watch` to compile your code and watch for changes. You can then use a tool such as `http-server` (from [this package](https://www.npmjs.com/package/http-server)) or equivalent to serve the result.
+* `npm run build` to build for production, and
+* `npm run start:dev` to start a Webpack development server.

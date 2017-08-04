@@ -1,21 +1,37 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<title>Async.inject - Typescene Documentation</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>pre { white-space: pre-wrap }</style>
-<body style="margin: 0; padding: 0; font: menu; text-align: center">
-    <header style="background: #222; color: #eee; padding: 1rem">
-        <p>Loading documentation viewer...</p>
-    </header>
-    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
-        <p>
-            <a href="index.html">&lt; Text Index</a>
-             | <a href="Async.html">Async</a>
-        </p>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>inject (Async.inject)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: inject (Async.inject) - Set given injectable observable properties (decorated with injectable) on all instances of given class and derived classes to the given values, except for instances where the property has been overwritten directly; may be called multiple times even with the same properties to redefine their injected value; returns an object that contains the..." />
+        <style>
+            body { margin: 0; padding: 0; font: menu; text-align: center }
+            header { background: #222; color: #eee; padding: 1rem }
+            body > section { padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p>Loading documentation viewer...</p>
+        </header>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="Async.html">Async</a>
+            </p>
 <h1>inject</h1><pre><code>function inject&lt;SpecT extends { [name: string]: any; }&gt;(targetClass: Function, spec: SpecT): SpecT;</pre></code><p>Set given injectable observable properties (decorated with <code>injectable</code>) on <em>all</em> instances of given class and derived classes to the given values, except for instances where the property has been overwritten directly; may be called multiple times even with the same properties to redefine their injected value; returns an object that contains the previous injected values (for e.g. overriding an injected function that calls into the previously injected function; when injecting into a derived class, these properties use accessors to return latest overridden injected values on base class(es) dynamically).</p>
 
-    </section>
-    
+            <hr>
+            <p>This is the documentation page for &ldquo;inject (Async.inject)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/0.9/content">Sitemap</a>
+            </p>
+        </section>
+        
     <script>
         !(function () {
             var xhr = new XMLHttpRequest();
@@ -69,4 +85,5 @@
         })();
     </script>
 
-</body>
+    </body>
+</html>
