@@ -231,11 +231,15 @@ export class ObservableValue<T> {
         if (!this.shallow && (!this._setter || this._setting)) {
             // make ObservableArray instances out of plain Arrays
             if (value instanceof Array && value.constructor === Array) {
-                value = <any>ObservableArray.fromArray(<any>value);
+                unobserved(() => {
+                    value = <any>ObservableArray.fromArray(<any>value);
+                });
             }
             // make ObservableObject instances out of plain Objects
             if (value instanceof Object && value.constructor === Object) {
-                value = <any>makeObjectObservable(<any>value);
+                unobserved(() => {
+                    value = <any>makeObjectObservable(<any>value);
+                });
             }
         }
 
