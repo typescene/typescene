@@ -3,9 +3,9 @@ import { MainActivity } from "./MainActivity";
 
 @App.mapViewActivity(MainActivity)
 export class MainView extends App.HubViewLayout.with(
-    { horzAlign: "center", maxContentWidth: "46rem" },
+    { horzAlign: "center", maxContentWidth: "calc(40vw + 20rem)" },
     App.HubViewLayout.Header.with(
-        { style: { background: "linear-gradient(120deg, #43a, #346) || #4ae" } },
+        { style: { background: "linear-gradient(284deg, #2bf 0%, #509 100%) || #4ae" } },
         UI.TextButton.with({
             hidden: UI.bind("!sidebarCollapsed"),
             label: "",
@@ -14,9 +14,10 @@ export class MainView extends App.HubViewLayout.with(
         }),
         UI.Image.with({
             imageUrl: "/logo.png",
-            width: "1.5rem"
+            width: "1.5rem",
+            style_img: { verticalAlign: "middle" }
         }),
-        UI.tl`{h1|1.5rem|500|#fff|letterSpacing=-1px}Documentation`,
+        UI.tl`{h1|1.5rem|600}Documentation`,
         UI.Spacer,
         UI.LinkButton.with({
             hidden: UI.bind("sidebarCollapsed"),

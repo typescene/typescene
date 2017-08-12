@@ -549,7 +549,7 @@ export function observe<T>(promise: PromiseLike<T>): ObservableValue<T>;
 /** Returns a new ObservableArray with elements copied from given array; (same as `ObservableArray.fromArray`; does not observe values of a given `ObservableArray`, see `observeArray` instead) */
 export function observe<T>(obj: Array<T>): ObservableArray<T>;
 
-/** Returns a new ObservableObject with properties copied from given object; (same as new ObservableObject(...) but with a strongly typed return value) */
+/** Returns a new ObservableObject with properties copied from given object */
 export function observe<T extends object>(obj: T): T & ObservableObject;
 
 export function observe(v: any) {

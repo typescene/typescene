@@ -9,8 +9,7 @@ import "./DocView";
 import "./TOCView";
 
 new App.DOMApplication("Documentation");
-UI.DOM.Styles.font.family = "\"Open Sans\", sans-serif";
-UI.DOM.Styles.size.text = ".875rem";
+UI.DOM.Styles.font.family = "\"Source Sans Pro\", sans-serif";
 
 // Do not use predefined heading styles but take them from CSS
 UI.DOM.Styles.rebootStyles.remove("h1,h2,h3,h4,h5,h6");

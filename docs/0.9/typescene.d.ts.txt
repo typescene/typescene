@@ -197,14 +197,14 @@ declare module "@typescene/core/App/Application" {
 import Async, { Signal } from "@typescene/core/Async";
 import { Activation, Activity, ActivityTransition, ActivityStack } from "@typescene/core/App/Activity";
 import { CultureService } from "@typescene/core/App/Culture";
-/** Encapsulates the application as a singleton object */
-export class Application extends Async.ObservableObject {
+/** Encapsulates the application as a singleton object; to be overridden with a platform-specific implementation, do not instantiate directly */
+export abstract class Application extends Async.ObservableObject {
     /** The current (and only) Application instance, when created */
     static current: Application;
     /** Promise that resolves to the application instance after it has been created */
     static ready: PromiseLike<Application>;
     private static _resolve_ready;
-    /** Create the application instance (either from a derived class or from the Application class itself); can be called only once */
+    /** Create the application instance (from a derived class); can be called only once */
     constructor(title?: string);
     /** The application name to be displayed in the window title bar (observed) */
     title: string;
@@ -608,7 +608,7 @@ export function observe<T>(f: () => T): ObservableValue<T>;
 export function observe<T>(promise: PromiseLike<T>): ObservableValue<T>;
 /** Returns a new ObservableArray with elements copied from given array; (same as `ObservableArray.fromArray`; does not observe values of a given `ObservableArray`, see `observeArray` instead) */
 export function observe<T>(obj: Array<T>): ObservableArray<T>;
-/** Returns a new ObservableObject with properties copied from given object; (same as new ObservableObject(...) but with a strongly typed return value) */
+/** Returns a new ObservableObject with properties copied from given object */
 export function observe<T extends object>(obj: T): T & ObservableObject;
 /** Invoke given function without recording dependencies on currently evaluating observable values; passes on the `this` value given to this function, returns the function's return value */
 export function unobserved<T>(f: ((...args: any[]) => T), ...args: any[]): T;
@@ -732,8 +732,9 @@ export interface SignalConnection {
 }
 /** Encapsulates a signal that can be used to trigger one or more handlers asynchronously; do _not_ construct `Signal` classes directly, use the static `.create` method to create derived classes which can be instantiated and emitted */
 export abstract class Signal<T> {
-    /** Create a new emittable signal class with given payload type */
+    /** Create a new emittable signal class without payload */
     static create(): Signal.VoidEmittable;
+    /** Create a new emittable signal class with given payload type */
     static create<DataT>(): Signal.Emittable<DataT>;
     /** [implementation] Create a read-only observable value that contains the last emitted value (initially undefined, only contains a value after the first time this signal is emitted) */
     static observe(): ObservableValue<any>;

@@ -2,7 +2,8 @@
 import { Async } from "@typescene/dom";
 
 /** The relative path that refers to the Monaco Editor "vs" directory */
-const VS_PATH = "/monaco-editor/min/vs";
+declare var VERSION: string;
+const VS_PATH = "/" + VERSION + "/monaco-editor/min/vs";
 
 /** Global variable defined by the Monaco editor loader.js script */
 declare var AMDLoader: any;
@@ -54,7 +55,7 @@ export class MonacoEditor {
             minimap: { enabled: false }
         });
         monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-            target: monaco.languages.typescript.ScriptTarget.ES5,
+            target: monaco.languages.typescript.ScriptTarget.ES2015,
             module: monaco.languages.typescript.ModuleKind.CommonJS,
             allowNonTsExtensions: true,
             experimentalDecorators: true,

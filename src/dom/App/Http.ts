@@ -240,6 +240,7 @@ export namespace Http {
             for (var r of results) if (r) return r;
 
             // start request
+            if (!props.headers) props.headers = {};
             return ((_hasNativeFetch && !config.FORCE_XHR_FETCH) ?
                 (<any>window).fetch(props.url!, props) : _xhr(props))
                 .then((response: any) => (Responded(response), response));

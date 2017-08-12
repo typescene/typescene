@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>observe (Async.observe)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: observe (Async.observe) - [1]. Create a (single) observable that holds the return value of the given function, re-evaluated (when subscribed to) whenever one of the observable values used in the getter function change, or (also when not subscribed to) when ObservableValue#value is read after one of the observables used in the getter function (may have) changed its value; ..." />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="Async">Async</a>
+            </p>
+<h1>observe</h1><pre><code>function observe&lt;T&gt;(f: () =&gt; T): ObservableValue&lt;T&gt;;
+function observe&lt;T&gt;(promise: PromiseLike&lt;T&gt;): ObservableValue&lt;T&gt;;
+function observe&lt;T&gt;(obj: Array&lt;T&gt;): ObservableArray&lt;T&gt;;
+function observe&lt;T extends object&gt;(obj: T): T &amp; ObservableObject;</pre></code><p>[1]. Create a (single) observable that holds the return value of the given function, re-evaluated (when subscribed to) whenever one of the observable values used in the getter function change, <em>or</em> (also when not subscribed to) when <code>ObservableValue#value</code> is read after one of the observables used in the getter function (may have) changed its value; note that getters <em>should</em> be pure functions without side effects, creating or setting other observables from the getter will result in an error.</p>
+<p>[2]. Encapsulate given promise as an observable value that is set when the promise resolves; if the promise is already resolved, the observable value is set to the promise’s value immediately; if or when the promise is rejected, the error is stored and will be thrown when trying to obtain the observable value.</p>
+<p>[3]. Returns a new ObservableArray with elements copied from given array; (same as <code>ObservableArray.fromArray</code>; does not observe values of a given <code>ObservableArray</code>, see <code>observeArray</code> instead).</p>
+<p>[4]. Returns a new ObservableObject with properties copied from given object.</p>
+
+            <hr>
+            <p>This is the documentation page for &ldquo;observe (Async.observe)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>

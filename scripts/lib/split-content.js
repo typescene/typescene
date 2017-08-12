@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const rimraf = require("rimraf");
 
 /** Helper function to escape text for use in HTML */
@@ -41,11 +42,24 @@ module.exports = function splitContent(data, outDir) {
 /** Content index (file names => titles; written at the end) */
 var filesWritten = [];
 var contentIndex = {};
+var foldersExist = {};
 
 /** Recursive content writer implementation */
 function writeContent(items, outDir, upName, upFileName) {
-    return items.map(item => {
-        var fileName = item.id.replace(/\//, "__").replace(/[^\w_.]/g, "-") + ".html";
+    var sorted = items.slice(0).sort((a, b) => a.id === b.id ? 0 : a.id > b.id ? 1 : -1);
+    return sorted.map(item => {
+        let makeFileName = id => id.replace(/[^\w_.\/]/g, "-");
+        var fileName = makeFileName(item.id);
+
+        // check folders
+        var current = outDir;
+        fileName.split("/").slice(0, -1).forEach((s, i) => {
+            current = path.resolve(current, s);
+            if (!foldersExist[current] && !fs.existsSync(current)) {
+                fs.mkdirSync(current);
+            }
+            foldersExist[current] = true;
+        });
 
         // compose content
         var content = "";
@@ -54,14 +68,17 @@ function writeContent(items, outDir, upName, upFileName) {
         if (item.code) content += "<pre><code>" + esc(item.code) + "</pre></code>";
         if (item.doc) content += item.doc;
         item.text && item.text.forEach(t => {
-            if (t.type) content += "<div style=\"background: #eee; padding: 1rem\">";
+            if (t.type === "note" || t.type === "example")
+                content += "<div style=\"background: #eee; padding: 1rem\">";
             if (t.title) content += "<h3>" + esc(t.title) + "</h3>";
-            content += t.content;
+            content += t.content.replace(/href=\"#\/([^\"]+)\"/g, (match, s) => {
+                return "href=\"" + makeFileName(s) + "\"";
+            });
             if (t.type) content += "</div>";
         });
 
         // remember file name and title
-        var itemName = item.code && item.id || item.name || "";
+        var itemName = item.code && (item.id && item.id.replace(/!/g, "")) || item.name || "";
         filesWritten.push(fileName);
         var linkText = item.textTopic || itemName.replace(/[\.\/]/g, " > ");
         if (item.isClass) linkText += " (class)";
@@ -80,7 +97,7 @@ function writeContent(items, outDir, upName, upFileName) {
 
         // write file
         var slug = item.textSlug || item.id || "";
-        fs.writeFileSync(outDir + "/" + fileName,
+        fs.writeFileSync(outDir + "/" + fileName + ".html",
             wrapItemContent(slug, content,
                 itemName === item.name ? itemName : (item.name + " (" + itemName + ")"),
                 upName, upFileName,
@@ -91,27 +108,40 @@ function writeContent(items, outDir, upName, upFileName) {
 
 /** Write out the index to index.html */
 function writeIndex(outDir) {
-    var lis = [];
+    var list = [];
     filesWritten.forEach(fileName => {
-        lis.push(`<li><a href="${fileName}">${esc(contentIndex[fileName])}</a></li>`);
+        list.push(`<li><a href="${fileName}">${esc(contentIndex[fileName])}</a></li>`);
     });
 
     fs.writeFileSync(outDir + "/index.html", `<!DOCTYPE html>
-<meta charset="utf-8">
-<title>Documentation Index</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<body style="margin: 0; padding: 0; font: menu; text-align: center">
-    <header style="background: #222; color: #eee; padding: 1rem">
-        <h2>Typescene Documentation</h2>
-    </header>
-    <section style="padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left">
-        <h1>Text Index</h1>
-        <p><i>Version ${version}</i></p>
-        <ul style="list-style-type: none">
-            ${lis.join("\n            ")}
-        </ul>
-    </section>
-</body>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Documentation Index</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 1rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h2>Typescene Documentation</h2>
+        </header>
+        <section>
+            <h1>Text Index</h1>
+            <p><i>Version ${version}</i></p>
+            <ul>
+                ${list.join("\n                ")}
+            </ul>
+        </section>
+    </body>
+</html>
 `);
 }
 
@@ -126,17 +156,35 @@ function wrapItemContent(slug, content, name, upName, upFileName, description) {
         <title>${esc(name)}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="${description}" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
         <style>
-            body { margin: 0; padding: 0; font: menu; text-align: center }
-            header { background: #222; color: #eee; padding: 1rem }
-            body > section { padding: 1rem; max-width: 28rem; margin: 0 auto; text-align: left }
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
             pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
         </style>
     </head>
     <body>
         <header>
-            <p>Loading documentation viewer...</p>
+            <p id="loadingText">Loading documentation viewer</p>
         </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
         <section>
             <p>
                 <a href="index.html">&lt; Text Index</a>
@@ -148,7 +196,7 @@ ${content}
             <p>
                 <a href="http://typescene.org">Typescene</a> |
                 <a href="http://docs.typescene.org">Documentation</a> |
-                <a href="http://docs.typescene.org/${version}/content">Sitemap</a>
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
             </p>
         </section>
         ${ getDocsScript(slug) }
@@ -174,7 +222,6 @@ let getDocsScript = (id) => `
                 div.innerHTML = html;
                 var oldHeader = document.body.querySelector("header");
                 var oldContent = document.body.querySelector("section");
-                location.hash = "#/${id || ""}";
                 var scripts = [];
                 function execNextScript() {
                     if (scripts.length) document.body.appendChild(scripts.shift());
@@ -200,11 +247,6 @@ let getDocsScript = (id) => `
                         window.typescene.App.Application.ready.then(function () {
                             document.body.removeChild(oldHeader);
                             document.body.removeChild(oldContent);
-                            window.typescene.Async.sleep(10).then(function () {
-                                history.replaceState && history.replaceState(
-                                    history.state || {},
-                                    window.title, "/index.${version}.html" + location.hash)
-                            });
                         });
                     }
                 }, 10);
