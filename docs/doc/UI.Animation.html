@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Animation (UI.Animation)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: Animation (UI.Animation) - Represents a UI component animation.
+" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="UI">UI</a>
+            </p>
+<h1>Animation</h1><pre><code>class Animation</pre></code><p>Represents a UI component animation.</p>
+<p>This class has no implementation. For a DOM-specific implementation, use <code>UI.DOM.DOMAnimation</code>.</p>
+<h3>Usage</h3><p>For special effects, use the <code>.play</code>/<code>.playOnce</code> methods, or the component’s <a href="~/UI.Component/animate"><code>animate()</code></a> method:</p>
+<pre><code class="language-typescript">var myAnimation = UI.DOM.DOMAnimation.basic.highlight.yellow.withTiming(600, 400)
+    .togetherWith(UI.DOM.DOMAnimation.basic.highlight.jumpOut
+        .withTiming(400, 400));
+myAnimation.playOnce(someComponent);
+
+// ... or use component method:
+someComponent.animate(myAnimation);
+</code></pre>
+<p>To apply transitions automatically, use the <a href="~/UI.Component/animations"><code>.animations</code></a> property of any component.</p>
+<div style="background: #eee; padding: 1rem"><h3>Transitions example</h3><pre><code class="language-typescript">var animLeft = {
+    show: UI.DOM.DOMAnimation.basic.in.fadeLeft.withTiming(500),
+    hide: UI.DOM.DOMAnimation.basic.out.fadeLeft.withTiming(1000, 200),
+    appear: UI.DOM.DOMAnimation.basic.in.fadeDown,
+    disappear: UI.DOM.DOMAnimation.basic.out.fadeUp
+}
+var animRight = {
+    show: UI.DOM.DOMAnimation.basic.in.fadeRight.withTiming(1000),
+    hide: UI.DOM.DOMAnimation.basic.out.fadeRight.withTiming(1000),
+    appear: UI.DOM.DOMAnimation.basic.in.fadeDown,
+    disappear: UI.DOM.DOMAnimation.basic.out.fadeDown
+}
+class View extends UI.Container.with(
+    { height: &quot;15rem&quot; },
+    UI.Row.with(
+        UI.PrimaryButton.withLabel(&quot;Toggle show/hide&quot;, &quot;toggle&quot;),
+        UI.PrimaryButton.withLabel(&quot;Remove all&quot;, &quot;removeAll&quot;)
+    ),
+    UI.Container.with(
+        { id: &quot;container&quot; },
+        UI.Divider.with({
+            animations: animRight
+        }),
+        UI.Row.with(
+            { animations: animLeft },
+            UI.tl`Example foo bar qux quux ...`
+        ),
+        UI.Divider.with({
+            animations: animLeft
+        }),
+        UI.Row.with(
+            { animations: animRight },
+            UI.tl`Example foo bar qux quux ...`
+        ),
+    )
+) {
+    container: UI.Container;
+    toggle() {
+        this.container.content.forEach(c =&gt; {
+            if (c) c.hidden = !c.hidden;
+        });
+    }
+    removeAll() {
+        this.container.content = [];
+    }
+}
+</code></pre>
+</div><ul><li><a href="UI.Animation.AnimationControl">UI &gt; Animation &gt; AnimationControl (interface)</a></li><li><a href="UI.Animation.constructor">UI &gt; Animation &gt; constructor</a></li><li><a href="UI.Animation.disableAll">UI &gt; Animation &gt; disableAll</a></li><li><a href="UI.Animation.enableAll">UI &gt; Animation &gt; enableAll</a></li><li><a href="UI.Animation.isEnabled">UI &gt; Animation &gt; isEnabled</a></li><li><a href="UI.Animation/duration">UI &gt; Animation &gt; duration</a></li><li><a href="UI.Animation/id">UI &gt; Animation &gt; id</a></li><li><a href="UI.Animation/name">UI &gt; Animation &gt; name</a></li><li><a href="UI.Animation/play">UI &gt; Animation &gt; play</a></li><li><a href="UI.Animation/playOnce">UI &gt; Animation &gt; playOnce</a></li></ul>
+            <hr>
+            <p>This is the documentation page for &ldquo;Animation (UI.Animation)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>

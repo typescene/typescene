@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Async</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: Async - No description" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                
+            </p>
+<h1>Async</h1><p>This sub module exports classes and functions that implement common ‘async’ patterns, such as promises, signals, and observables.</p>
+<p><a href="~/start/async"><i class="fa fa-play"></i>Get started with the <code>Async</code> module</a></p>
+<ul><li><a href="Async.ObservableArray">Async &gt; ObservableArray (class)</a></li><li><a href="Async.ObservableObject">Async &gt; ObservableObject (class)</a></li><li><a href="Async.ObservableValue">Async &gt; ObservableValue (class)</a></li><li><a href="Async.Promise">Async &gt; Promise (class)</a></li><li><a href="Async.Signal">Async &gt; Signal (class)</a></li><li><a href="Async.SignalConnection">Async &gt; SignalConnection (interface)</a></li><li><a href="Async.UnhandledException">Async &gt; UnhandledException</a></li><li><a href="Async.defer">Async &gt; defer</a></li><li><a href="Async.deleteObservableProperty">Async &gt; deleteObservableProperty</a></li><li><a href="Async.inject">Async &gt; inject</a></li><li><a href="Async.injectable">Async &gt; injectable</a></li><li><a href="Async.isObservableProperty">Async &gt; isObservableProperty</a></li><li><a href="Async.makeObjectObservable">Async &gt; makeObjectObservable</a></li><li><a href="Async.makePropertyObservable">Async &gt; makePropertyObservable</a></li><li><a href="Async.observable">Async &gt; observable</a></li><li><a href="Async.observable_freeze">Async &gt; observable_freeze</a></li><li><a href="Async.observable_not_null">Async &gt; observable_not_null</a></li><li><a href="Async.observable_number">Async &gt; observable_number</a></li><li><a href="Async.observable_seal">Async &gt; observable_seal</a></li><li><a href="Async.observable_shallow">Async &gt; observable_shallow</a></li><li><a href="Async.observable_string">Async &gt; observable_string</a></li><li><a href="Async.observe">Async &gt; observe</a></li><li><a href="Async.observeArray">Async &gt; observeArray</a></li><li><a href="Async.runYield">Async &gt; runYield</a></li><li><a href="Async.sleep">Async &gt; sleep</a></li><li><a href="Async.unobservable">Async &gt; unobservable</a></li><li><a href="Async.unobservable_memoize_get">Async &gt; unobservable_memoize_get</a></li><li><a href="Async.unobserved">Async &gt; unobserved</a></li></ul>
+            <hr>
+            <p>This is the documentation page for &ldquo;Async&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>

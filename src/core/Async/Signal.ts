@@ -32,8 +32,9 @@ function makeMethodHandler(method: string, target?: object) {
 
 /** Encapsulates a signal that can be used to trigger one or more handlers asynchronously; do _not_ construct `Signal` classes directly, use the static `.create` method to create derived classes which can be instantiated and emitted */
 export abstract class Signal<T> {
-    /** Create a new emittable signal class with given payload type */
+    /** Create a new emittable signal class without payload */
     public static create(): Signal.VoidEmittable;
+    /** Create a new emittable signal class with given payload type */
     public static create<DataT>(): Signal.Emittable<DataT>;
     public static create(): any {
         var Result = class DefinedSignal extends this<any> {

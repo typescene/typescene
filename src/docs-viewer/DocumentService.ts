@@ -1,4 +1,5 @@
 import { Async, App } from "@typescene/dom";
+declare var VERSION: string;
 
 /** Type definition of a declared code item */
 export interface CodeDocItem {
@@ -63,12 +64,18 @@ export interface DocItem extends CodeDocItem {
     textSummary?: string;
     /** True if this section's TOC should open up automatically */
     textAutoOpen?: boolean;
+    /** True if this section's TOC should be hidden in the document */
+    textSkipTOC?: boolean;
+    /** True if this section's title should be hidden in the document */
+    textSkipTitle?: boolean;
     /** Text sections */
     text?: Array<{
-        /** Section title */
-        title: string;
+        /** Section title, may be empty */
+        title?: string;
         /** Section type (e.g. "note") */
         type?: string;
+        /** True if sub-level heading */
+        subHeading?: boolean;
         /** Text content (HTML) */
         content: string;
         /** Output identifier for examples */
@@ -86,10 +93,8 @@ export class DocumentService extends App.Service {
     public loadAsync() {
         if (this.isLoaded) return Async.Promise.resolve(true);
         if (DocumentService._loadingP) return DocumentService._loadingP;
-        var version = (<any>window).typescene.core.version;
-        version = version.replace(/^(\d+\.\d+)\..*/, "$1");
         return DocumentService._loadingP = App.Http.getAsync(
-            "/" + version + "/documentation.json")
+            "/" + VERSION + "/documentation.json")
             .then((json: any): true => {
                 this.fromJSON(json);
                 return true;

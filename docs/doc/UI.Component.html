@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Component (UI.Component)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: Component (UI.Component) - Component base class to represent every part of the user interface, to be extended by application code (e.g. as a sub class of Container or another component class) or constructed from derived component classes (e.g. Button).
+" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="UI">UI</a>
+            </p>
+<h1>Component</h1><pre><code>class Component extends Async.ObservableObject</pre></code><p>Component base class to represent every part of the user interface, to be extended by application code (e.g. as a sub class of <code>Container</code> or another component class) or constructed from derived component classes (e.g. <code>Button</code>).</p>
+<ul><li><a href="UI.Component.Animations">UI &gt; Component &gt; Animations (interface)</a></li><li><a href="UI.Component.FocusMode">UI &gt; Component &gt; FocusMode</a></li><li><a href="UI.Component.Initializer">UI &gt; Component &gt; Initializer (interface)</a></li><li><a href="UI.Component.SelectionMode">UI &gt; Component &gt; SelectionMode</a></li><li><a href="UI.Component.addStyleOverride">UI &gt; Component &gt; addStyleOverride</a></li><li><a href="UI.Component.constructor">UI &gt; Component &gt; constructor</a></li><li><a href="UI.Component.with">UI &gt; Component &gt; with</a></li><li><a href="UI.Component/ArrowDownKeyPressed">UI &gt; Component &gt; ArrowDownKeyPressed</a></li><li><a href="UI.Component/ArrowLeftKeyPressed">UI &gt; Component &gt; ArrowLeftKeyPressed</a></li><li><a href="UI.Component/ArrowRightKeyPressed">UI &gt; Component &gt; ArrowRightKeyPressed</a></li><li><a href="UI.Component/ArrowUpKeyPressed">UI &gt; Component &gt; ArrowUpKeyPressed</a></li><li><a href="UI.Component/BackspaceKeyPressed">UI &gt; Component &gt; BackspaceKeyPressed</a></li><li><a href="UI.Component/Blur">UI &gt; Component &gt; Blur</a></li><li><a href="UI.Component/Click">UI &gt; Component &gt; Click</a></li><li><a href="UI.Component/Clicked">UI &gt; Component &gt; Clicked</a></li><li><a href="UI.Component/DeleteKeyPressed">UI &gt; Component &gt; DeleteKeyPressed</a></li><li><a href="UI.Component/DoubleClick">UI &gt; Component &gt; DoubleClick</a></li><li><a href="UI.Component/DoubleClicked">UI &gt; Component &gt; DoubleClicked</a></li><li><a href="UI.Component/DragDrop">UI &gt; Component &gt; DragDrop</a></li><li><a href="UI.Component/DragEnter">UI &gt; Component &gt; DragEnter</a></li><li><a href="UI.Component/DragLeave">UI &gt; Component &gt; DragLeave</a></li><li><a href="UI.Component/DragStart">UI &gt; Component &gt; DragStart</a></li><li><a href="UI.Component/EnterKeyPressed">UI &gt; Component &gt; EnterKeyPressed</a></li><li><a href="UI.Component/EscapeKeyPressed">UI &gt; Component &gt; EscapeKeyPressed</a></li><li><a href="UI.Component/Focus">UI &gt; Component &gt; Focus</a></li><li><a href="UI.Component/FocusGained">UI &gt; Component &gt; FocusGained</a></li><li><a href="UI.Component/FocusLost">UI &gt; Component &gt; FocusLost</a></li><li><a href="UI.Component/KeyDown">UI &gt; Component &gt; KeyDown</a></li><li><a href="UI.Component/KeyPress">UI &gt; Component &gt; KeyPress</a></li><li><a href="UI.Component/MouseContextMenu">UI &gt; Component &gt; MouseContextMenu</a></li><li><a href="UI.Component/MouseEnter">UI &gt; Component &gt; MouseEnter</a></li><li><a href="UI.Component/MouseLeave">UI &gt; Component &gt; MouseLeave</a></li><li><a href="UI.Component/Press">UI &gt; Component &gt; Press</a></li><li><a href="UI.Component/Pressed">UI &gt; Component &gt; Pressed</a></li><li><a href="UI.Component/Rendered">UI &gt; Component &gt; Rendered</a></li><li><a href="UI.Component/Renderer">UI &gt; Component &gt; Renderer</a></li><li><a href="UI.Component/SpaceBarPressed">UI &gt; Component &gt; SpaceBarPressed</a></li><li><a href="UI.Component/addShadowEffectOnFocus">UI &gt; Component &gt; addShadowEffectOnFocus</a></li><li><a href="UI.Component/addShadowEffectOnHover">UI &gt; Component &gt; addShadowEffectOnHover</a></li><li><a href="UI.Component/animate">UI &gt; Component &gt; animate</a></li><li><a href="UI.Component/animations">UI &gt; Component &gt; animations</a></li><li><a href="UI.Component/appendChild">UI &gt; Component &gt; appendChild</a></li><li><a href="UI.Component/beforeFirstRender">UI &gt; Component &gt; beforeFirstRender</a></li><li><a href="UI.Component/contains">UI &gt; Component &gt; contains</a></li><li><a href="UI.Component/createComponentSignal">UI &gt; Component &gt; createComponentSignal</a></li><li><a href="UI.Component/displayOptions">UI &gt; Component &gt; displayOptions</a></li><li><a href="UI.Component/flowDirection">UI &gt; Component &gt; flowDirection</a></li><li><a href="UI.Component/focusMode">UI &gt; Component &gt; focusMode</a></li><li><a href="UI.Component/getActualDimensions">UI &gt; Component &gt; getActualDimensions</a></li><li><a href="UI.Component/getChildren">UI &gt; Component &gt; getChildren</a></li><li><a href="UI.Component/getComponentById">UI &gt; Component &gt; getComponentById</a></li><li><a href="UI.Component/getComponentsByType">UI &gt; Component &gt; getComponentsByType</a></li><li><a href="UI.Component/getFormValues">UI &gt; Component &gt; getFormValues</a></li><li><a href="UI.Component/getLastRenderedOutput">UI &gt; Component &gt; getLastRenderedOutput</a></li><li><a href="UI.Component/getLastSelectedChild">UI &gt; Component &gt; getLastSelectedChild</a></li><li><a href="UI.Component/getRenderedOutputAsync">UI &gt; Component &gt; getRenderedOutputAsync</a></li><li><a href="UI.Component/getSelectedChildren">UI &gt; Component &gt; getSelectedChildren</a></li><li><a href="UI.Component/hasFocus">UI &gt; Component &gt; hasFocus</a></li><li><a href="UI.Component/height">UI &gt; Component &gt; height</a></li><li><a href="UI.Component/hidden">UI &gt; Component &gt; hidden</a></li><li><a href="UI.Component/hoverState">UI &gt; Component &gt; hoverState</a></li><li><a href="UI.Component/id">UI &gt; Component &gt; id</a></li><li><a href="UI.Component/initialize">UI &gt; Component &gt; initialize</a></li><li><a href="UI.Component/initializeWith">UI &gt; Component &gt; initializeWith</a></li><li><a href="UI.Component/out">UI &gt; Component &gt; out</a></li><li><a href="UI.Component/render">UI &gt; Component &gt; render</a></li><li><a href="UI.Component/renderOptions">UI &gt; Component &gt; renderOptions</a></li><li><a href="UI.Component/selected">UI &gt; Component &gt; selected</a></li><li><a href="UI.Component/selectionMode">UI &gt; Component &gt; selectionMode</a></li><li><a href="UI.Component/setFormValues">UI &gt; Component &gt; setFormValues</a></li><li><a href="UI.Component/shadowEffect">UI &gt; Component &gt; shadowEffect</a></li><li><a href="UI.Component/style">UI &gt; Component &gt; style</a></li><li><a href="UI.Component/uid">UI &gt; Component &gt; uid</a></li><li><a href="UI.Component/width">UI &gt; Component &gt; width</a></li></ul>
+            <hr>
+            <p>This is the documentation page for &ldquo;Component (UI.Component)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>

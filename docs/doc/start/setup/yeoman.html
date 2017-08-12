@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Using the Yeoman generator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: Using the Yeoman generator - No description" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                
+            </p>
+<h1>Using the Yeoman generator</h1><p>Save time when creating Typescene projects and modules, with the Yeoman scaffolding tool.</p>
+</div><h3>Installation</h3><p><a href="http://yeoman.io/" target="_blank">Yeoman</a> is a scaffolding tool that helps you to put together project skeletons for all kinds of frameworks, using specific generator packages for each framework or platform.</p>
+<h3>Installing the generator</h3><p>To install the generator for Typescene, run the following command:</p>
+<pre><code class="language-bash">npm install -g yo generator-typescene
+</code></pre>
+</div><h3>Usage</h3><p><i class="fa fa-hand-o-right"></i>See the <a href="https://www.npmjs.com/package/generator-typescene" target="_blank">documentation</a> for the Typescene generator package for more detail.</p>
+<h3>Creating an application</h3><p>Create an application (in a new folder) with the following commands:</p>
+<pre><code class="language-bash">mkdir my-project
+cd my-project
+yo typescene
+</code></pre>
+</div><h3>Adding a module</h3><p>You can even use the Yeoman generator to add new modules to an existing project:</p>
+<pre><code class="language-bash">yo typescene:module my-new-module
+</code></pre>
+</div><h3>Running your new app</h3><p>Compile and run your application with a few simple commands:</p>
+<ul>
+<li><code>npm run build</code> to compile your code for production (into the <code>dist/</code> and/or <code>public/</code> folders).</li>
+<li><code>npm run start:dev</code> to open a browser and view the result of your application as bundled by Webpack.</li>
+<li>If you used the <code>systemjs</code> option of the Yeoman generator, run <code>npm run watch</code> to compile your code and watch for changes. You can then use a tool such as <code>http-server</code> (from <a href="https://www.npmjs.com/package/http-server" target="_blank">this package</a>) or equivalent to serve the result.</li>
+</ul>
+</div><h3>Next steps</h3><p>Add code to your application inside of the <code>src/</code> folder.</p>
+<p><a href="~/start/ui"><i class="fa fa-play"></i>Get started creating UI components</a></p>
+
+            <hr>
+            <p>This is the documentation page for &ldquo;Using the Yeoman generator&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>

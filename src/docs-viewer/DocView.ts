@@ -27,30 +27,14 @@ class DocView extends MainView.DocView.with(
                 (parent && (parent.textTopic || parent.name) || "")),
             iconAfter: "fa-caret-right",
             remGutter: 1.75,
-            target: UI.bind("parentItem.id", id => "#/" + id),
+            target: UI.bind("parentItem.id", id => "/doc/" + id),
             style_button: {
                 color: "#666",
-                fontWeight: "800"
+                fontWeight: "600"
             }
         }),
         UI.bind("item", item => item && new TagLabelRow(item))
     ),
-
-    // row with the item heading
-    UI.Row.with(
-        { height: "3.25rem" },
-        UI.Heading2.with({
-            text: UI.bind("item.name"),
-            shrinkwrap: false,
-            style: {
-                whiteSpace: "pre-wrap",
-                fontSize: "2rem",
-                fontWeight: "300",
-                lineHeight: "1.25em"
-            }
-        })
-    ),
-    UI.Divider,
 
     // loading indicator
     Async.sleep(50).then(() => UI.CenterRow.with({

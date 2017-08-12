@@ -12,8 +12,8 @@ function isActivityClass(a: any): a is typeof Activity {
     return (typeof a === "function" && a.prototype instanceof Activity);
 }
 
-/** Encapsulates the application as a singleton object */
-export class Application extends Async.ObservableObject {
+/** Encapsulates the application as a singleton object; to be overridden with a platform-specific implementation, do not instantiate directly */
+export abstract class Application extends Async.ObservableObject {
     /** The current (and only) Application instance, when created */
     public static current: Application;
 
@@ -22,7 +22,7 @@ export class Application extends Async.ObservableObject {
         resolve => { Application._resolve_ready = resolve });
     private static _resolve_ready: ((ready: Application) => void) | undefined;
 
-    /** Create the application instance (either from a derived class or from the Application class itself); can be called only once */
+    /** Create the application instance (from a derived class); can be called only once */
     constructor(title?: string) {
         super();
         if (Application.current || !Application._resolve_ready)

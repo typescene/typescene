@@ -1,6 +1,7 @@
 import { Async, UI, App } from "@typescene/dom";
 import { MonacoEditor } from "./MonacoEditor";
 import { DocumentService } from "./DocumentService";
+declare var VERSION: string;
 
 /** Global TypeScript compiler instance */
 var ts: any;
@@ -33,9 +34,7 @@ var _loaded = UI.Screen.ready.then(() => {
         new MonacoEditor(document.createElement("div"));
         var svc: DocumentService = DocumentService.getInstance();
         return svc.loadAsync().then(() => {
-            var version = svc.getVersion();
-            version = version.replace(/^(\d+\.\d+)\..*/, "$1");
-            return App.Http.getTextAsync("/" + version + "/typescene.d.ts.txt")
+            return App.Http.getTextAsync("/" + VERSION + "/typescene.d.ts.txt")
         }).then(defs => {
             MonacoEditor.loadDeclarations("typescene.d.ts", defs);
             MonacoEditor.loadDeclarations("editor.d.ts",
@@ -62,7 +61,7 @@ export class CodeOutputContainer extends UI.Container {
         // wrap code in a full program
         this.code =
             (/^import/.test(code) ? "" :
-                "import {Async, UI, App} from \"@typescene/dom\";\n\n") +
+                "import { Async, UI, App } from \"@typescene/dom\";\n\n") +
             code;
         if (outputIdentifier)
             this.code += "\ndisplayResult(" + outputIdentifier + ");";
@@ -71,7 +70,8 @@ export class CodeOutputContainer extends UI.Container {
 
         // wait for Typescript environment to be loaded
         _loaded.then(() => {
-            this.style.addClass("doc-text-example-output");
+            this.style.addClass("doc-text-example-output")
+                .addShadowEffect(.2);
             this.updateOutput();
         });
     }
@@ -129,7 +129,8 @@ export class CodeOutputContainer extends UI.Container {
                     target: "es5",
                     module: "commonjs",
                     experimentalDecorators: true,
-                    strictNullChecks: true
+                    strictNullChecks: true,
+                    lib: ["es2015", "dom"]
                 }
             });
             var mockConsole = {
@@ -139,6 +140,7 @@ export class CodeOutputContainer extends UI.Container {
                         var output: string[] = args.map(v => {
                             try {
                                 if (typeof v === "string") return v;
+                                if (v === undefined) return "undefined";
                                 else return JSON.stringify(v);
                             }
                             catch (all) {

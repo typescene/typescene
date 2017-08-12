@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Application (App.Application)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: Application (App.Application) - Encapsulates the application as a singleton object; to be overridden with a platform-specific implementation, do not instantiate directly.
+" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="App">App</a>
+            </p>
+<h1>Application</h1><pre><code>class Application extends Async.ObservableObject</pre></code><p>Encapsulates the application as a singleton object; to be overridden with a platform-specific implementation, do not instantiate directly.</p>
+<p>See <code>App.DOMApplication</code> for a non-abstract implementation.</p>
+<h3>Purpose</h3><p>The Application object in Typescene plays a major role when dealing with Activities. It keeps track of activities in a stack-like model, automatically activating and suspending activities as they become the topmost item on the activity stack (an instance of <code>App.ActivityStack</code>).</p>
+<ul>
+<li>Use the <code>.startActivityAsync</code> method to start an activity explicitly, either using an <code>App.Activity</code> reference, an <code>App.Activation</code> object, or by route (URL path) – if activities are mapped to routes using the <code>App.mapRoute</code> decorator.</li>
+<li>Use the <code>.dropActivityAsync</code> method to remove an activity from the stack.</li>
+<li>Use the <code>.getTopActivity</code> method to obtain a reference to the current topmost activity.</li>
+<li>Use <code>.activities</code> to invoke the <code>ActivityStack</code> <a href="~/App.ActivityStack/getCursor">.getCursor</a> method, which can be used to traverse the activities currently on the stack.</li>
+</ul>
+<p>The <code>.startActivityAsync</code> method is also aliased as <code>App.startActivityAsync</code>.</p>
+<p>Additionally, the Application object maintains a reference to the currently active <code>App.CultureService</code> in <code>.culture</code>, and observes changes to be applied to the UI.</p>
+<ul><li><a href="App.Application.constructor">App &gt; Application &gt; constructor</a></li><li><a href="App.Application.current">App &gt; Application &gt; current</a></li><li><a href="App.Application.ready">App &gt; Application &gt; ready</a></li><li><a href="App.Application/NoActivity">App &gt; Application &gt; NoActivity</a></li><li><a href="App.Application/PageNotFound">App &gt; Application &gt; PageNotFound</a></li><li><a href="App.Application/activationIndex">App &gt; Application &gt; activationIndex</a></li><li><a href="App.Application/activities">App &gt; Application &gt; activities</a></li><li><a href="App.Application/culture">App &gt; Application &gt; culture</a></li><li><a href="App.Application/dropActivityAsync">App &gt; Application &gt; dropActivityAsync</a></li><li><a href="App.Application/getCurrentUrl">App &gt; Application &gt; getCurrentUrl</a></li><li><a href="App.Application/getTopActivity">App &gt; Application &gt; getTopActivity</a></li><li><a href="App.Application/isActive">App &gt; Application &gt; isActive</a></li><li><a href="App.Application/navigateToUrl">App &gt; Application &gt; navigateToUrl</a></li><li><a href="App.Application/normalizePath">App &gt; Application &gt; normalizePath</a></li><li><a href="App.Application/reactivate">App &gt; Application &gt; reactivate</a></li><li><a href="App.Application/startActivityAsync">App &gt; Application &gt; startActivityAsync</a></li><li><a href="App.Application/title">App &gt; Application &gt; title</a></li></ul>
+            <hr>
+            <p>This is the documentation page for &ldquo;Application (App.Application)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>

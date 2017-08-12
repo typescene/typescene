@@ -53,20 +53,10 @@ export class TOCView extends MainView.TOCView.with(
             text: UI.bind("activity.title"),
             icon: "fa-book",
             remGutter: 1.5,
-            style: {
-                fontSize: ".875rem",
-                fontWeight: "bold"
-            }
+            style: { fontWeight: "600" }
         })
     ),
-
-    // add a divider and loading indicator
     UI.Divider.with({ margin: ".25rem" }),
-    UI.Container.with(
-        { hidden: UI.bind("!activity.loading") },
-        UI.Spacer,
-        UI.tl`Loading...`
-    ),
 
     // add the actual TOC tree list
     UI.TreeList.with({
@@ -116,6 +106,7 @@ export class TOCView extends MainView.TOCView.with(
 
             // auto focus selected items to bring them into view
             this.tocTreeList!.SelectionChange.connect(data => {
+                if (this.hasFocus) return;
                 if (data.item && !this.filterTerms)
                     data.item.hasFocus = true;
             });
@@ -150,7 +141,9 @@ export class TOCView extends MainView.TOCView.with(
         if (this.filterTerms && this.filterTerms.length) {
             let terms = this.filterTerms.map(s => s.toLowerCase());
             let f = (item: UI.TreeListRow.ItemData) => {
-                if (!terms.some(s => item.name!.toLowerCase().indexOf(s) < 0))
+                if (!terms.some(s =>
+                    (item.name!.toLowerCase().indexOf(s) < 0) &&
+                    item.key!.toLowerCase().indexOf(s) !== 0))
                     return true;
                 if (item.items) {
                     item.items = item.items.filter(f);
@@ -171,7 +164,8 @@ export class TOCView extends MainView.TOCView.with(
         Async.sleep(10).then(() => {
             var id = this.tocTreeList!.selectedKey;
             var data = id && this.documentService.getItemById(id);
-            if (data) App.startActivityAsync("#/" + (data.textSlug || data.id));
+            if (data) App.startActivityAsync("/doc/"
+                + (data.textSlug || data.id));
         });
     }
 
@@ -183,7 +177,7 @@ export class TOCView extends MainView.TOCView.with(
     /** Take the current filter input value and apply the filter */
     private _updateFilter() {
         var terms = this.filterText
-            .replace(/[^\w\s]+/, " ").trim()
+            .replace(/[^\w\s\.]+/, " ").trim()
             .split(/\s+/)
             .filter(s => !!s);
 

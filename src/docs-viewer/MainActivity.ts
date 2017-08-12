@@ -1,8 +1,8 @@
 import { Async, App } from "@typescene/dom";
 import { DocumentService, DocItem } from "./DocumentService";
 
-@App.mapRoute("#/")
-export class MainActivity extends App.Activity {
+/** Activity that should be on the stack before all others */
+export class MainActivity extends App.SupportActivity {
     constructor(activation: App.Activation) {
         super(activation);
         this.title = "Typescene";
@@ -11,12 +11,6 @@ export class MainActivity extends App.Activity {
                 this.loading = false;
                 this.error = false;
                 this.title = this.documentService.getTitle();
-                if (App.Application.current.activities.top === this) {
-                    var first = this.documentService.getTOCItems()[0];
-                    if (first)
-                        App.Application.current.startActivityAsync(
-                            "#/" + (first.textSlug || first.id), true);
-                }
             }, err => {
                 this.error = true;
             });
@@ -33,4 +27,25 @@ export class MainActivity extends App.Activity {
     /** True if an error occurred while loading documentation (observable) */
     @Async.observable
     public error = false;
+}
+
+/** Activity that is mapped to root URLs and forwards to first article */
+@App.mapRoute("/")
+@App.mapRoute("/doc/")
+@App.mapParentActivity(MainActivity)
+export class HomeActivity extends App.Activity {
+    constructor() {
+        super();
+        this.Starting.connect(() => {
+            this.documentService.loadAsync().then(() => {
+                var first = this.documentService.getTOCItems()[0];
+                if (first)
+                    App.Application.current.startActivityAsync(
+                        "/doc/" + (first.textSlug || first.id), true);
+            });
+        })
+    }
+
+    @App.injectService
+    public documentService: DocumentService;
 }

@@ -22,6 +22,7 @@ const md = require("markdown-it")({
     html: true,
     typographer: true
 });
+md.use(require("markdown-it-deflist"));
 
 // helper functions:
 const flatten = array => array.reduce((r, a) =>
@@ -300,12 +301,12 @@ function generateAsync(sourceDir, version) {
                     // split into running named sections
                     var sections = [], section;
                     lines.forEach(l => {
-                        var commentMatch = (!section || !section.lines.length) &&
-                            l.match(/^\s*<!--\s*([\w_]+):(.*)-->\s*$/);
-                        if (commentMatch) {
+                        var commentMatch = l.match(/^\s*<!--\s*(.*)-->\s*$/);
+                        var tagMatch = commentMatch && commentMatch[1].match(/^([\w_]+):(.*)/);
+                        if ((!section || !section.lines.length) && tagMatch) {
                             // found a tag comment
-                            var tag = commentMatch[1];
-                            var content = commentMatch[2].trim();
+                            var tag = tagMatch[1];
+                            var content = tagMatch[2].trim();
                             if (!section) {
                                 // process top level tag
                                 if (tag.toLowerCase() === "id") {
@@ -335,19 +336,23 @@ function generateAsync(sourceDir, version) {
                                 section[tag] = content;
                             }
                         }
-                        else if (l.charAt(0) === "#") {
+                        else if (l[0] === "#" ||
+                            commentMatch && commentMatch[1][0] === "#") {
                             // start a new section with this heading
-                            section = {
-                                title: l.replace(/^#+\s*/, ""),
-                                lines: []
-                            };
+                            // (ignore empty headings and those starting with -)
+                            var title = (commentMatch ? commentMatch[1] : l)
+                            .replace(/^#+\s*/, "").replace(/^\-.*/, "");
+                            section = { lines: [] };
+                            if (title) section.title = title;
                             sections.push(section);
+                            if (l[1] === "#" && l[2] === "#")
+                                section.subHeading = true;
                         }
-                        else if (/\S/.test(l) || section) {
+                        else if (!commentMatch && (/\S/.test(l) || section)) {
                             // add this line to current section
                             if (!section) {
                                 // intialize a section without a title
-                                section = { title: "", lines: [] };
+                                section = { lines: [] };
                                 sections.push(section);
                             }
                             section.lines.push(l);
@@ -357,7 +362,10 @@ function generateAsync(sourceDir, version) {
                     // concatenate lines and parse markdown
                     item.text = sections;
                     sections.forEach(section => {
-                        section.content = md.render(section.lines.join("\n"));
+                        var content = section.lines.join("\n")
+                            .replace(/\{icon::(\w+)(\-[\w\s\-]+)\}/g,
+                            "<i class=\"$1 $1$2\"></i>");
+                        section.content = md.render(content);
                         delete section.lines;
                     })
 
@@ -482,7 +490,7 @@ function generateAsync(sourceDir, version) {
                                 if (child.kind === ts.SyntaxKind.CallSignature &&
                                     parent) {
                                     item.name = name = "<call>";
-                                    item.id = idParts[0] + ".!call";
+                                    item.id = idParts[0] + ".-call";
                                 }
                                 break;
                             case ts.SyntaxKind.VariableDeclaration:
@@ -512,7 +520,7 @@ function generateAsync(sourceDir, version) {
                                         /\[[^:]+\:\s*([^\]\s]+)\]/);
                                     var indexType = (match && match[1]) || "any";
                                     item.name = name = "[" + indexType + "]";
-                                    item.id = idParts[0] + ".!index:" + indexType;
+                                    item.id = idParts[0] + ".-index-" + indexType;
                                 }
                                 break;
                             case ts.SyntaxKind.TypeAliasDeclaration:
@@ -586,7 +594,7 @@ function generateAsync(sourceDir, version) {
                             var type = child.type.getText();
                             if (type !== "any") item.declType = type;
                             if (!item.isMethod && !item.isFunction &&
-                                /^[\w_\.]*Signal\.Emittable/.test(type))
+                                /^[\w_\.]*Signal\.(Void)?Emittable/.test(type))
                                 item.isSignal = true;
                             if (/^(I)?Promise(Like|_Thenable)?\</.test(type))
                                 item.isAsync = true;

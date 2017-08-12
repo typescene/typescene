@@ -16,6 +16,21 @@ const TAG_BG_ACCESS = "#c63";
 
 /** Helper function to replace code tags with links if applicable */
 function linkifyCode(root: HTMLElement, svc: DocumentService, base?: DocItem) {
+    var aElts = root.querySelectorAll("a");
+    for (var i = 0; i < aElts.length; i++) {
+        let elt = aElts[i];
+        let href = elt.href;
+        if (href.indexOf("~/") >= 0) {
+            // change href from ~/foo to /doc/foo
+            href = href.replace(/.*~\//, "/doc/");
+            elt.href = href;
+            elt.onclick = () => {
+                App.startActivityAsync(href);
+                return false;
+            };
+        }
+    }
+
     var codeElts = root.querySelectorAll("code");
     for (var i = 0; i < codeElts.length; i++) {
         let elt = codeElts[i];
@@ -32,9 +47,14 @@ function linkifyCode(root: HTMLElement, svc: DocumentService, base?: DocItem) {
             // wrap <code> element into <a> element
             var item = svc.getItemById(id);
             var a = document.createElement("a");
-            a.href = "#/" + (item.textSlug || item.id);
+            let href = "/doc/" + (item.textSlug || item.id);
+            a.href = href;
             elt.parentNode!.insertBefore(a, elt);
             a.appendChild(elt);
+            a.onclick = () => {
+                App.startActivityAsync(href);
+                return false;
+            };
         }
     }
 }
@@ -53,16 +73,36 @@ function highlightCode(elt: HTMLElement) {
 export class DocArticle extends UI.Container {
     constructor(public item: DocItem) {
         super();
-        this.style.set("fontSize", "1rem");
+        this.style.set("fontSize", "1.125rem");
+
+        // add row with the item heading, and a divider
+        if (!item.textSkipTitle) {
+            this.content.push(
+                new (UI.Row.with(
+                    { verticalSpacing: ".5rem" },
+                    UI.Heading2.with({
+                        text: item.name,
+                        shrinkwrap: false,
+                        style: {
+                            whiteSpace: "pre-wrap",
+                            fontSize: "2rem",
+                            fontWeight: "300",
+                            lineHeight: "1.4em"
+                        }
+                    })
+                )),
+                new UI.Divider(undefined, undefined, "0")
+            );
+        }
 
         // build up the article with HTML elements,
         // starting from a code declaration if any
         if (item.code) {
             var codeElt = document.createElement("code");
             codeElt.innerText = item.code;
-            codeElt.style.padding = "0";
             var codeBlock = new UI.DOM.DOMBlock(codeElt);
-            codeBlock.style.set({ margin: "0 1rem" });
+            codeBlock.style.addClass("doc-code");
+            codeBlock.style.set({ margin: "1rem" });
             this.content.push(codeBlock);
         }
 
@@ -84,104 +124,128 @@ export class DocArticle extends UI.Container {
 
             if (textItem.type)
                 textElt.className = "doc-text-type-" + textItem.type;
-            let populate = (forceOpen?: boolean) => {
-                if (!textItem.collapse || forceOpen) {
-                    // populate text content
-                    textElt.innerHTML = textItem.content;
-                    linkifyCode(textElt, this.documentService,
-                        (item.isClass || item.isInterface || item.isNamespace) ?item : item.parentItem);
-                    highlightCode(textElt);
 
-                    // show examples with code output
-                    if (textItem.type === "example" || textItem.type === "playground") {
-                        var code = "", outID = textItem.displayResult;
-                        for (var elt of <any>textElt.querySelectorAll("pre"))
-                            code += (code ? "\n" : "") + elt.textContent;
-                        var outElt: Node = document.createComment("output");
-                        textElt.appendChild(outElt);
+            // populate text content
+            textElt.innerHTML = textItem.content;
+            linkifyCode(textElt, this.documentService,
+                (item.isClass || item.isInterface || item.isNamespace) ?item : item.parentItem);
+            highlightCode(textElt);
 
-                        // add observable to watch code output while block
-                        // is displayed, but show output as an element inside
-                        // of the text element itself
-                        var exampleID = item.id + "|ex" + i;
-                        var c = new CodeOutputContainer(exampleID, code, outID,
-                            textItem.type !== "playground");
-                        this.content.push(<any>Async.observe(() => {
-                            var out = c.out;
-                            if (out) {
-                                textElt.replaceChild(out.element, outElt);
-                                outElt = out.element;
-                            }
-                        }));
+            // show examples with code output
+            if (textItem.type === "example" || textItem.type === "playground") {
+                var code = "", outID = textItem.displayResult;
+                for (var elt of <any>textElt.querySelectorAll("pre"))
+                    code += (code ? "\n" : "") + elt.textContent;
+                var outElt: Node = document.createComment("output");
+                textElt.appendChild(outElt);
 
-                        // for playground "example", show a separate button to open the editor
-                        if (textItem.type === "playground") {
-                            textElt.className += " doc-text-type-example"
-                            var row = new (UI.Row.with(
-                                UI.PrimaryButton.with({
-                                    hidden: Async.observe(() => UI.Screen.dimensions.isSmall),
-                                    label: UI.tl`Open code editor`,
-                                    Clicked: new UI.ActionHandler(() => {
-                                        c.showEditor();
-                                        for (var elt of <any>textElt.querySelectorAll("pre"))
-                                            textElt.removeChild(elt);
-                                    }),
-                                    shrinkwrap: false
-                                }),
-                                UI.Label.with({
-                                    hidden: Async.observe(() => !UI.Screen.dimensions.isSmall),
-                                    text: "(Not available on mobile devices)",
-                                    shrinkwrap: false,
-                                    style: { textAlign: "center" }
-                                })
-                            ));
-                            var playgroundButtonRowElt: Node = document.createComment("");
-                            textElt.insertBefore(playgroundButtonRowElt, outElt);
-                            this.content.push(<any>Async.observe(() => {
-                                var out = row.out;
-                                if (out) {
-                                    textElt.replaceChild(out.element, playgroundButtonRowElt);
-                                    playgroundButtonRowElt = out.element;
-                                }
-                            }));
-                        }    
+                // use the result of the first expression in the example if
+                // displayResult is "*"
+                if (outID === "*") {
+                    outID = "result";
+                    code = "var result = " + code;
+                }
+
+                // add observable to watch code output while block
+                // is displayed, but show output as an element inside
+                // of the text element itself
+                var exampleID = item.id + "|ex" + i;
+                var c = new CodeOutputContainer(exampleID, code, outID,
+                    textItem.type !== "playground");
+                this.content.push(<any>Async.observe(() => {
+                    var out = c.out;
+                    if (out) {
+                        outElt.parentNode!.replaceChild(out.element, outElt);
+                        outElt = out.element;
                     }
-                }
-                else {
-                    // clear content if newly collapsed
-                    textElt.innerHTML = "";
-                }
+                }));
 
-                // show title, collapsed or normal
-                if (textItem.title && textItem.title[0] !== "_") {
-                    var headingElt = document.createElement("h3");
-                    headingElt.textContent = textItem.title;
-                    textElt.insertBefore(headingElt, textElt.firstChild);
-                    if (textItem.collapse === "heading") {
-                        var iconElt = document.createElement("i");
-                        iconElt.className = forceOpen ?
+                // for playground "example", show a separate button to open the editor
+                if (textItem.type === "playground") {
+                    textElt.className += " doc-text-type-example"
+                    var row = new (UI.Row.with(
+                        { verticalSpacing: "1rem", spacing: "0" },
+                        UI.PrimaryButton.with({
+                            hidden: Async.observe(() => UI.Screen.dimensions.isSmall),
+                            icon: "fa-pencil",
+                            remGutter: 2,
+                            label: UI.tl`Open code editor`,
+                            Clicked: new UI.ActionHandler(() => {
+                                c.showEditor();
+                                for (var elt of <any>textElt.querySelectorAll("pre"))
+                                    textElt.removeChild(elt);
+                            }),
+                            shrinkwrap: false
+                        }),
+                        UI.Label.with({
+                            hidden: Async.observe(() => !UI.Screen.dimensions.isSmall),
+                            text: "(Not available on mobile devices)",
+                            shrinkwrap: false,
+                            style: { textAlign: "center" }
+                        })
+                    ));
+                    var playgroundButtonRowElt: Node = document.createComment("");
+                    textElt.insertBefore(playgroundButtonRowElt, textElt.firstChild);
+                    this.content.push(<any>Async.observe(() => {
+                        var out = row.out;
+                        if (out) {
+                            playgroundButtonRowElt.parentNode!
+                                .replaceChild(out.element, playgroundButtonRowElt);
+                            playgroundButtonRowElt = out.element;
+                        }
+                    }));
+                }    
+            }
+
+            // show title, collapsed or normal
+            if (textItem.title && textItem.title[0] !== "_") {
+                var headingElt = document.createElement(
+                    textItem.subHeading ? "h4" : "h3");
+                headingElt.className = "doc-heading doc-heading-" +
+                    (textItem.type ? textItem.type : "section");
+                headingElt.textContent = textItem.title;
+                if (textItem.type === "task") {
+                    // insert "task" icon in heading
+                    var iconElt = document.createElement("i");
+                    iconElt.className = "fa fa-arrow-circle-right";
+                    headingElt.insertBefore(iconElt, headingElt.firstChild);
+                }
+                if (textItem.collapse === "heading") {
+                    // insert icon in heading, and set event handler
+                    var iconElt = document.createElement("i");
+                    headingElt.insertBefore(iconElt, headingElt.firstChild);
+                    headingElt.style.cursor = "pointer";
+                    let setIconClass = (open?: boolean) => {
+                        iconElt.className = open ?
                             "fa fa-chevron-down fa-fw" :
                             "fa fa-chevron-right fa-fw";
-                        iconElt.style.marginRight = ".5rem";
-                        headingElt.insertBefore(iconElt, headingElt.firstChild);
-                        headingElt.style.cursor = "pointer";
-                        headingElt.onclick = () => { populate(!forceOpen) };
                     }
+                    setIconClass();
+                    var wrapper = document.createElement("div");
+                    while (textElt.firstChild)
+                        wrapper.appendChild(textElt.removeChild(textElt.firstChild));
+                    var open = false;
+                    headingElt.onclick = () => {
+                        open = !open;
+                        setIconClass(open);
+                        if (open) textElt.appendChild(wrapper);
+                        else textElt.removeChild(wrapper);
+                    };
                 }
-            };
-            populate();
+                textElt.insertBefore(headingElt, textElt.firstChild);
+            }
+            
             frag.appendChild(textElt);
         });
         if (frag.firstChild || item.doc || item.code) {
             var textBlock = new UI.DOM.DOMBlock(frag);
             textBlock.style.addClass("doc-text-article");
             textBlock.style.set({ margin: "1rem 1rem 2rem" });
-            var divider = new UI.Divider(undefined, undefined, "1rem");
-            this.content.push(textBlock, divider);
+            this.content.push(textBlock);
         }
 
         // append lists of sub items, if any, including inherited ones
-        if (item.toc) {
+        if (item.toc && !item.textSkipTOC) {
             this.content.push(new UI.Row([new UI.Heading3("In this section")]));
             this.content.push(new ItemListPanel("", item.toc.map(id => {
                 return this.documentService.getItemById(id);
@@ -352,21 +416,21 @@ export class TagLabelRow extends UI.CloseRow {
 /** A list of annotated item links */
 class ItemListPanel extends UI.ContainerBlock.with(
     {
-        style: new UI.Style({ margin: "0 0 1rem" })
-            .addShadowEffect(.1)
+        style: {
+            margin: "0 0 1.5rem",
+            borderTop: "2px solid " + UI.DOM.Styles.color.divider,
+            borderBottom: "1px solid " + UI.DOM.Styles.color.divider
+        }
     },
     UI.Container.with(
-        {
-            hidden: UI.bind("!itemRows.length"),
-            style: { background: "#fff" }
-        },
+        { hidden: UI.bind("!itemRows.length") },
         UI.Row.with({
             hidden: UI.bind("!title"),
             height: "1.75rem",
             content: [UI.Heading5.withText(UI.bind("title"))],
             style: {
-                background: "#555",
-                color: "#eee"
+                background: "#eee",
+                color: "#333"
             }
         }),
         UI.List.with({
@@ -387,6 +451,7 @@ class ItemListPanel extends UI.ContainerBlock.with(
             });
         }
         this.docItems = allItems = allItems.filter(item => !!item);
+        if (!allItems.length) this.hidden = true;
 
         // populate item rows
         var p = Async.Promise.resolve(true);
@@ -417,7 +482,7 @@ class ItemListPanel extends UI.ContainerBlock.with(
                         UI.Label.with({
                             text: displayName,
                             icon: labelRow.icon + " fa-fw",
-                            style: { fontWeight: isInherited ? "500" : "800" }
+                            style: { fontWeight: isInherited ? "400" : "600" }
                         }),
 
                         // label row (shrinkwrapped) and JSDoc start
@@ -425,14 +490,15 @@ class ItemListPanel extends UI.ContainerBlock.with(
                             block: labelRow,
                             shrinkwrap: true
                         }),
-                        UI.tl`{w|#aaa}${docText}`
+                        UI.tl`{w|#aaa|300}${docText}`
                     ],
                     style: {
-                        fontSize: ".875rem",
+                        fontSize: "1rem",
                         cursor: "pointer"
                     },
                     Click: new UI.ActionHandler(() => {
-                        App.startActivityAsync("#/" + (item.textSlug || item.id));
+                        App.startActivityAsync("/doc/" +
+                            (item.textSlug || item.id));
                     })
                 }));
             });

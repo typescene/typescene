@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Row (UI.Row)</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: Row (UI.Row) - Represents a row containing control elements placed horizontally.
+" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                 | <a href="UI">UI</a>
+            </p>
+<h1>Row</h1><pre><code>class Row extends Block</pre></code><p>Represents a row containing control elements placed horizontally.</p>
+<p>Within a row, you can place one or more <code>UI.ControlElement</code> components, i.e. controls, such as labels, buttons, and text fields. These are positioned in a single line horizontally within the row (from left to right – that is, if the current <code>culture</code> is configured for left-to-right flow). Space around and between elements is added automatically, using the <code>.spacing</code> and <code>.verticalSpacing</code> properties.</p>
+<p>Not all controls get the same width: you can adjust each control’s width so that it takes up more or less space within the containing row. Use these properties:</p>
+<ul>
+<li><a href="~/UI.ControlElement/width"><code>.width</code></a>: set to a CSS length value such as <code>12rem</code>, <code>20px</code>, or <code>50%</code>, to specify a control’s width explicitly.</li>
+<li><a href="~/UI.ControlElement/shrinkwrap"><code>.shrinkwrap</code></a>: set to <code>true</code> to have the control’s width <em>minimized</em> to the point where it fits its contents exactly (useful for a label or a button). Set to <code>false</code> to have the control take up as <em>much</em> space as it can within the row.</li>
+</ul>
+<p>By default, text fields are not ‘shrinkwrapped’ (except for <code>UI.WideLabel</code> and <code>UI.Paragraph</code>), whereas labels and buttons are. The special <code>UI.Spacer</code> component is a blank control that can be used to take up space between other elements.</p>
+<p>You can also place non-control components in a row, but these need to be wrapped in a <code>UI.ContainerControl</code> or <code>UI.BlockControl</code>. This is done automatically by a component factory if you pass containers or blocks into <a href="~/UI.Row.with"><code>UI.Row.with(...)</code></a>. Multiple controls can be stacked vertically with the <code>UI.ControlStack</code> component.</p>
+<div style="background: #eee; padding: 1rem"><h3>Examples</h3><pre hidden>var rows = UI.Container.with(
+</pre>
+<pre><code class="language-typescript">// 1. default: button shrinkwrapped, text field not
+UI.Row.with(
+    UI.tl`1.`, // &lt;== 'text label' shortcut function
+    UI.TextField.with({ placeholderText: &quot;Long input&quot; }),
+    UI.Button.withLabel(&quot;Button&quot;)
+),
+UI.Divider,
+
+// 2. you can un-shrink the button, too:
+UI.Row.with(
+    UI.tl`2.`,
+    UI.Button.with({ label: &quot;Long button&quot;, shrinkwrap: false })
+),
+UI.Divider,
+
+// 3. set widths for more precise control:
+UI.CenterRow.with(
+    UI.tl`3.`,
+    UI.CloseControlStack.with(
+        { horzAlign: &quot;right&quot;, width: &quot;4rem&quot; },
+        UI.tl`up`, UI.tl`down`
+    ),
+    UI.TextField.with({ width: &quot;4rem&quot;, shrinkwrap: true }),
+    UI.TextField.with({ width: &quot;4rem&quot;, shrinkwrap: true }),
+    UI.TextField.with({ width: &quot;4rem&quot;, shrinkwrap: true })
+),
+UI.Divider,
+
+// 4. set spacing:
+UI.Row.with(
+    { spacing: &quot;2rem&quot; },
+    UI.tl`4.`,
+    UI.Label.withText(&quot;More space&quot;),
+    UI.Paragraph.withText(&quot;Use a paragraph if you need text &quot; +
+        &quot;to flow across lines within a label. The paragraph &quot; +
+        &quot;component is not shrinkwrapped by default, so it &quot; +
+        &quot;expands to the available width within a row.&quot;)
+),
+
+// 5. set row height explicitly if needed:
+UI.Row.with(
+    { height: &quot;2rem&quot;, style: { background: &quot;#eee&quot; } },
+    UI.tl`5.`,
+    UI.Heading2.withText(&quot;Left&quot;),
+    UI.Spacer,
+    UI.Label.withText(&quot;Right&quot;)
+)
+</code></pre>
+<pre hidden>)</pre>
+</div><ul><li><a href="UI.Row.Initializer">UI &gt; Row &gt; Initializer (interface)</a></li><li><a href="UI.Row.constructor">UI &gt; Row &gt; constructor</a></li><li><a href="UI.Row.with">UI &gt; Row &gt; with</a></li><li><a href="UI.Row/appendChild">UI &gt; Row &gt; appendChild</a></li><li><a href="UI.Row/content">UI &gt; Row &gt; content</a></li><li><a href="UI.Row/getChildren">UI &gt; Row &gt; getChildren</a></li><li><a href="UI.Row/horzAlign">UI &gt; Row &gt; horzAlign</a></li><li><a href="UI.Row/initializeWith">UI &gt; Row &gt; initializeWith</a></li><li><a href="UI.Row/spacing">UI &gt; Row &gt; spacing</a></li><li><a href="UI.Row/verticalSpacing">UI &gt; Row &gt; verticalSpacing</a></li></ul>
+            <hr>
+            <p>This is the documentation page for &ldquo;Row (UI.Row)&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>

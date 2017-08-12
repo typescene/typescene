@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>UI</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Typescene reference: UI - No description" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
+        <style>
+            html { font-size: 16px }
+            body { margin: 0; padding: 0; font-family: "Source Sans Pro", sans-serif; text-align: center }
+            header { background: linear-gradient(284deg, rgb(34, 187, 255) 0%, rgb(85, 0, 153) 100%); color: #fff; padding: 3rem }
+            body > section { padding: 1rem; max-width: 32rem; margin: 0 auto; text-align: left }
+            pre { white-space: pre-wrap }
+            .fa:first-child { paddingRight: .5rem }
+        </style>
+    </head>
+    <body>
+        <header>
+            <p id="loadingText">Loading documentation viewer</p>
+        </header>
+        <script>
+            !(function () {
+                var l = document.getElementById("loadingText");
+                var t = " " + l.textContent + " ";
+                var s = 0, d;
+                !(function u() {
+                    var d = "", n = s = (s + 1) % 4;
+                    while (n--) d += ".";
+                    l.textContent = d + t + d;
+                    if (!window.typescene) setTimeout(u, 500);
+                })();
+            })();
+        </script>
+        <section>
+            <p>
+                <a href="index.html">&lt; Text Index</a>
+                
+            </p>
+<h1>UI</h1><p>The UI sub module exports classes and functions that can be used to create and update UI components, and respond to user input.</p>
+<p><a href="~/start/ui"><i class="fa fa-play"></i>Get started with the <code>UI</code> module</a></p>
+<ul><li><a href="UI.ActionHandler">UI &gt; ActionHandler (class)</a></li><li><a href="UI.Animation">UI &gt; Animation (class)</a></li><li><a href="UI.ArrayBinding">UI &gt; ArrayBinding (class)</a></li><li><a href="UI.Binding">UI &gt; Binding (class)</a></li><li><a href="UI.Block">UI &gt; Block (class)</a></li><li><a href="UI.BlockControl">UI &gt; BlockControl (class)</a></li><li><a href="UI.Button">UI &gt; Button (class)</a></li><li><a href="UI.ButtonDropdownClickHandler">UI &gt; ButtonDropdownClickHandler (class)</a></li><li><a href="UI.ButtonGroup">UI &gt; ButtonGroup (class)</a></li><li><a href="UI.Card">UI &gt; Card (class)</a></li><li><a href="UI.CenterRow">UI &gt; CenterRow (class)</a></li><li><a href="UI.Checkbox">UI &gt; Checkbox (class)</a></li><li><a href="UI.CloseControlStack">UI &gt; CloseControlStack (class)</a></li><li><a href="UI.CloseRow">UI &gt; CloseRow (class)</a></li><li><a href="UI.Component">UI &gt; Component (class)</a></li><li><a href="UI.ComponentFactory">UI &gt; ComponentFactory (interface)</a></li><li><a href="UI.ComponentRenderHandler">UI &gt; ComponentRenderHandler (class)</a></li><li><a href="UI.ComponentRenderer">UI &gt; ComponentRenderer (class)</a></li><li><a href="UI.ComponentSignal">UI &gt; ComponentSignal (class)</a></li><li><a href="UI.ComponentSignalHandler">UI &gt; ComponentSignalHandler (interface)</a></li><li><a href="UI.Container">UI &gt; Container (class)</a></li><li><a href="UI.ContainerBlock">UI &gt; ContainerBlock (class)</a></li><li><a href="UI.ContainerControl">UI &gt; ContainerControl (class)</a></li><li><a href="UI.ControlElement">UI &gt; ControlElement (class)</a></li><li><a href="UI.ControlStack">UI &gt; ControlStack (class)</a></li><li><a href="UI.DialogContainer">UI &gt; DialogContainer (class)</a></li><li><a href="UI.Divider">UI &gt; Divider (class)</a></li><li><a href="UI.Drag">UI &gt; Drag (class)</a></li><li><a href="UI.DragEvent">UI &gt; DragEvent (interface)</a></li><li><a href="UI.DragEventSignal">UI &gt; DragEventSignal (class)</a></li><li><a href="UI.DragHandler">UI &gt; DragHandler (class)</a></li><li><a href="UI.DrawerContainer">UI &gt; DrawerContainer (class)</a></li><li><a href="UI.FlowContainer">UI &gt; FlowContainer (class)</a></li><li><a href="UI.Heading1">UI &gt; Heading1 (class)</a></li><li><a href="UI.Heading2">UI &gt; Heading2 (class)</a></li><li><a href="UI.Heading3">UI &gt; Heading3 (class)</a></li><li><a href="UI.Heading4">UI &gt; Heading4 (class)</a></li><li><a href="UI.Heading5">UI &gt; Heading5 (class)</a></li><li><a href="UI.Heading6">UI &gt; Heading6 (class)</a></li><li><a href="UI.Icon">UI &gt; Icon (class)</a></li><li><a href="UI.Image">UI &gt; Image (class)</a></li><li><a href="UI.InputControl">UI &gt; InputControl (class)</a></li><li><a href="UI.KeyEventSignal">UI &gt; KeyEventSignal (class)</a></li><li><a href="UI.KeyHandler">UI &gt; KeyHandler (class)</a></li><li><a href="UI.KeyboardEvent">UI &gt; KeyboardEvent (interface)</a></li><li><a href="UI.Label">UI &gt; Label (class)</a></li><li><a href="UI.LayoutContainer">UI &gt; LayoutContainer (class)</a></li><li><a href="UI.LinkButton">UI &gt; LinkButton (class)</a></li><li><a href="UI.List">UI &gt; List (class)</a></li><li><a href="UI.ListSelectionHandler">UI &gt; ListSelectionHandler (class)</a></li><li><a href="UI.Menu">UI &gt; Menu</a></li><li><a href="UI.NavList">UI &gt; NavList (class)</a></li><li><a href="UI.NavListSelectionHandler">UI &gt; NavListSelectionHandler (class)</a></li><li><a href="UI.OppositeDrawerContainer">UI &gt; OppositeDrawerContainer (class)</a></li><li><a href="UI.OppositeRow">UI &gt; OppositeRow (class)</a></li><li><a href="UI.Page">UI &gt; Page (class)</a></li><li><a href="UI.Paragraph">UI &gt; Paragraph (class)</a></li><li><a href="UI.PointerEvent">UI &gt; PointerEvent (interface)</a></li><li><a href="UI.PointerEventSignal">UI &gt; PointerEventSignal (class)</a></li><li><a href="UI.PointerHandler">UI &gt; PointerHandler (class)</a></li><li><a href="UI.PrimaryButton">UI &gt; PrimaryButton (class)</a></li><li><a href="UI.ProgressBar">UI &gt; ProgressBar (class)</a></li><li><a href="UI.RoundButton">UI &gt; RoundButton (class)</a></li><li><a href="UI.Row">UI &gt; Row (class)</a></li><li><a href="UI.Screen">UI &gt; Screen</a></li><li><a href="UI.SelectField">UI &gt; SelectField (class)</a></li><li><a href="UI.Spacer">UI &gt; Spacer (class)</a></li><li><a href="UI.Style">UI &gt; Style (class)</a></li><li><a href="UI.Table">UI &gt; Table (class)</a></li><li><a href="UI.TableHeader">UI &gt; TableHeader (class)</a></li><li><a href="UI.TableRow">UI &gt; TableRow (class)</a></li><li><a href="UI.TextButton">UI &gt; TextButton (class)</a></li><li><a href="UI.TextField">UI &gt; TextField (class)</a></li><li><a href="UI.TextLabelFactory">UI &gt; TextLabelFactory (class)</a></li><li><a href="UI.ToggleButton">UI &gt; ToggleButton (class)</a></li><li><a href="UI.TreeList">UI &gt; TreeList (class)</a></li><li><a href="UI.TreeListFoldHandler">UI &gt; TreeListFoldHandler (class)</a></li><li><a href="UI.TreeListRow">UI &gt; TreeListRow (class)</a></li><li><a href="UI.TreeListSelectionHandler">UI &gt; TreeListSelectionHandler (class)</a></li><li><a href="UI.TwoWayBinding">UI &gt; TwoWayBinding (class)</a></li><li><a href="UI.UIValueOrAsync">UI &gt; UIValueOrAsync</a></li><li><a href="UI.WideLabel">UI &gt; WideLabel (class)</a></li><li><a href="UI.bind">UI &gt; bind</a></li><li><a href="UI.bind2">UI &gt; bind2</a></li><li><a href="UI.bindComponents">UI &gt; bindComponents</a></li><li><a href="UI.mapComponentRenderer">UI &gt; mapComponentRenderer</a></li><li><a href="UI.tl">UI &gt; tl</a></li></ul>
+            <hr>
+            <p>This is the documentation page for &ldquo;UI&rdquo;, part of the Typescene toolkit.</p>
+            <p>
+                <a href="http://typescene.org">Typescene</a> |
+                <a href="http://docs.typescene.org">Documentation</a> |
+                <a href="http://docs.typescene.org/doc/index.html">Sitemap</a>
+            </p>
+        </section>
+        
+    <script>
+        !(function () {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("load", load);
+            xhr.open("GET", "/index.0.9.html");
+            xhr.send();
+            function load() {
+                var html = xhr.responseText
+                    .replace(/^.!DOCTYPE.*\n/gm, "")
+                    .replace(/^.meta.*\n/gm, "")
+                    .replace(/^.title.*\n/gm, "");
+                var div = document.createElement("div");
+                div.innerHTML = html;
+                var oldHeader = document.body.querySelector("header");
+                var oldContent = document.body.querySelector("section");
+                var scripts = [];
+                function execNextScript() {
+                    if (scripts.length) document.body.appendChild(scripts.shift());
+                }
+                while (div.firstChild) {
+                    var tag = div.firstChild.tagName;
+                    if (tag && tag.toLowerCase() === "script") {
+                        var script = document.createElement("script");
+                        script.onload = execNextScript;
+                        script.onerror = execNextScript;
+                        script.src = div.firstChild.src;
+                        div.removeChild(div.firstChild);
+                        scripts.push(script);
+                    }
+                    else {
+                        document.body.appendChild(div.firstChild);
+                    }
+                }
+                execNextScript();
+                var interval = setInterval(function () {
+                    if (window.typescene) {
+                        clearInterval(interval);
+                        window.typescene.App.Application.ready.then(function () {
+                            document.body.removeChild(oldHeader);
+                            document.body.removeChild(oldContent);
+                        });
+                    }
+                }, 10);
+            }
+        })();
+    </script>
+
+    </body>
+</html>
