@@ -40,7 +40,7 @@ export class CultureService extends Service {
 
     /** Pluralize text based on given number and substitution form(s); defaults to English singular/plural rules without automatic pluralization (i.e. both singular and plural forms need to be specified in the placeholder) */
     public pluralizeText(n: number, forms: string[]) {
-        return (n > 1 || n < -1) ? (forms[1] || forms[0]) : forms[0];
+        return (n === 0 || n > 1 || n < -1) ? (forms[1] || forms[0]) : forms[0];
     }
 
     /** Returns given number formatted using culture specific rules, and using given precision (i.e. fixed number of decimals to display e.g. `2.00`, and/or rounding at given number of decimals, default 8, to avoid binary-to-decimal rounding errors such as `1.99999999`...); default implementation uses decimal point (`.`) and no thousands separators, but may revert to scientific notation for numbers with more than 20 digits (platform default) */
