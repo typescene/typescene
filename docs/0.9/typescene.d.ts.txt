@@ -1057,6 +1057,10 @@ export class Divider extends Block {
     /** Horizontal inset on the outside, i.e. right margin in left-to-right flow direction mode (CSS value, none if empty, observed) */
     insetEnd: string;
 }
+/** Represents a divider block element (horizontal line placed between blocks) without margin */
+export class CloseDivider extends Divider {
+    margin: string;
+}
 export namespace Divider {
     /** Initializer for .with({ ... }) */
     interface Initializer extends Block.Initializer {
