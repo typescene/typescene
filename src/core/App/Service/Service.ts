@@ -3,14 +3,14 @@ import Async from "../../Async";
 const INSTANCE_PROTO_PROP = "@_service_instance";
 const SERVICE_REG_ID_PREFIX = "+";
 
-/** Service classes registered by ID, and others waiting to be mapped */
+/** Service classes registered by *lowercase* ID, and others waiting to be mapped */
 const registry: Async.ObservableObject & { [id: string]: typeof Service | undefined } =
     <any>new Async.ObservableObject();
 
 /** Helper function to add an ID to the registry */
 function register(serviceId: string,
     serviceClass?: typeof Service | Async.ObservableValue<typeof Service | undefined>) {
-    var prop = SERVICE_REG_ID_PREFIX + serviceId;
+    var prop = (SERVICE_REG_ID_PREFIX + serviceId).toLowerCase();
     if (!registry.hasObservableProperty(prop)) {
         // add an observable property for this service
         registry.addObservableProperty(prop, serviceClass);
@@ -24,7 +24,7 @@ function register(serviceId: string,
 /** Helper function to inject a service instance */
 function doInject(classObj: Function, propertyId: string, serviceId: string) {
     // make sure a key in the registry exists
-    var prop = SERVICE_REG_ID_PREFIX + serviceId;
+    var prop = (SERVICE_REG_ID_PREFIX + serviceId).toLowerCase();
     if (!registry.hasObservableProperty(prop)) {
         // add an observable property for this service
         registry.addObservableProperty(prop, undefined);
@@ -60,7 +60,7 @@ export class Service extends Async.ObservableObject {
     }
 }
 
-/** *Class decorator*, registers the decorated `Service` class using given UpperCamelCase ID(s), so that injected properties (see `injectService`) decorated with a matching service ID automatically contain a reference to a singleton instance of the decorated `Service` [decorator] */
+/** *Class decorator*, registers the decorated `Service` class with one or more IDs, so that injected properties (see `injectService`) decorated with a matching service ID automatically contain a reference to a singleton instance of the decorated `Service` [decorator] */
 export function mapService(...id: string[]) {
     return (target: typeof Service) => {
         for (var s of id) register(s, target);
@@ -69,18 +69,18 @@ export function mapService(...id: string[]) {
 
 /** Add an alias for the given service by ID, so that the aliased service *also* becomes available using the given alias; the aliased service does not need to have been mapped yet */
 export function addServiceAlias(newId: string, serviceId: string) {
-    var serviceRefProp = SERVICE_REG_ID_PREFIX + serviceId;
-    if (!registry.hasObservableProperty(serviceRefProp)) {
+    var prop = (SERVICE_REG_ID_PREFIX + serviceId).toLowerCase();
+    if (!registry.hasObservableProperty(prop)) {
         // add an observable property for this service
-        registry.addObservableProperty(serviceRefProp, undefined);
+        registry.addObservableProperty(prop, undefined);
     }
-    register(newId, Async.observe(() => registry[serviceRefProp]));
+    register(newId, Async.observe(() => registry[prop]));
 }
 
-/** *Property decorator*, injects an instance of the `Service` class that is registered with the same ID as the name of the decorated propety (lowerCamelCase is converted to UpperCamelCase) into this property as and when it becomes available [decorator] */
+/** *Property decorator*, injects an instance of the `Service` class that is registered with the same ID as the name of the decorated propety (case-insensitive) into this property as and when it becomes available [decorator] */
 export function injectService(target: object, propertyKey: string): void;
 
-/** *Property decorator*, injects an instance of the `Service` class that is registered with given ID (must be UpperCamelCase) into this property as and when it becomes available [decorator] */
+/** *Property decorator*, injects an instance of the `Service` class that is registered with given ID (case-insensitive) into this property as and when it becomes available [decorator] */
 export function injectService(id: string): PropertyDecorator;
 
 export function injectService(idOrTarget: string | object, key?: string,
@@ -104,9 +104,7 @@ export function injectService(idOrTarget: string | object, key?: string,
         Object.defineProperty(idOrTarget, key, result);
 
         // register the service if needed, and create an observable reference
-        let id = String(key);
-        id = id[0].toUpperCase() + id.slice(1);
-        doInject(idOrTarget.constructor, key, id);
+        doInject(idOrTarget.constructor, key, key);
         return result;
     }
 }

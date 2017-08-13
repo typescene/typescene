@@ -24,8 +24,8 @@ let monthNames = capSplit("JanuaryFebruaryMarchAprilMayJuneJulyAugustSeptemberOc
 /** English abbreviated month names */
 let monthNamesAbbr = capSplit("JanFebMarAprMayJunJulAugSepOctNovDec");
 
-/** Base culture service (mapped on `culture-neutral` and `culture` initially); to be overridden with a language and region specific culture service, mapped as `culture-xx-YY/zz`, and aliased as `culture` using `addServiceAlias` to set as the current culture */
-@mapService("culture-neutral", "culture")
+/** Base culture service (mapped on `culture_neutral` and `culture` initially); to be overridden with a language and region specific culture service, mapped as `culture_xx_YY_zz` (language xx, country YY, region zz, where YY and zz are optional), and aliased as `culture` using `addServiceAlias` to set as the current culture */
+@mapService("culture_neutral", "culture")
 export class CultureService extends Service {
     /** The name of this culture, defaults to "none" but should be set to _languagecode-countrycode/regioncode_ and/or shorter forms such as _languagecode-countrycode_ and _languagecode_ */
     public readonly name = "neutral";
@@ -35,12 +35,20 @@ export class CultureService extends Service {
 
     /** Translate given text (may include placeholders and prefixes used by `UI.tl`) */
     public translateText(text: string) {
-        return text;
+        return this._textLookup && this._textLookup[text] || text;
+    }
+
+    /** Add simple text (lookup) translations to this culture service instance; given lookup table object must contain source text as property names, and translated text as values */
+    protected addTranslations(lookup: { [source: string]: string }) {
+        if (!this._textLookup) this._textLookup = {};
+        for (var source in lookup) {
+            this._textLookup[source] = lookup[source];
+        }
     }
 
     /** Pluralize text based on given number and substitution form(s); defaults to English singular/plural rules without automatic pluralization (i.e. both singular and plural forms need to be specified in the placeholder) */
     public pluralizeText(n: number, forms: string[]) {
-        return (n > 1 || n < -1) ? (forms[1] || forms[0]) : forms[0];
+        return (n === 0 || n > 1 || n < -1) ? (forms[1] || forms[0]) : forms[0];
     }
 
     /** Returns given number formatted using culture specific rules, and using given precision (i.e. fixed number of decimals to display e.g. `2.00`, and/or rounding at given number of decimals, default 8, to avoid binary-to-decimal rounding errors such as `1.99999999`...); default implementation uses decimal point (`.`) and no thousands separators, but may revert to scientific notation for numbers with more than 20 digits (platform default) */
@@ -62,43 +70,6 @@ export class CultureService extends Service {
     /** Returns given number formatted as a percentage, with given percentage symbol and fixed number of decimals; defaults to number without fixed decimals and "%" character; specific culture implementations should override defaults but still accept the same arguments */
     public formatPercentage(n: number | string, percSymbol = "%", fixedDecimals?: number) {
         return this.formatNumber(n, fixedDecimals) + percSymbol;
-    }
-
-    /** Collection of date/time formatters specific to this culture, used by `.formatDateTime`; defaults to a mostly international English format; replacement algorithm requires inclusion of all lengths of possible placeholders (including e.g. `yyy` and `%`) */
-    protected readonly dateTimeFormatters: CultureService.DateTimeFormatters = {
-        "d": d => d.getDate().toString(),
-        "dd": d => d2(d.getDate()),
-        "ddd": d => dayNamesAbbr[d.getDay()],
-        "dddd": d => dayNames[d.getDay()],
-        "h": d => (d.getHours() % 12 || 12).toString(),
-        "hh": d => d2(d.getHours() % 12 || 12),
-        "H": d => d.getHours().toString(),
-        "HH": d => d2(d.getHours()),
-        "m": d => d.getMinutes().toString(),
-        "mm": d => d2(d.getMinutes()),
-        "M": d => String(d.getMonth() + 1),
-        "MM": d => d2(d.getMonth() + 1),
-        "MMM": d => monthNamesAbbr[d.getMonth()],
-        "MMMM": d => monthNames[d.getMonth()],
-        "s": d => d.getSeconds().toString(),
-        "ss": d => d2(d.getSeconds()),
-        "t": d => (d.getHours() < 12 ? "a" : "p"),
-        "tt": d => (d.getHours() < 12 ? "AM" : "PM"),
-        "y": d => String(d.getFullYear() % 100),
-        "yy": d => d2(d.getFullYear() % 100),
-        "yyy": d => d2(d.getFullYear() % 100),
-        "yyyy": d => d.getFullYear().toString(),
-        "/": () => "/",
-        ":": () => ":",
-        "%": () => "",
-        "%d": (d, s) => s.formatDateTime(d, "d/M/y"),
-        "%dd": (d, s) => s.formatDateTime(d, "d MMM yyyy"),
-        "%ddd": (d, s) => s.formatDateTime(d, "d MMMM yyyy"),
-        "%dddd": (d, s) => s.formatDateTime(d, "dddd, d MMMM yyyy"),
-        "%t": (d, s) => s.formatDateTime(d, "h:mm tt"),
-        "%tt": (d, s) => s.formatDateTime(d, "h:mm:ss tt"),
-        "%T": (d, s) => s.formatDateTime(d, "H:mm"),
-        "%TT": (d, s) => s.formatDateTime(d, "H:mm:ss"),
     }
 
     /** Returns given date/time formatted using given format string (e.g. `dd/MMM/yyyy HH:mm`) using the following default placeholders, which may be (re-) defined by the culture service (defaults to `%dd %t`):
@@ -153,6 +124,46 @@ export class CultureService extends Service {
         }
         return result;
     }
+
+    /** Collection of date/time formatters specific to this culture, used by `.formatDateTime`; defaults to a mostly international English format; replacement algorithm requires inclusion of all lengths of possible placeholders (including e.g. `yyy` and `%`) */
+    protected readonly dateTimeFormatters: CultureService.DateTimeFormatters = {
+        "d": d => d.getDate().toString(),
+        "dd": d => d2(d.getDate()),
+        "ddd": d => dayNamesAbbr[d.getDay()],
+        "dddd": d => dayNames[d.getDay()],
+        "h": d => (d.getHours() % 12 || 12).toString(),
+        "hh": d => d2(d.getHours() % 12 || 12),
+        "H": d => d.getHours().toString(),
+        "HH": d => d2(d.getHours()),
+        "m": d => d.getMinutes().toString(),
+        "mm": d => d2(d.getMinutes()),
+        "M": d => String(d.getMonth() + 1),
+        "MM": d => d2(d.getMonth() + 1),
+        "MMM": d => monthNamesAbbr[d.getMonth()],
+        "MMMM": d => monthNames[d.getMonth()],
+        "s": d => d.getSeconds().toString(),
+        "ss": d => d2(d.getSeconds()),
+        "t": d => (d.getHours() < 12 ? "a" : "p"),
+        "tt": d => (d.getHours() < 12 ? "AM" : "PM"),
+        "y": d => String(d.getFullYear() % 100),
+        "yy": d => d2(d.getFullYear() % 100),
+        "yyy": d => d2(d.getFullYear() % 100),
+        "yyyy": d => d.getFullYear().toString(),
+        "/": () => "/",
+        ":": () => ":",
+        "%": () => "",
+        "%d": (d, s) => s.formatDateTime(d, "d/M/y"),
+        "%dd": (d, s) => s.formatDateTime(d, "d MMM yyyy"),
+        "%ddd": (d, s) => s.formatDateTime(d, "d MMMM yyyy"),
+        "%dddd": (d, s) => s.formatDateTime(d, "dddd, d MMMM yyyy"),
+        "%t": (d, s) => s.formatDateTime(d, "h:mm tt"),
+        "%tt": (d, s) => s.formatDateTime(d, "h:mm:ss tt"),
+        "%T": (d, s) => s.formatDateTime(d, "H:mm"),
+        "%TT": (d, s) => s.formatDateTime(d, "H:mm:ss"),
+    }
+
+    /** Translations lookup table, if any */
+    private _textLookup?: { [source: string]: string };
 }
 
 export namespace CultureService {

@@ -45,6 +45,11 @@ export class Divider extends Block {
     public insetEnd: string;
 }
 
+/** Represents a divider block element (horizontal line placed between blocks) without margin */
+export class CloseDivider extends Divider {
+    public margin = "0";
+}
+
 export namespace Divider {
     /** Initializer for .with({ ... }) */
     export interface Initializer extends Block.Initializer {

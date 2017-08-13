@@ -28,19 +28,19 @@ export class Renderer<T extends ControlElement> extends ComponentRenderer<T, HTM
             if (w === "auto") w = "";
             var isPercentage = (w.slice(-1) === "%");
             if (component.shrinkwrap) {
-                // add shrinkwrap class and set width
+                // set auto width, limit min/max
                 Async.unobserved(() => {
-                    component.style.addClass("shrinkwrap").set({
-                        width: isPercentage && w || "",
+                    component.style.set({
+                        width: isPercentage && w || "1px",
                         minWidth: w,
-                        maxWidth: w
+                        maxWidth: w || "none"
                     });
                 });
             }
             else {
-                // remove shrinkwrap class and set width
+                // set width manually
                 Async.unobserved(() => {
-                    component.style.removeClass("shrinkwrap").set({
+                    component.style.set({
                         width: isPercentage && w || "",
                         minWidth: w,
                         maxWidth: "none"
@@ -101,9 +101,5 @@ DOM.Styles.define("UI-Control " + CSS_CLASS, {
         lineHeight: "normal",
         height: "100%",
         whiteSpace: "pre"
-    },
-    ".~~.shrinkwrap": {
-        width: "1px",
-        maxWidth: "none"
     }
 });

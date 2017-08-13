@@ -24,8 +24,9 @@ class DOMPageRenderer extends PageRenderer {
         window.removeEventListener("keydown", this._onKeydown);
         window.addEventListener("keydown", this._onKeydown);
 
-        // reset reference to currently shaded wrapper
-        this._shadedWrapper = <any>undefined;
+        // reset wrapper references
+        this._shadedWrapper = undefined;
+        this._modalWrapper = undefined;
 
         // take flow direction from screen if not defined on page
         if (!this.page.flowDirection && Screen.defaultFlowDirection) {
@@ -76,6 +77,12 @@ class DOMPageRenderer extends PageRenderer {
         return updater.updateAsync(content, true).then(() => {
             this.page.Rendered();
             this._moveShadeElement();
+
+            // remove focus from elements in front of this modal
+            if (this._modalWrapper && document.activeElement &&
+                document.activeElement.compareDocumentPosition(
+                    this._modalWrapper) & 4)
+                DOM.blur();
         });
     }
 
@@ -252,15 +259,18 @@ class DOMPageRenderer extends PageRenderer {
         wrapper.style.zIndex = String(DOM.PAGE_OPTIONS.baseZIndex +
             ((options && options.stayOnTop) ? 1000 : 0));
 
-        // remember to insert the backdrop shade here if needed
-        if (options && options.shade) this._shadedWrapper = wrapper;
-
         // use "dir" attribute if flow direction set
         if (options && options.flowDirection) wrapper.dir = options.flowDirection;
+
+        // remember to insert the backdrop shade here if needed
+        if (options && options.shade) this._shadedWrapper = wrapper;
 
         // use .displayOptions to figure out positioning
         var cell: HTMLElement;
         if (options && (options.modal)) {
+            // remember to remove focus later if needed
+            this._modalWrapper = wrapper;
+
             // position the element inside a full-screen table cell
             wrapper.style.top = "0";
             wrapper.style.bottom = "0";
@@ -400,6 +410,9 @@ class DOMPageRenderer extends PageRenderer {
 
     /** @internal Current top-most options object (for accessing onEsc) */
     private _topOptions?: Page.DisplayOptions;
+
+    /** @internal Current top-most modal wrapper (for removing focus after update) */
+    private _modalWrapper?: HTMLElement;
 
     /** @internal Current top-most wrapper with shaded backdrop behind it */
     private _shadedWrapper?: HTMLElement;

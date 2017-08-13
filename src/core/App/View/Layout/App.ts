@@ -30,7 +30,7 @@ export class AppViewLayout extends VerticalLayout {
     static Footer: typeof VerticalLayout.Footer;
 }
 
-/** Represents a full-page application layout that contains a header app bar fragment and a footer container fragment, as well as a scrollable navigation sidebar; the sidebar is automatically collapsed while `.sidebarCollapsed` is set (defaults to true on small screens, observable) but is also wrapped in a drawer container in the `.drawer` property, which can be opened using its `openAsync()` method (e.g. from a click handler on a button available in the `.AppBar` fragment) */
+/** Represents a full-page application layout that contains a header app bar fragment and a footer container fragment, as well as a scrollable navigation sidebar; the sidebar is automatically collapsed while `.sidebarCollapsed` is set (defaults to false only on wide screens, observable) but is also wrapped in a drawer container in the `.drawer` property, which can be opened using its `openAsync()` method (e.g. from a click handler on a button available in the `.AppBar` fragment) */
 export class HubViewLayout extends AppViewLayout {
     /** Layout fragment for the application bar at the top of the screen, contains only one Row instance; all content passed into the initializer is automatically added to this row, not the container itself */
     static Header: typeof AppViewLayout.Header;
@@ -60,16 +60,16 @@ export class HubViewLayout extends AppViewLayout {
             this._drawerIsOpen.value = false;
         });
 
-        // add the (inside, i.e. left by default) sidebar if not on a small screen
+        // add the (inside, i.e. left by default) sidebar if on a wide screen
         this.bindFragment("insideGutter", "Sidebar", sidebar => {
             return (this.sidebarCollapsed || this._drawerIsOpen.value) ?
                 undefined : sidebar;
         });
     }
 
-    /** True if the sidebar should be hidden, normally only on small screens but can be overridden by defining a getter for this property (observed, readonly) */
+    /** True if the sidebar should be hidden, normally only on non-wide screens but can be overridden by defining a getter for this property (observed, readonly) */
     @Async.observable
-    public get sidebarCollapsed() { return Screen.dimensions.isSmall }
+    public get sidebarCollapsed() { return !Screen.dimensions.isWide }
 
     /** Drawer compononent containing only the sidebar, for small viewports */
     public readonly drawer: DrawerContainer;

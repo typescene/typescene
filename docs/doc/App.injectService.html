@@ -4,8 +4,8 @@
         <meta charset="utf-8">
         <title>injectService (App.injectService)</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Typescene reference: injectService (App.injectService) - [1]. Property decorator, injects an instance of the Service class that is registered with the same ID as the name of the decorated propety (lowerCamelCase is converted to UpperCamelCase) into this property as and when it becomes available [decorator].
-[2]. Property decorator, injects an instance of the Service class that is registered with given ..." />
+        <meta name="description" content="Typescene reference: injectService (App.injectService) - [1]. Property decorator, injects an instance of the Service class that is registered with the same ID as the name of the decorated propety (case-insensitive) into this property as and when it becomes available [decorator].
+[2]. Property decorator, injects an instance of the Service class that is registered with given ID (case-insensitive) into..." />
         <link rel="shortcut icon" type="image/png" href="/favicon.png" />
         <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,300i,400,400i,600" rel="stylesheet">
@@ -41,8 +41,8 @@
                  | <a href="App">App</a>
             </p>
 <h1>injectService</h1><pre><code>function injectService(target: object, propertyKey: string): void;
-function injectService(id: string): PropertyDecorator;</pre></code><p>[1]. <em>Property decorator</em>, injects an instance of the <code>Service</code> class that is registered with the same ID as the name of the decorated propety (lowerCamelCase is converted to UpperCamelCase) into this property as and when it becomes available [decorator].</p>
-<p>[2]. <em>Property decorator</em>, injects an instance of the <code>Service</code> class that is registered with given ID (must be UpperCamelCase) into this property as and when it becomes available [decorator].</p>
+function injectService(id: string): PropertyDecorator;</pre></code><p>[1]. <em>Property decorator</em>, injects an instance of the <code>Service</code> class that is registered with the same ID as the name of the decorated propety (case-insensitive) into this property as and when it becomes available [decorator].</p>
+<p>[2]. <em>Property decorator</em>, injects an instance of the <code>Service</code> class that is registered with given ID (case-insensitive) into this property as and when it becomes available [decorator].</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;injectService (App.injectService)&rdquo;, part of the Typescene toolkit.</p>

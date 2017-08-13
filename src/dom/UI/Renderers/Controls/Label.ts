@@ -52,7 +52,7 @@ export class Renderer<T extends Label> extends ControlRenderer<T> {
         }
         var labelText = label !== undefined && String(label);
         if (labelText) {
-            if (icon && !(remGutter! > 0)) labelText = " " + labelText;
+            if (icon && !(remGutter! > 0)) labelText = "  " + labelText;
             var labelElement = document.createElement("span");
             labelElement.textContent = labelText;
             node.appendChild(labelElement);
@@ -70,6 +70,12 @@ export class Renderer<T extends Label> extends ControlRenderer<T> {
             var afterLabelElement = document.createElement("small");
             afterLabelElement.textContent = afterLabelText;
             node.appendChild(afterLabelElement);
+        }
+        if (!node.firstChild) {
+            // add zero-width space to make sure label doesn't collapse to 0-width
+            var zeroWidthElement = document.createElement("span");
+            zeroWidthElement.textContent = "\u200B";
+            node.appendChild(zeroWidthElement);
         }
         return node;
     }

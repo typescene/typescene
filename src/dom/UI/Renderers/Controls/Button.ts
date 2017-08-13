@@ -116,7 +116,7 @@ TextButton.addStyleOverride(Style.withClass(CSS_CLASS + " UI-TextButton"));
 RoundButton.addStyleOverride(Style.withClass(CSS_CLASS + " UI-RoundButton"));
 DOM.Styles.define("UI-Control " + CSS_CLASS, {
     ".~~": {
-        width: "100%"
+        minWidth: "1px"
     },
     ".~~ > button": {
         width: "100%",
@@ -136,7 +136,7 @@ DOM.Styles.define("UI-Control " + CSS_CLASS, {
         fontFamily: "inherit",
         fontStyle: "inherit",
         height: "auto",
-        lineHeight: "1em",
+        lineHeight: "normal",
         verticalAlign: "baseline",
         color: "inherit"
     },
