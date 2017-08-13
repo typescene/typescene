@@ -132,6 +132,7 @@ DOM.Styles.define("UI-Container " + CSS_CLASS, {
         height: "auto",
         lineHeight: "1.1rem",
         fontFamily: "initial",
+        position: "relative",
         top: "-.1em"
     }
 });
