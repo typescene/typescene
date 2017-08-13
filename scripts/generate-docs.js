@@ -48,7 +48,7 @@ fs.writeFileSync(path.resolve(__dirname, "../docs/404.html"), indexHtmlContent);
 const webpack = require("webpack");
 webpack({
     entry: path.resolve(__dirname, "../src/docs-viewer/main.ts"),
-    devtool: "eval-cheap-module-source-map",
+    //devtool: "eval-cheap-module-source-map",
     output: {
         filename: "main.min.js",
         path: path.resolve(__dirname, "../docs/" + version)
@@ -68,7 +68,7 @@ webpack({
         new webpack.DefinePlugin({ VERSION: version }),
         new webpack.optimize.OccurrenceOrderPlugin(),
         new webpack.optimize.ModuleConcatenationPlugin(),
-        //new webpack.optimize.UglifyJsPlugin(),
+        new webpack.optimize.UglifyJsPlugin(),
     ]
 }, (err, stats) => {
     if (err) {
