@@ -24,8 +24,8 @@ let monthNames = capSplit("JanuaryFebruaryMarchAprilMayJuneJulyAugustSeptemberOc
 /** English abbreviated month names */
 let monthNamesAbbr = capSplit("JanFebMarAprMayJunJulAugSepOctNovDec");
 
-/** Base culture service (mapped on `culture-neutral` and `culture` initially); to be overridden with a language and region specific culture service, mapped as `culture-xx-YY/zz`, and aliased as `culture` using `addServiceAlias` to set as the current culture */
-@mapService("culture-neutral", "culture")
+/** Base culture service (mapped on `culture_neutral` and `culture` initially); to be overridden with a language and region specific culture service, mapped as `culture_xx_YY_zz` (language xx, country YY, region zz, where YY and zz are optional), and aliased as `culture` using `addServiceAlias` to set as the current culture */
+@mapService("culture_neutral", "culture")
 export class CultureService extends Service {
     /** The name of this culture, defaults to "none" but should be set to _languagecode-countrycode/regioncode_ and/or shorter forms such as _languagecode-countrycode_ and _languagecode_ */
     public readonly name = "neutral";

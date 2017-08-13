@@ -252,7 +252,7 @@ export function findActivity<T>(ActivityClass: typeof Activity & {
 
 declare module "@typescene/core/App/Culture/CultureService" {
 import { Service } from "@typescene/core/App/Service";
-/** Base culture service (mapped on `culture-neutral` and `culture` initially); to be overridden with a language and region specific culture service, mapped as `culture-xx-YY/zz`, and aliased as `culture` using `addServiceAlias` to set as the current culture */
+/** Base culture service (mapped on `culture_neutral` and `culture` initially); to be overridden with a language and region specific culture service, mapped as `culture_xx_YY_zz` (language xx, country YY, region zz, where YY and zz are optional), and aliased as `culture` using `addServiceAlias` to set as the current culture */
 export class CultureService extends Service {
     /** The name of this culture, defaults to "none" but should be set to _languagecode-countrycode/regioncode_ and/or shorter forms such as _languagecode-countrycode_ and _languagecode_ */
     readonly name: string;
@@ -338,13 +338,13 @@ export class Service extends Async.ObservableObject {
     /** Singleton constructor; do not use directly, use `getInstance` instead */
     constructor();
 }
-/** *Class decorator*, registers the decorated `Service` class using given UpperCamelCase ID(s), so that injected properties (see `injectService`) decorated with a matching service ID automatically contain a reference to a singleton instance of the decorated `Service` [decorator] */
+/** *Class decorator*, registers the decorated `Service` class with one or more IDs, so that injected properties (see `injectService`) decorated with a matching service ID automatically contain a reference to a singleton instance of the decorated `Service` [decorator] */
 export function mapService(...id: string[]): (target: typeof Service) => void;
 /** Add an alias for the given service by ID, so that the aliased service *also* becomes available using the given alias; the aliased service does not need to have been mapped yet */
 export function addServiceAlias(newId: string, serviceId: string): void;
-/** *Property decorator*, injects an instance of the `Service` class that is registered with the same ID as the name of the decorated propety (lowerCamelCase is converted to UpperCamelCase) into this property as and when it becomes available [decorator] */
+/** *Property decorator*, injects an instance of the `Service` class that is registered with the same ID as the name of the decorated propety (case-insensitive) into this property as and when it becomes available [decorator] */
 export function injectService(target: object, propertyKey: string): void;
-/** *Property decorator*, injects an instance of the `Service` class that is registered with given ID (must be UpperCamelCase) into this property as and when it becomes available [decorator] */
+/** *Property decorator*, injects an instance of the `Service` class that is registered with given ID (case-insensitive) into this property as and when it becomes available [decorator] */
 export function injectService(id: string): PropertyDecorator;
 
 }
