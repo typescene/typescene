@@ -260,6 +260,10 @@ export class CultureService extends Service {
     readonly textFlowDirection?: "ltr" | "rtl";
     /** Translate given text (may include placeholders and prefixes used by `UI.tl`) */
     translateText(text: string): string;
+    /** Add simple text (lookup) translations to this culture service instance; given lookup table object must contain source text as property names, and translated text as values */
+    protected addTranslations(lookup: {
+        [source: string]: string;
+    }): void;
     /** Pluralize text based on given number and substitution form(s); defaults to English singular/plural rules without automatic pluralization (i.e. both singular and plural forms need to be specified in the placeholder) */
     pluralizeText(n: number, forms: string[]): string;
     /** Returns given number formatted using culture specific rules, and using given precision (i.e. fixed number of decimals to display e.g. `2.00`, and/or rounding at given number of decimals, default 8, to avoid binary-to-decimal rounding errors such as `1.99999999`...); default implementation uses decimal point (`.`) and no thousands separators, but may revert to scientific notation for numbers with more than 20 digits (platform default) */
@@ -268,8 +272,6 @@ export class CultureService extends Service {
     formatCurrency(n: number | string, currencySymbol?: string, fixedDecimals?: number): string;
     /** Returns given number formatted as a percentage, with given percentage symbol and fixed number of decimals; defaults to number without fixed decimals and "%" character; specific culture implementations should override defaults but still accept the same arguments */
     formatPercentage(n: number | string, percSymbol?: string, fixedDecimals?: number): string;
-    /** Collection of date/time formatters specific to this culture, used by `.formatDateTime`; defaults to a mostly international English format; replacement algorithm requires inclusion of all lengths of possible placeholders (including e.g. `yyy` and `%`) */
-    protected readonly dateTimeFormatters: CultureService.DateTimeFormatters;
     /** Returns given date/time formatted using given format string (e.g. `dd/MMM/yyyy HH:mm`) using the following default placeholders, which may be (re-) defined by the culture service (defaults to `%dd %t`):
      * * `%d`: short date, e.g. 20/1/17,
      * * `%dd`: medium date, e.g. 20 Jan 2017
@@ -304,6 +306,10 @@ export class CultureService extends Service {
      * * `:`: time separator
      */
     formatDateTime(d: Date, format?: string): string;
+    /** Collection of date/time formatters specific to this culture, used by `.formatDateTime`; defaults to a mostly international English format; replacement algorithm requires inclusion of all lengths of possible placeholders (including e.g. `yyy` and `%`) */
+    protected readonly dateTimeFormatters: CultureService.DateTimeFormatters;
+    /** Translations lookup table, if any */
+    private _textLookup?;
 }
 export namespace CultureService {
     /** Collection of date/time formatter function, indexed by placeholder name (e.g. `M`, `MM`, `MMM`), which return the relevant string representation of a given date argument */
