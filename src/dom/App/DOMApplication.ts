@@ -89,7 +89,6 @@ export class DOMApplication extends Application {
                 t.to && t.to.options && t.to.options.isBackgroundActivity)
                 return;
             _moveToHistoryState = false;
-            console.log("Moving activity stack", t);
             this._scheduleSync();
         });
 
@@ -112,7 +111,6 @@ export class DOMApplication extends Application {
             else {
                 // push activities
                 if (hash[1] !== "/") hash = "#/" + hash.slice(1);
-                console.log("Starting activity for", hash);
                 this.startActivityAsync(hash, false, false);
             }
         });
@@ -123,7 +121,6 @@ export class DOMApplication extends Application {
         window.addEventListener("popstate", event => {
             if (!_useBrowserHistory || _ignorePopState || _movingState) return;
             _moveToHistoryState = true;
-            console.log("Browser history moved");
             this._scheduleSync();
         });
     }
@@ -147,7 +144,6 @@ export class DOMApplication extends Application {
             this.historyActivity = this.activities.top;
             return;  // done.
         }
-        console.log("Syncing history to", historyId);
 
         // if moving towards activity state, either go back or push activity state
         if (!_moveToHistoryState) {
@@ -157,7 +153,6 @@ export class DOMApplication extends Application {
                 setTimeout(() => { _ignorePopState-- }, HISTORY_SYNC_DELAY_MS);
 
                 // browser history is ahead: go back one step and reschedule
-                console.log("Browser is ahead, going back...");
                 history.back();
                 this._scheduleSync();
             }
@@ -173,14 +168,12 @@ export class DOMApplication extends Application {
                     // change first push to a replace to avoid lingering initial state
                     if (_isCleanHistory || !dir) {
                         _isCleanHistory = false;
-                        console.log("Browser is lost, replacing state...");
                         history.replaceState(state, next.title || "", next.path);
                         this._scheduleSync();
                         return;
                     }
                     else {
                         // perform a regular push
-                        console.log("Browser is behind, pushing state...");
                         history.pushState(state, next.title || "", next.path);
                         this.historyActivity = next.activity;
                     }
@@ -193,13 +186,11 @@ export class DOMApplication extends Application {
                 _movingState = true;
                 f().then(() => {
                     // great, now check again
-                    console.log("Activity stack updated");
                     _movingState = false;
                     _moveToHistoryState = true;
                     this._scheduleSync();
                 }, () => {
                     // failed, add all activities back from current state onwards
-                    console.log("Activity stack cannot be updated, resolving...");
                     _movingState = false;
                     _moveToHistoryState = false;
                     this._scheduleSync();
@@ -208,14 +199,10 @@ export class DOMApplication extends Application {
 
             // helper function to handle situations in which history is lost
             let historyConfusion = () => {
-                if (history.state && history.state.path) {
-                    console.log("History state not found, trying path", history.state.path);
+                if (history.state && history.state.path)
                     this._startLocationActivity(history.state.path);
-                }
-                else {
-                    console.log("History state not found, going back...")
+                else
                     history.back();
-                }
             }
 
             // moving towards browser history state

@@ -45,10 +45,6 @@ export class HomeActivity extends App.Activity {
                 }
             });
         });
-        this.Resuming.connect(t => {
-            if (t.op === App.ActivityTransition.Operation.Pop)
-                Async.defer(() => App.Application.current.dropActivityAsync());
-        });
     }
 
     @App.injectService
