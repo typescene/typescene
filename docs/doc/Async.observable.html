@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <title>observable (Async.observable)</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Typescene reference: observable (Async.observable) - Property/accessor decorator, makes a property observable on every instance [requires ES5+ target] [decorator].
+        <meta name="description" content="Typescene reference: observable (Async.observable) - Property/accessor decorator, makes a property observable on every instance [requires ES5+ target].
 " />
         <link rel="shortcut icon" type="image/png" href="/favicon.png" />
         <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
@@ -40,7 +40,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="Async">Async</a>
             </p>
-<h1>observable</h1><pre><code>function observable(target: Object, key: string, descriptor?: PropertyDescriptor): any;</pre></code><p><em>Property/accessor decorator</em>, makes a property observable on every instance [requires ES5+ target] [decorator].</p>
+<h1>observable</h1><pre><code>function observable(target: Object, key: string, descriptor?: PropertyDescriptor): any;</pre></code><p><em>Property/accessor decorator</em>, makes a property observable on every instance [requires ES5+ target].</p>
 <p><strong>Note:</strong> properties that are decorated with <code>@observable</code> will <em>not</em> be enumerable on the instance object, because getters and setters are defined on the prototype object. If you need properties to be enumerable, call <code>makePropertyObservable(...)</code> from the constructor instead.</p>
 <p><strong>Note:</strong> values assigned to properties decorated with <code>@observable</code> will be treated specially, if they are arrays or objects created with an object literal:</p>
 <ol>

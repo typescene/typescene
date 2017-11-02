@@ -40,7 +40,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="App.Application">App.Application</a>
             </p>
-<h1>PageNotFound</h1><pre><code>readonly PageNotFound: Signal.Emittable&lt;string&gt;;</pre></code><p>Signal that is emitted when no activity is found for a location.</p>
+<h1>PageNotFound</h1><pre><code>readonly PageNotFound: Signal.Emittable&lt;string, string&gt;;</pre></code><p>Signal that is emitted when no activity is found for a location.</p>
 <h3>Example</h3><pre><code class="language-typescript">// Redirect to #/ and log a warning message
 App.Application.current.PageNotFound.connect(path =&gt; {
     console.log(&quot;Page not found: &quot; + path);

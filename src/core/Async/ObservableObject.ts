@@ -41,7 +41,7 @@ export function makeObjectObservable<T extends object>(obj: T): T & ObservableOb
             if ((specIsObservable ?
                 (<ObservableObject><any>obj).hasObservableProperty(member) :
                 Object.prototype.hasOwnProperty.call(obj, member)) &&
-                (desc = Object.getOwnPropertyDescriptor(obj, member))) {
+                (desc = Object.getOwnPropertyDescriptor(obj, member)!)) {
                 _defineObservableProperty(result, member,
                     desc.value, desc.get, desc.set);
             }

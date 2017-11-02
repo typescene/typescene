@@ -155,7 +155,7 @@ export class Style {
         // update observable list of sorted properties
         var sorted = this._keys;
         if (sorted.length) {
-            var unsorted = Object.keys(this._props);
+            var unsorted = Object.keys(this._props!);
             sorted.length = unsorted.length;
             unsorted.sort().forEach((key, i) => { sorted[i] = key });
         }
@@ -199,7 +199,7 @@ export class Style {
     public getOverrides() {
         var result: Style[] = [];
         var base = this;
-        (function addOverrides(s: Style) {
+        (function addOverrides(s?: Style) {
             if (!s) return;
             if (s._status.value! >= (s === base ? 2 : 1))
                 result.push(s);

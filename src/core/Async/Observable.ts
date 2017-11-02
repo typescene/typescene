@@ -4,6 +4,10 @@ import { Signal, SignalConnection } from "./Signal";
 import { ObservableObject, makeObjectObservable } from "./ObservableObject";
 import { ObservableArray } from "./ObservableArray";
 
+/** Counter to prevent runaway recursion */
+var _countEval = 0;
+const MAX_EVAL_RECURSE = 200;
+
 /** Watched observable currently evaluating, if any; used to connect dependencies through signals */
 var currentWatchedEvaling: ObservableValue<any> | undefined;
 
@@ -101,7 +105,7 @@ export class ObservableValue<T> {
     }
 
     /** Set a getter function for the observable value, which should return a current value, or another ObservableValue instance, or set `.value` directly; note that getters *should* be pure functions without side effects, creating or setting other observables from the getter will result in an error; the getter is only invoked (asynchronously) if a value had been set previously and needs to be updated; reading `.value` from the getter results in the value previously set, no recursion occurs; returns this */
-    public getter(f: () => T) {
+    public getter(f: () => any) {
         if (this._ro) throw new Error("Cannot modify this observable value");
         assertUnobserved();
         this._getter = f;
@@ -120,7 +124,7 @@ export class ObservableValue<T> {
     }
 
     /** Set a setter function for the observable value; setting `.value` directly from the setter results in changing the underlying observable value (which can also be read by the getter, or the setter itself), no recursion occurs; returns this */
-    public setter(f: (value: T) => void) {
+    public setter(f: (value: any) => void) {
         if (this._ro) throw new Error("Cannot modify this observable value");
         assertUnobserved();
         this._setter = f;
@@ -148,6 +152,10 @@ export class ObservableValue<T> {
         var hadValue = !!this._valIdx;
         var oldValue = this._val;
         if (this._needsEval()) {
+            _countEval++;
+            if (_countEval > MAX_EVAL_RECURSE)
+                throw new Error("Runaway observable value recursion detected");
+
             this._oldConnections = this._depConnections;
 
             // set this instance as currently evaluating to find dependencies
@@ -172,6 +180,7 @@ export class ObservableValue<T> {
             }
             finally {
                 this._getting = false;
+                _countEval--;
 
                 // stop solliciting dependencies
                 currentWatchedEvaling = prevWatched;
@@ -492,7 +501,7 @@ export class ObservableValue<T> {
     private _getter?: () => T;
 
     /** @internal Setter function, if any */
-    private _setter?: (value: T) => void;
+    private _setter?: (value: any) => void;
 
     /** @internal Last evaluated result */
     private _val?: T;

@@ -162,7 +162,7 @@ export class DocArticle extends UI.Container {
 
                 // for playground "example", show a separate button to open the editor
                 if (textItem.type === "playground") {
-                    textElt.className += " doc-text-type-example"
+                    textElt.className += " doc-text-type-example";
                     var row = new (UI.Row.with(
                         { verticalSpacing: "1rem", spacing: "0" },
                         UI.PrimaryButton.with({

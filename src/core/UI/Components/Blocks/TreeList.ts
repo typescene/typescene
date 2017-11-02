@@ -20,7 +20,7 @@ export class TreeList<BlockT extends TreeList.BlockItem> extends Block {
     }
 
     /** Method that is called immediately after the renderer for this list is constructed; adds observers for item selection */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>) {
+    protected beforeFirstRender(renderer: ComponentRenderer) {
         super.beforeFirstRender(renderer);
 
         // create an observable flattened array with all open items

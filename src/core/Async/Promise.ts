@@ -4,7 +4,8 @@ import { UnhandledException, Signal } from "./Signal";
 /** Represents a value to be resolved at any time in the future */
 export class Promise<T> implements PromiseLike<T> {
     /** Delay the execution of a callback but return a promise for its result */
-    public static delay<T>(f: (...args: any[]) => T, ms: number, args?: any[]) {
+    public static delay<T>(f: (...args: any[]) => T, ms: number, args?: any[]):
+        Promise<T> & PromiseLike<T> {
         var result = new Promise<T>();
 
         // set a timer and run all deferred functions right away (e.g. .then(...))
@@ -16,12 +17,13 @@ export class Promise<T> implements PromiseLike<T> {
     }
 
     /** Return a promise that will be resolved after a delay */
-    public static sleep<T>(ms: number, value?: T): Promise<T> {
+    public static sleep<T>(ms: number, value?: T): Promise<T> & PromiseLike<T> {
         return Promise.delay(() => value!, ms);
     }
 
     /** Defer the execution of a callback but return a promise for its result */
-    public static defer<T>(f: (...args: any[]) => T, args?: any[]) {
+    public static defer<T>(f: (...args: any[]) => T, args?: any[]):
+        Promise<T> & PromiseLike<T> {
         var result = new Promise<T>();
         defer(() => { result._resolveWith(r => r(f.apply(undefined, args))) });
         return result;
@@ -38,17 +40,18 @@ export class Promise<T> implements PromiseLike<T> {
     }
 
     /** Return a resolved promise */
-    public static resolve<T>(value: T) {
+    public static resolve<T>(value: T): Promise<T> & PromiseLike<T> {
         return new Promise<T>()._resolve(value);
     }
 
     /** Return a rejected promise */
-    public static reject(error: Error) {
-        return new Promise()._reject(error);
+    public static reject(error: Error): Promise<never> & PromiseLike<never> {
+        return new Promise<never>()._reject(error);
     }
 
     /** Return a promise that is fulfilled when all given promises are fulfilled and is immediately rejected when one of the promises is rejected */
-    public static all<ValueT>(promises: PromiseLike<ValueT>[]) {
+    public static all<ValueT>(promises: PromiseLike<ValueT>[]):
+        Promise<ValueT[]> & PromiseLike<ValueT[]> {
         var result = new Promise<ValueT[]>();
         var values: any[] = [];
         var left = promises.length;
@@ -76,7 +79,8 @@ export class Promise<T> implements PromiseLike<T> {
     }
 
     /** Return a promise that is resolved or rejected exactly like the first of the given promises that is resolved or rejected */
-    public static race<T>(promises: PromiseLike<T>[]) {
+    public static race<T>(promises: PromiseLike<T>[]):
+        Promise<T> & PromiseLike<T> {
         var result = new Promise<T>();
         promises.forEach(p => {
             p.then(value => result._resolve(value), error => result._reject(error));
@@ -93,11 +97,11 @@ export class Promise<T> implements PromiseLike<T> {
 
     /** Run one of the callbacks as soon as the promise is fulfilled or rejected */
     then<O>(onFulfilled?: (value: T) => (PromiseLike<O> | O),
-        onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O>;
+        onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O> & PromiseLike<O>;
 
     /** Run one of the callbacks as soon as the promise is fulfilled or rejected */
     then<O>(onFulfilled?: (value: T) => (PromiseLike<O> | O),
-        onRejected?: (error: Error) => void): Promise<O>;
+        onRejected?: (error: Error) => void): Promise<O> & PromiseLike<O>;
 
     public then<O>(onFulfilled?: (value: T) => any,
         onRejected?: (error: Error) => any) {
@@ -146,10 +150,10 @@ export class Promise<T> implements PromiseLike<T> {
     }
 
     /** Catch rejections and return a new promise */
-    catch<O>(onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O>;
+    catch<O>(onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O> & PromiseLike<O>;
 
     /** Catch rejections and return a new promise */
-    catch<O>(onRejected?: (error: Error) => void): Promise<O>;
+    catch<O>(onRejected?: (error: Error) => void): Promise<O> & PromiseLike<O>;
 
     public catch(onRejected?: (error: Error) => any) {
         return this.then(undefined, onRejected);
@@ -163,7 +167,7 @@ export class Promise<T> implements PromiseLike<T> {
     }
 
     /** @internal Resolve the promise with a value, or (future) result of a promise */
-    private _resolve(value?: PromiseLike<T> | T, resolving?: object) {
+    private _resolve(value?: any, resolving?: object) {
         if (!this._isResolved && !this._isRejected &&
             (!this._resolving || resolving === this._resolving)) {
             if (value === this) throw new TypeError("Recursive promise found");
@@ -198,7 +202,7 @@ export class Promise<T> implements PromiseLike<T> {
     }
 
     /** @internal Run a function that may resolve or reject the promise, if still not fulfilled */
-    private _resolveWith(executor: (resolve: (value: PromiseLike<T> | T) => void,
+    private _resolveWith(executor: (resolve: (value: any) => void,
         reject: (error: Error) => void) => void) {
         try {
             // call resolver function with callback for resolving this promise
@@ -253,7 +257,7 @@ export class Promise<T> implements PromiseLike<T> {
     private _error: Error;
 
     /* @internal */
-    private _Resolve = Signal.create<T>();
+    private _Resolve = Signal.create<any>();
     /* @internal */
     private _Reject = Signal.create<Error>();
 }

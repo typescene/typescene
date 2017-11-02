@@ -25,7 +25,7 @@ export class NavList extends Block {
     }
 
     /** Method that is called immediately after the renderer for this component is constructed; adds observers for nav item selection */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>) {
+    protected beforeFirstRender(renderer: ComponentRenderer) {
         super.beforeFirstRender(renderer);
 
         // watch for changes to selected item

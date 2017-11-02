@@ -39,7 +39,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="Async">Async</a>
             </p>
-<h1>unobservable_memoize_get</h1><pre><code>function unobservable_memoize_get(target: Object, key: string, descriptor?: PropertyDescriptor): any;</pre></code><p><em>Read-only-accessor decorator</em>, wraps a getter (without setter) in an <code>unobserved</code> call, so that any observable values read by the accessor (or functions invoked synchronously from within the accessor) are not marked as dependencies of any currently evaluating observable values; defines a read-only property using the result of the accessor call, after the first time it was invoked for each instance [requires ES5+ target] [decorator].</p>
+<h1>unobservable_memoize_get</h1><pre><code>function unobservable_memoize_get(target: Object, key: string, descriptor?: PropertyDescriptor): any;</pre></code><p><em>Read-only-accessor decorator</em>, wraps a getter (without setter) in an <code>unobserved</code> call, so that any observable values read by the accessor (or functions invoked synchronously from within the accessor) are not marked as dependencies of any currently evaluating observable values; defines a read-only property using the result of the accessor call, after the first time it was invoked for each instance [requires ES5+ target].</p>
 <p><strong>Note:</strong> properties that are decorated with <code>@unobservable_memoize_get</code> will <em>not</em> be enumerable on the instance object <strong>until they are evaluated once</strong>, because the getter wrapper is defined on the prototype object.</p>
 <p>Only when the getter has run once for a given instance, that instance will receive a read-only property that masks the prototype getter.</p>
 

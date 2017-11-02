@@ -98,7 +98,7 @@ export class Renderer<T extends Container>
             delete component.focusFirst;
         }
 
-        return out;
+        return <any>out as ComponentRenderer.Output<T, HTMLElement>;
     }
 
     /** DOM element update context */

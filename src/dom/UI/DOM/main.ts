@@ -90,7 +90,7 @@ Async.inject(Component, {
     try {
         new CustomEvent("test");
     }
-    catch (all) {
+    catch {
         var C = function (event: string, params?: CustomEventInit) {
             params = params || { bubbles: false, cancelable: false, detail: undefined };
             var evt = document.createEvent('CustomEvent');

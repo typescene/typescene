@@ -36,6 +36,8 @@ export abstract class Signal<T> {
     public static create(): Signal.VoidEmittable;
     /** Create a new emittable signal class with given payload type */
     public static create<DataT>(): Signal.Emittable<DataT>;
+    /** Create a new emittable signal class with given payload type, with a specific function signature parameter to avoid specificity type errors */
+    public static create<DataT, EmitT>(): Signal.Emittable<DataT, EmitT>;
     public static create(): any {
         var Result = class DefinedSignal extends this<any> {
             constructor(value?: any) {
@@ -331,12 +333,12 @@ export abstract class Signal<T> {
 }
 
 export namespace Signal {
-    /** Type definition for a callable (emittable) signal *class*; matches the result of `.create` with the same type parameter */
-    export interface Emittable<T> {
+    /** Type definition for a callable (emittable) signal *class*; matches the result of `.create` with the same type parameter(s) */
+    export interface Emittable<T, U = T> {
         /** Instantiate a signal with given value, ready to be emitted */
-        new (data: T): Signal<T>;
+        new (data: U): Signal<T>;
         /** Emit a signal with given value; does not instantiate this class unless there are actually handlers connected to it */
-        (data: T): void;
+        (data: U): void;
         /** Add a handler to be invoked when this signal is emitted; returns an encapsulation of the connection with a disconnect method */
         connect(handler: (data: T) => any): SignalConnection;
         /** Add a handler to be invoked when this signal is emitted: a method with given name on given target object (resolved only when needed); returns an encapsulation of the connection with a disconnect method */
@@ -350,11 +352,11 @@ export namespace Signal {
         /** Returns true if this signal has any handlers connected to it */
         isConnected(): boolean;
         /** Create a read-only observable value that contains the last emitted value (initially undefined, only contains a value after the first time this signal is emitted) */
-        observe(): ObservableValue<T>;
+        observe(): ObservableValue<U>;
         /** @internal Invoke all handlers synchronously, without creating a Signal instance at all; exceptions in handlers are NOT caught here */
-        emitSync(data: T): void;
+        emitSync(data: U): void;
         /** @internal Schedule all handlers, possibly without creating a Signal instance at all */
-        emit(data: T): void;
+        emit(data: U): void;
         /** @internal Implementation of connect */
         _connect(callback: (data: any) => any): () => void;
     }
@@ -389,5 +391,5 @@ UnhandledException._connect((error: Error) => {
         error && error.message && console && (console.warn || console.log)(
             "Unhandled exception in asynchronous code - ", error);
     }
-    catch (all) { }
+    catch { }
 });

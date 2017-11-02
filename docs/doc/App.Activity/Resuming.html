@@ -40,7 +40,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="App.Activity">App.Activity</a>
             </p>
-<h1>Resuming</h1><pre><code>readonly Resuming: Signal.Emittable&lt;ActivityTransition&gt;;</pre></code><p>Signal that is emitted before this activity is put back in foreground, if any handler throws an error then the previous activity is not suspended.</p>
+<h1>Resuming</h1><pre><code>readonly Resuming: Signal.Emittable&lt;ActivityTransition, ActivityTransition&gt;;</pre></code><p>Signal that is emitted before this activity is put back in foreground, if any handler throws an error then the previous activity is not suspended.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;Resuming (App.Activity/Resuming)&rdquo;, part of the Typescene toolkit.</p>

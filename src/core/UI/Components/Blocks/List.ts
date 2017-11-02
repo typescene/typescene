@@ -21,7 +21,7 @@ export class List<BlockT extends Block> extends Block {
     }
 
     /** Method that is called immediately after the renderer for this list is constructed; adds observers for item selection */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>) {
+    protected beforeFirstRender(renderer: ComponentRenderer) {
         super.beforeFirstRender(renderer);
 
         // emit SelectionChange if selection changes (based on list of child

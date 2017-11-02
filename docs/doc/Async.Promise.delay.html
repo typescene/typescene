@@ -40,7 +40,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="Async.Promise">Async.Promise</a>
             </p>
-<h1>delay</h1><pre><code>static delay&lt;T&gt;(f: (...args: any[]) =&gt; T, ms: number, args?: any[]): Promise&lt;T&gt;;</pre></code><p>Delay the execution of a callback but return a promise for its result.</p>
+<h1>delay</h1><pre><code>static delay&lt;T&gt;(f: (...args: any[]) =&gt; T, ms: number, args?: any[]): Promise&lt;T&gt; &amp; PromiseLike&lt;T&gt;;</pre></code><p>Delay the execution of a callback but return a promise for its result.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;delay (Async.Promise.delay)&rdquo;, part of the Typescene toolkit.</p>

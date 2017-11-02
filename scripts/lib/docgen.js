@@ -563,12 +563,12 @@ function generateAsync(sourceDir, version) {
                         item.code = code || child.getText()
                             .replace(/^(?:\s*(?:export|declare|public)\s+)+/, "")
                             .replace(/\s+/g, " ");
-                        var doc = item.doc = getJSDocHtml(child);
+                        item.doc = getJSDocHtml(child);
 
                         // mark protected items, skip private items
                         if (hasModifier(child, ts.SyntaxKind.ProtectedKeyword))
                             item.isProtected = true;
-                        if ((/\@internal|\[implementation\]/i.test(doc)) ||
+                        if ((/\@internal|\[implementation\]/i.test(item.doc)) ||
                             (name || "").charAt(0) === "_" ||
                             (child.modifiers && child.modifiers.some(mod =>
                                 mod.getText() === "private")))
@@ -599,8 +599,11 @@ function generateAsync(sourceDir, version) {
                             if (/^(I)?Promise(Like|_Thenable)?\</.test(type))
                                 item.isAsync = true;
                         }
-                        if (item.isFunction && /\[decorator\]/.test(doc))
+                        if (item.isFunction && /\[decorator\]/.test(item.doc)) {
                             item.isDecorator = true;
+                            item.doc = item.doc.replace(
+                                /\s*\[decorator\]((?:[\s\.]+|\<[^>]+\>)*)$/, "$1");
+                        }
 
                         // merge with existing item, if any
                         var existing = declItems[item.id];

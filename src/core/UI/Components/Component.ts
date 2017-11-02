@@ -34,9 +34,9 @@ export abstract class Component extends Async.ObservableObject {
     private _initialized?: boolean;
 
     /** Returns a new component signal class specific to this component, with optional signal base class which must derive from ComponentSignal; can be used to define custom signals in a component constructor or public property initializer (or memoized get-accessor for lazy initialization); sets static property `ComponentSignal.component` of the derived signal class to the component instance, as well as any other static properties given */
-    protected createComponentSignal<DataT, SignalT extends { new(data: DataT): ComponentSignal<DataT> } = typeof ComponentSignal>(base?: SignalT & (new (data: DataT) => ComponentSignal<DataT>),
+    protected createComponentSignal<DataT, EmitT = DataT, SignalT extends { new(data: DataT): ComponentSignal<DataT> } = typeof ComponentSignal>(base?: SignalT & (new (data: DataT) => ComponentSignal<DataT>),
         properties = {}):
-        ComponentSignal.Emittable<DataT> {
+        ComponentSignal.Emittable<DataT, EmitT> {
         return defineComponentSignal(<any>base || ComponentSignal, this, properties);
     }
 
@@ -174,7 +174,7 @@ export abstract class Component extends Async.ObservableObject {
 
     /** Wait for this component to be rendered and return a promise for its output (value of `.out`), unless the component is already rendered, in which case this method returns a resolved promise for the last rendered output; never forces the component to be rendered */
     public getRenderedOutputAsync():
-        PromiseLike<ComponentRenderer.Output<this, any>> {
+        PromiseLike<ComponentRenderer.Output<this>> {
         // use output property on current renderer
         var result = this._renderer.output.getLastValue();
         if (result) {
@@ -183,9 +183,9 @@ export abstract class Component extends Async.ObservableObject {
         }
         else {
             // return a promise for the first non-undefined value
-            return new Async.Promise<ComponentRenderer.Output<this, any>>(r => {
+            return new Async.Promise<ComponentRenderer.Output<this>>(r => {
                 var c = this._renderer.Rendered.connect(out => {
-                    if (out) r(out), c.disconnect();
+                    if (out) r(out as any), c.disconnect();
                 });
             });
         }
@@ -208,7 +208,7 @@ export abstract class Component extends Async.ObservableObject {
     }
 
     /** Signal emitted after updating DOM (render) */
-    public readonly Rendered = this.createComponentSignal<ComponentRenderer.Output<this, any>>();
+    public readonly Rendered = this.createComponentSignal<ComponentRenderer.Output<this>, ComponentRenderer.Output>();
 
     /** Current renderer instance, created upon access */
     @Async.unobservable_memoize_get
@@ -217,21 +217,20 @@ export abstract class Component extends Async.ObservableObject {
             throw new TypeError("No renderer defined");
 
         // construct the renderer, forward its signal
-        var renderer: ComponentRenderer<this, any> =
-            new (<any>this.Renderer)(this);
+        var renderer: ComponentRenderer = new (<any>this.Renderer)(this);
         renderer.beforeFirstRender = () => { this.beforeFirstRender(renderer) };
         renderer.Rendered.connect(this.Rendered);
         return renderer;
     }
 
     /** Method that is called immediately after the renderer for this component is constructed; override this method (and invoke `super.beforeFirstRender`) to be able to call or inject renderer methods before this component is first rendered */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>) {
+    protected beforeFirstRender(renderer: ComponentRenderer) {
         this._watchFocusMode(renderer);
         this._watchSelectionMode(renderer);
     }
 
     /** Helper method to watch and apply list focus mode on renderer instance */
-    private _watchFocusMode(renderer: ComponentRenderer<this, any>) {
+    private _watchFocusMode(renderer: ComponentRenderer) {
         var childConnections: { [id: string]: Async.SignalConnection[] };
         var subscribed: Async.ObservableValue<any> | false | undefined;
         var links: {
@@ -362,7 +361,7 @@ export abstract class Component extends Async.ObservableObject {
     }
 
     /** Helper method to watch and apply selection mode on renderer instance */
-    private _watchSelectionMode(renderer: ComponentRenderer<this, any>) {
+    private _watchSelectionMode(renderer: ComponentRenderer) {
         var connections: Async.SignalConnection[] = [];
         var subscribed: Async.ObservableValue<any> | undefined;
         renderer.watch(() => this.selectionMode, selectionMode => {
@@ -529,7 +528,7 @@ export abstract class Component extends Async.ObservableObject {
     public addShadowEffectOnHover(d: number) {
         // add an overriding observable for the shadow effect depth
         let override = new Style().addShadowEffect(d);
-        this.style.override(Async.observe(() =>
+        this.style.override(<any>Async.observe(() =>
             this.hoverState ? override : undefined));
     }
 
@@ -538,7 +537,7 @@ export abstract class Component extends Async.ObservableObject {
     public addShadowEffectOnFocus(d: number) {
         // add an overriding observable for the shadow effect depth
         let override = new Style().addShadowEffect(d);
-        this.style.override(Async.observe(() =>
+        this.style.override(<any>Async.observe(() =>
             this.hasFocus ? override : undefined));
     }
 

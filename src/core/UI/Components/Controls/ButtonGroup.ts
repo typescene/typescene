@@ -20,7 +20,7 @@ export class ButtonGroup extends ControlElement {
     }
 
     /** Method that is called immediately after the renderer for this button group is constructed; adds observers for button activation */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>) {
+    protected beforeFirstRender(renderer: ComponentRenderer) {
         super.beforeFirstRender(renderer);
 
         renderer.watch(() => this.getLastSelectedChild(), button => {

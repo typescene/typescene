@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="Typescene reference: create (Async.Signal.create) - [1]. Create a new emittable signal class without payload.
 [2]. Create a new emittable signal class with given payload type.
+[3]. Create a new emittable signal class with given payload type, with a specific function signature parameter to avoid specificity type errors.
 " />
         <link rel="shortcut icon" type="image/png" href="/favicon.png" />
         <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
@@ -42,8 +43,10 @@
                  | <a href="Async.Signal">Async.Signal</a>
             </p>
 <h1>create</h1><pre><code>static create(): Signal.VoidEmittable;
-static create&lt;DataT&gt;(): Signal.Emittable&lt;DataT&gt;;</pre></code><p>[1]. Create a new emittable signal class without payload.</p>
+static create&lt;DataT&gt;(): Signal.Emittable&lt;DataT&gt;;
+static create&lt;DataT, EmitT&gt;(): Signal.Emittable&lt;DataT, EmitT&gt;;</pre></code><p>[1]. Create a new emittable signal class without payload.</p>
 <p>[2]. Create a new emittable signal class with given payload type.</p>
+<p>[3]. Create a new emittable signal class with given payload type, with a specific function signature parameter to avoid specificity type errors.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;create (Async.Signal.create)&rdquo;, part of the Typescene toolkit.</p>

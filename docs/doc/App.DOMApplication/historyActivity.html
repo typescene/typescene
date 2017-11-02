@@ -2,9 +2,9 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>restoreHistoryStateAsync (App.ActivityStack/restoreHistoryStateAsync)</title>
+        <title>historyActivity (App.DOMApplication/historyActivity)</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Typescene reference: restoreHistoryStateAsync (App.ActivityStack/restoreHistoryStateAsync) - Reload state using given history ID, if possible (i.e. not yet deactivated relevant activities in the meantime); returns a promise that resolves when the state has been reached.
+        <meta name="description" content="Typescene reference: historyActivity (App.DOMApplication/historyActivity) - The activity that corresponds with the current history position in the browser; e.g. used for displaying the page title that corresponds to the current URL (observable).
 " />
         <link rel="shortcut icon" type="image/png" href="/favicon.png" />
         <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
@@ -38,12 +38,12 @@
         <section>
             <p>
                 <a href="index.html">&lt; Text Index</a>
-                 | <a href="App.ActivityStack">App.ActivityStack</a>
+                 | <a href="App.DOMApplication">App.DOMApplication</a>
             </p>
-<h1>restoreHistoryStateAsync</h1><pre><code>restoreHistoryStateAsync(historyID: string): PromiseLike&lt;void&gt;;</pre></code><p>Reload state using given history ID, if possible (i.e. not yet deactivated relevant activities in the meantime); returns a promise that resolves when the state has been reached.</p>
+<h1>historyActivity</h1><pre><code>protected historyActivity?: Activity;</pre></code><p>The activity that corresponds with the current history position in the browser; e.g. used for displaying the page title that corresponds to the current URL (observable).</p>
 
             <hr>
-            <p>This is the documentation page for &ldquo;restoreHistoryStateAsync (App.ActivityStack/restoreHistoryStateAsync)&rdquo;, part of the Typescene toolkit.</p>
+            <p>This is the documentation page for &ldquo;historyActivity (App.DOMApplication/historyActivity)&rdquo;, part of the Typescene toolkit.</p>
             <p>
                 <a href="http://typescene.org">Typescene</a> |
                 <a href="http://docs.typescene.org">Documentation</a> |

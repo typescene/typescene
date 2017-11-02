@@ -12,7 +12,7 @@ export abstract class Drag {
     }
 
     /** @internal Platform specific non-abstract Drag base class */
-    public static BaseClass: { new (event: PointerEvent): Drag };
+    public static BaseClass: { new (event: any): Drag };
 
     /** Start tracking mouse movement based on given event (with initial screen coordinates); creates a new instance of a platform specific class derived from Drag with given payload data; Drop targets may listen for drag events (enter/leave/drop), and use information from the data object to respond */
     public static start(event: PointerEvent, data?: any) {

@@ -10,9 +10,9 @@ export class ComponentSignal<DataT> extends Async.Signal<DataT> {
 
 export namespace ComponentSignal {
     /** Type definition for a callable (emittable) component signal class */
-    export interface Emittable<T> extends Signal.Emittable<T> {
+    export interface Emittable<T, U = T> extends Signal.Emittable<T, U> {
         /** Emit a signal with given value, for the component this signal is attached to */
-        (data?: T): void;
+        (data?: U): void;
         /** Component for which this signal will be emitted */
         readonly component: Component;
     }
@@ -22,10 +22,10 @@ export namespace ComponentSignal {
 export interface ComponentSignalHandler<DataT>
     extends Function {
     /** Call the handler as a function */
-    (data?: DataT): void;
+    (data?: any): void;
 
     /** Add this EventHandler as a handler for given event signal */
-    connectTo(signal: ComponentSignal.Emittable<DataT>): Async.SignalConnection;
+    connectTo(signal: ComponentSignal.Emittable<DataT, any>): Async.SignalConnection;
 
     /** Always true, for duck typing wrapped handlers */
     isEventHandler: true;
@@ -48,10 +48,10 @@ export abstract class ComponentSignalHandler<DataT> {
 }
 
 /** @internal Returns a new component signal class specific to a component, with given signal base class */
-export function defineComponentSignal<DataT>(
+export function defineComponentSignal<DataT, EmitT = DataT>(
     base: typeof ComponentSignal & (new (data: DataT) => ComponentSignal<DataT>),
     component: Component, properties: any = {}):
-    typeof base & ComponentSignal.Emittable<DataT> {
+    typeof base & ComponentSignal.Emittable<DataT, EmitT> {
     var sig: any = base.create<any>();
     for (var p in properties) sig[p] = properties[p];
     sig.component = component;

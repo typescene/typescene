@@ -91,7 +91,7 @@ export interface DocItem extends CodeDocItem {
 export class DocumentService extends App.Service {
     /** Load the documentation JSON data (or make sure it has been loaded already); returns a promise that resolves to true when the data is loaded successfully */
     public loadAsync() {
-        if (this.isLoaded) return Async.Promise.resolve(true);
+        if (this.isLoaded) return Async.Promise.resolve<true>(true);
         if (DocumentService._loadingP) return DocumentService._loadingP;
         return DocumentService._loadingP = App.Http.getAsync(
             "/" + VERSION + "/documentation.json")

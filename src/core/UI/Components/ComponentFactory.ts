@@ -125,7 +125,7 @@ export namespace ComponentFactory {
 
     /** _Method decorator_ for the method that should be called to apply the value of an initializer spec property with the given property name; the method should always accept values as well as instances of `Async.ObservableValue` [decorator] */
     export function setterFor(initializerPropertyName: string): MethodDecorator {
-        return function (target: Component, key: string) {
+        return function (target: any, key: any) {
             // store method reference in flag property
             (<any>target)["@ComponentFactory.setter:" + initializerPropertyName] =
                 (<any>target)[key];

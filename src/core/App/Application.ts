@@ -77,7 +77,9 @@ export abstract class Application extends Async.ObservableObject {
         }
         if (activatable instanceof Activation) {
             return activatable.getActivityAsync().then(activity => {
-                if (activity) return this.startActivityAsync(activity);
+                if (activity) {
+                    return this.startActivityAsync(activity, replace);
+                }
                 this.PageNotFound((<Activation>activatable).getPath()!);
                 return undefined;
             });
@@ -106,7 +108,7 @@ export abstract class Application extends Async.ObservableObject {
         var activation = Activation.route(path!);
         if (activation) {
             // recurse for activation object
-            return this.startActivityAsync(activation);
+            return this.startActivityAsync(activation, replace);
         }
         else if (navigateIfNotFound !== false) {
             // if no route/activity mapped, navigate directly

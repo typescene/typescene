@@ -39,8 +39,99 @@
                 <a href="index.html">&lt; Text Index</a>
                 
             </p>
-<h1>Event handling</h1><p>Respond to user input by connecting to event signals.</p>
-</div>
+<h1>Event handling</h1><p>Handle user input and reflect state changes by connecting to event signals.</p>
+</div><h3>Responding to events</h3><p>Providing feedback to users is one of the most important jobs of the UI. Sometimes this happens when the internal state of your application changes, and sometimes feedback follows user input.</p>
+<p>For example, you may want to show and hide part of the UI based on the state of a control element. In the sample below, the text field is always visible – but by handling the event <em>signals</em> that are emitted by the checkbox component it would be possible to show and hide the text field as needed.</p>
+<p>The following example <em>doesn’t</em> use event handling.</p>
+<div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">UI.Container.with(
+    UI.Checkbox.with({ label: &quot;Provide alias&quot;, checked: true }),
+    UI.Row.with(UI.TextField.with({ placeholderText: &quot;Enter customer alias&quot; }))
+)
+</code></pre>
+</div><h3>Using event signals</h3><p>All components expose events as <a href="~/Async.Signal"><code>Signal</code></a> properties that you can connect to. These signals are emitted as a result of user actions or other events (learn more about signals in the articles about the <a href="~/start/async">Async module</a>).</p>
+<p>Conceptually, this is how it works:</p>
+<pre><code class="language-typescript">// connect to the `Clicked` signal with a simple callback:
+checkbox.Clicked.connect(() =&gt; {
+    // ... every time the checkbox is clicked
+    row.hidden = !checkbox.checked;
+});
+</code></pre>
+</div><h3>Using events on a component factory</h3><p>Event signals are exposed as properties on component <em>instances</em>, so connecting to them from a component <em>factory</em> requires a slightly different method.</p>
+<p>Along with any other properties passed to the <code>.with</code> method, you can include instances of <code>UI.ActionHandler</code> (or a specialized type such as <code>UI.PointerHandler</code>), which you can create using <code>new</code> and a handler method.</p>
+<pre><code class="language-typescript">UI.Checkbox.with({
+    checked: true,
+    Clicked: new UI.PointerHandler(event =&gt; {
+        // ...
+    })
+})
+</code></pre>
+<p>Note that the <code>event</code> object is usually a DOM event. Using the correct type of handler wrapper (e.g. <code>UI.PointerHandler</code>) will automatically infer the type of the event object, and the properties and methods available.</p>
+</div><div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">var button = new (UI.Button.with({
+    label: &quot;Click me!&quot;,
+    Pressed: new UI.PointerHandler(event =&gt; {
+        var which = event.button;
+        button.label = which ? &quot;Button &quot; + which : &quot;Primary&quot;;
+    })
+}));
+</code></pre>
+</div><h3>Using events on a Component class</h3><p>When you define your own Component class, you get another option for connecting event handlers: simply pass in the name of a public method to a component factory’s properties in the <code>extends</code> clause.</p>
+<p>This makes our example finally work:</p>
+</div><div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">class MyForm extends UI.Container.with(
+    UI.Checkbox.with({
+        id: &quot;aliasCheckbox&quot;,
+        label: &quot;Provide alias&quot;,
+        checked: true,
+        Clicked: &quot;aliasCheckboxClicked&quot;  // &lt;== named handler
+    }),
+    UI.Row.with(
+        { id: &quot;aliasRow&quot; },
+        UI.TextField.with({ placeholderText: &quot;Enter customer alias&quot; })
+    )
+) {
+    aliasRow: UI.Row;
+    aliasCheckbox: UI.Checkbox;
+
+    // checkbox Clicked event handler, referred to by name
+    aliasCheckboxClicked() {
+        this.aliasRow.hidden = !this.aliasCheckbox.checked;
+    }
+}
+</code></pre>
+</div><h3>Commonly used events</h3><p>Nearly all UI events are defined on <code>UI.Component</code> itself. These are some of the most commonly used ones.</p>
+<ul>
+<li><strong>Click/Clicked</strong> (see note below), emitted when the user clicks or otherwise activates a component. Also emitted on e.g. enter press while a button is focused.</li>
+<li><strong>[<em>Some</em>]KeyPressed</strong>, emitted when the user presses a button on the keyboard.</li>
+<li><strong>Focus/FocusGained</strong>, emitted when a component or one of its sub components gain input focus.</li>
+<li><strong>Blur/FocusLost</strong>, emitted when input focus is lost.</li>
+<li><strong>Rendered</strong>, emitted after a component has been rendered (to a DOM element, made available to the event handler) – but not necessarily displayed on screen.</li>
+<li><strong>ValueChange/ValueInput</strong>, on input controls after their value changes.</li>
+</ul>
+<p>Signals are also used as a higher-level construct, however. A number of components emit signals that don’t directly correspond to user events, such as <strong>Closing/Closed</strong> on <code>DialogContainer</code>, <strong>SelectionChange</strong> on the <code>List</code> component, and <strong>ItemCollapsed</strong> on the <code>TreeList</code> component.</p>
+<div style="background: #eee; padding: 1rem"><h3>Click vs Clicked</h3><p>At this point it’s worth noting that component objects expose both a <code>Click</code> event and a <code>Clicked</code> event (and similarly, there are <code>Press</code> and <code>Pressed</code>, <code>Focus</code> and <code>FocusGained</code>, <code>KeyPress</code> and <code>EnterKeyPressed</code> events etc.).</p>
+<p>The difference between handling <code>Click</code> (present tense) vs <code>Clicked</code> (past tense) is important if you’re handling events along the entire component hierarchy.</p>
+<ol>
+<li><strong>Click propagates top-down:</strong> The Click event occurs immediately when the user clicks a component. The highest-level parent component’s handler is called <em>first</em>, and then the event moves down to the target components’ <code>Click</code> signals.</li>
+<li><strong>Clicked is consumed bottom-up:</strong> The Clicked event occurs asynchronously <em>after</em> the Click event. The lowest-level component that has a handler connected to the <code>Clicked</code> signal receives the event, and then consumes the event, i.e. it blocks the event from reaching parent components’ handlers, even if they are also connected to <code>Clicked</code>.</li>
+</ol>
+<p>Therefore, you can connect to e.g. <code>EnterKeyPressed</code> on a parent component (such as a form container that has multiple rows of controls) to handle the event for all controls – except for those controls that have a handler connected to <code>EnterKeyPressed</code> directly. Even connecting an empty function will block the event from reaching parent components.</p>
+<p>Conversely, if you connect to e.g. <code>Focus</code> on a parent component, you can be sure that it is invoked first, <em>before</em> the event moves on to any of the (focused) child components.</p>
+<p>For consistency, it’s a good idea to always use the <code>Clicked</code> (past tense) form of event signals where possible.</p>
+</div><h3>Custom event signals</h3><p>You can easily define your own signals on Component classes, by adding a property that is initialized with a Signal class, i.e. the result of <code>Async.Signal.create</code>.</p>
+<div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">class MyComponent extends UI.Container.with(
+    /* ... */
+) {
+    // define a custom event:
+    public MyEvent = Async.Signal.create&lt;string&gt;();
+}
+
+var component = new MyComponent();
+component.MyEvent.connect(s =&gt; { console.log(s) });
+
+component.MyEvent(&quot;Triggered!&quot;);  // emit the event
+</code></pre>
+</div><h3>Next steps</h3><p>Instead of explicitly capturing user input and updating parts of your UI manually, you can use <em>bindings</em> to synchronize the values of certain properties automatically.</p>
+<p><a href="~/start/ui/bindings"><i class="fa fa-play"></i> Using bindings</a></p>
+
             <hr>
             <p>This is the documentation page for &ldquo;Event handling&rdquo;, part of the Typescene toolkit.</p>
             <p>

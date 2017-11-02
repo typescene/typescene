@@ -9,7 +9,7 @@ var _canBlob = (() => {
             new Blob([]))
             return true;
     }
-    catch (all) { }
+    catch { }
     return false;
 })();
 
@@ -136,7 +136,7 @@ export namespace Http {
                     this._init.responseText !== undefined)
                     return Promise.resolve(this._init.responseText);
             }
-            catch (all) { }
+            catch { }
 
             // ... otherwise read from response blob
             if (this._init.response instanceof Blob) {
@@ -285,8 +285,8 @@ export namespace Http {
                 xhr.ontimeout = () => { reject(new Error("HTTP timeout")) };
                 xhr.send(options.body);
             }
-            catch (all) {
-                reject(all);
+            catch (err) {
+                reject(err);
             }
         });
     }

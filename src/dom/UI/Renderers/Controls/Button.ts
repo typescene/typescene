@@ -147,8 +147,9 @@ DOM.Styles.define("UI-Control " + CSS_CLASS, {
         borderRadius: "50%",
         boxShadow: "none",
         overflow: "hidden",
-        minWidth: "2.2em",
-        maxWidth: "2.2em",
-        height: "2.2em"
+        minWidth: "calc(1em + 1rem)",
+        maxWidth: "calc(1em + 1rem)",
+        height: "calc(1em + 1rem)",
+        lineHeight: "calc(1em + 1rem)"
     }
 });

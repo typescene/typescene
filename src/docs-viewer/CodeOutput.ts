@@ -143,7 +143,7 @@ export class CodeOutputContainer extends UI.Container {
                                 if (v === undefined) return "undefined";
                                 else return JSON.stringify(v);
                             }
-                            catch (all) {
+                            catch {
                                 try { return String(v) }
                                 catch (err) { return String(err) }
                             }
@@ -164,7 +164,7 @@ export class CodeOutputContainer extends UI.Container {
                 }
             };
             try { (<any>Object).setPrototypeOf(mockConsole, console) }
-            catch (all) { }
+            catch { }
 
             // run the (modified) program with function parameters
             this.content.length = 0;

@@ -39,7 +39,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="Async.ObservableValue">Async.ObservableValue</a>
             </p>
-<h1>getter</h1><pre><code>getter(f: () =&gt; T): this;</pre></code><p>Set a getter function for the observable value, which should return a current value, or another ObservableValue instance, or set <code>.value</code> directly; note that getters <em>should</em> be pure functions without side effects, creating or setting other observables from the getter will result in an error; the getter is only invoked (asynchronously) if a value had been set previously and needs to be updated; reading <code>.value</code> from the getter results in the value previously set, no recursion occurs; returns this.</p>
+<h1>getter</h1><pre><code>getter(f: () =&gt; any): this;</pre></code><p>Set a getter function for the observable value, which should return a current value, or another ObservableValue instance, or set <code>.value</code> directly; note that getters <em>should</em> be pure functions without side effects, creating or setting other observables from the getter will result in an error; the getter is only invoked (asynchronously) if a value had been set previously and needs to be updated; reading <code>.value</code> from the getter results in the value previously set, no recursion occurs; returns this.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;getter (Async.ObservableValue/getter)&rdquo;, part of the Typescene toolkit.</p>

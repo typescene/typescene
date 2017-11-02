@@ -40,7 +40,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="App.ActivityStack">App.ActivityStack</a>
             </p>
-<h1>replaceAsync</h1><pre><code>replaceAsync(activity: Activity): PromiseLike&lt;ActivityTransition&gt;;</pre></code><p>Replace the current activity asynchronously (throws error if none), or remove current activity if given activity was already directly below current activity in the activity stack; returns Promise that resolves to the completed transition.</p>
+<h1>replaceAsync</h1><pre><code>replaceAsync(activity: Activity): PromiseLike&lt;ActivityTransition | undefined&gt;;</pre></code><p>Replace the current activity asynchronously (throws error if none), or remove current activity if given activity was already directly below current activity in the activity stack; returns Promise that resolves to the completed transition.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;replaceAsync (App.ActivityStack/replaceAsync)&rdquo;, part of the Typescene toolkit.</p>

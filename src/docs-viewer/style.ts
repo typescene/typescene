@@ -39,7 +39,10 @@ UI.DOM.applyStylesheet({
         margin: "1.75rem 0 .75rem"
     },
     ".fa": {
-        fontSize: ".875em"  // 16px (1rem) => 14px native size
+        fontSize: "14px"
+    },
+    ".fa.fa-2x": {
+        fontSize: "28px"
     },
     "code": {
         fontFamily: "Menlo,Monaco,Consolas,\"Liberation Mono\",\"Courier New\",monospace",
@@ -53,6 +56,9 @@ UI.DOM.applyStylesheet({
     },
     ".doc-text-article .fa:first-child": {
         paddingRight: ".5rem"
+    },
+    ".doc-text-article .doc-text-example-output .fa:first-child": {
+        paddingRight: "0"
     },
     ".doc-text-article a, .doc-text-article a:visited": {
         color: "#39e"

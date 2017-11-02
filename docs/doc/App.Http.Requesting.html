@@ -39,7 +39,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="App.Http">App.Http</a>
             </p>
-<h1>Requesting</h1><pre><code>Requesting: Signal.Emittable&lt;FetchOptions&gt;</pre></code><p>Signal that is emitted before sending a request; can be used to intercept requests, modify request options, and provide an alternate response; if one of the connected handlers returns a (promise for) an alternate response, i.e. an object that implements <code>FetchResponse</code>, then the request will not be sent, and the (first) resulting alternate response is used instead; if one of the connected handlers throws an exception, the original promise for the request is rejected; otherwise the request is sent as per normal.</p>
+<h1>Requesting</h1><pre><code>Requesting: Signal.Emittable&lt;FetchOptions, FetchOptions&gt;</pre></code><p>Signal that is emitted before sending a request; can be used to intercept requests, modify request options, and provide an alternate response; if one of the connected handlers returns a (promise for) an alternate response, i.e. an object that implements <code>FetchResponse</code>, then the request will not be sent, and the (first) resulting alternate response is used instead; if one of the connected handlers throws an exception, the original promise for the request is rejected; otherwise the request is sent as per normal.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;Requesting (App.Http.Requesting)&rdquo;, part of the Typescene toolkit.</p>

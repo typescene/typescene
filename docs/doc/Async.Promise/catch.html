@@ -40,8 +40,8 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="Async.Promise">Async.Promise</a>
             </p>
-<h1>catch</h1><pre><code>catch&lt;O&gt;(onRejected?: (error: Error) =&gt; (PromiseLike&lt;O&gt; | O)): Promise&lt;O&gt;;
-catch&lt;O&gt;(onRejected?: (error: Error) =&gt; void): Promise&lt;O&gt;;</pre></code><p>Catch rejections and return a new promise.</p>
+<h1>catch</h1><pre><code>catch&lt;O&gt;(onRejected?: (error: Error) =&gt; (PromiseLike&lt;O&gt; | O)): Promise&lt;O&gt; &amp; PromiseLike&lt;O&gt;;
+catch&lt;O&gt;(onRejected?: (error: Error) =&gt; void): Promise&lt;O&gt; &amp; PromiseLike&lt;O&gt;;</pre></code><p>Catch rejections and return a new promise.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;catch (Async.Promise/catch)&rdquo;, part of the Typescene toolkit.</p>

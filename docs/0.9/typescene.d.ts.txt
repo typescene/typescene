@@ -44,19 +44,19 @@ export class Activity extends Async.ObservableObject {
     /** Object that contains options for this activity (observable, never null or undefined) */
     options: Activity.ActivityOptions;
     /** Signal that is emitted before this activity is pushed to foreground, if any handler throws an error then the activity is not activated */
-    readonly Starting: Signal.Emittable<ActivityTransition>;
+    readonly Starting: Signal.Emittable<ActivityTransition, ActivityTransition>;
     /** Signal that is emitted after this activity is pushed to foreground (note that `.Resumed` will also always be emitted) */
-    readonly Started: Signal.Emittable<ActivityTransition>;
+    readonly Started: Signal.Emittable<ActivityTransition, ActivityTransition>;
     /** Signal that is emitted before another activity is pushed to foreground, if any handler throws an error then the activity is not suspended */
-    readonly Suspending: Signal.Emittable<ActivityTransition>;
+    readonly Suspending: Signal.Emittable<ActivityTransition, ActivityTransition>;
     /** Signal that is emitted after this activity is no longer in foreground */
-    readonly Suspended: Signal.Emittable<ActivityTransition>;
+    readonly Suspended: Signal.Emittable<ActivityTransition, ActivityTransition>;
     /** Signal that is emitted before this activity is put back in foreground, if any handler throws an error then the previous activity is not suspended */
-    readonly Resuming: Signal.Emittable<ActivityTransition>;
+    readonly Resuming: Signal.Emittable<ActivityTransition, ActivityTransition>;
     /** Signal that is emitted after this activity is in foreground (emitted after `.Resuming`, or after `.Starting` together with `.Started`) */
-    readonly Resumed: Signal.Emittable<ActivityTransition>;
+    readonly Resumed: Signal.Emittable<ActivityTransition, ActivityTransition>;
     /** Signal that is emitted after this activity is removed from history, and will not be resumed anymore */
-    readonly Deactivated: Signal.Emittable<ActivityTransition>;
+    readonly Deactivated: Signal.Emittable<ActivityTransition, ActivityTransition>;
 }
 export namespace Activity {
     /** Options for an activity that determine its behavior in the activity stack */
@@ -101,25 +101,23 @@ import { Activity } from "@typescene/core/App/Activity/Activity";
 /** Represents a stack of activated activities (like browser history) */
 export class ActivityStack {
     /** Add an activity to the foreground asynchronously, does nothing if given activity was already in the foreground; returns Promise that resolves to the completed transition */
-    pushAsync(activity: Activity): PromiseLike<ActivityTransition>;
+    pushAsync(activity: Activity): PromiseLike<ActivityTransition | undefined>;
     /** Replace the current activity asynchronously (throws error if none), or remove current activity if given activity was already directly below current activity in the activity stack; returns Promise that resolves to the completed transition */
-    replaceAsync(activity: Activity): PromiseLike<ActivityTransition>;
+    replaceAsync(activity: Activity): PromiseLike<ActivityTransition | undefined>;
     /** Remove the current foreground activity (go back) asynchronously, returns Promise that resolves to the completed transition */
     popAsync(): PromiseLike<ActivityTransition>;
     /** Remove the current foreground activity (go back) asynchronously if and only if it is the given activity, returns Promise that resolves to the completed transition, if any */
     popAsync(activity: Activity): PromiseLike<ActivityTransition | undefined>;
     /** Remove foreground activities until given activity or activity of given type is in the foreground; returns Promise that resolves to activity, or undefined if there was no matching activity on the stack */
     upAsync(activityOrClass: Activity | typeof Activity): PromiseLike<Activity | undefined>;
-    /** Reload state using given history ID, if possible (i.e. not yet deactivated relevant activities in the meantime); returns a promise that resolves when the state has been reached */
-    restoreHistoryStateAsync(historyID: string): PromiseLike<void>;
-    /** Get an ID that represents the current state, for use with `.restoreHistoryStateAsync` */
-    getHistoryState(): string;
     /** Get the activity closest to the foreground of the given type, if any (excluding foreground activity itself, and before given activity in second parameter, if any) */
     getParent<T>(ActivityClass: typeof Activity & {
         new (...args: any[]): T;
     }, before?: Activity): T | undefined;
-    /** Returns true if the stack contains given activity */
-    contains(activity: Activity): boolean;
+    /** Returns true if the stack contains given activity (or an activity that is an instance of given `Activity` class) */
+    contains(activityOrClass: Activity | typeof Activity): boolean;
+    /** Get the next activity ahead of the current stack top, if any (i.e. the activity that was most recently popped); returns undefined if there is no such activity */
+    peek(ignoreBackgroundActivities?: boolean): Activity | undefined;
     /** The current foreground activity (top of stack, if any; observable) */
     readonly top: Activity | undefined;
     /** The number of activities on the stack (observable) */
@@ -128,8 +126,28 @@ export class ActivityStack {
     readonly title: string | undefined;
     /** Create an activity cursor that starts at the top of this stack, and can move back on the stack and to parent activities; if the `activity` property is undefined, the cursor has reached the end; note that any changes to the stack while the cursor is in use may yield unexpected results */
     getCursor(): ActivityStack.Cursor;
-    /** Signal that is emitted when a transition occurs (after Starting/Resuming/Suspending but before Started/Resumed) */
-    readonly Transition: Signal.Emittable<ActivityTransition>;
+    /** Signal that is emitted when an activity transition occurs (after Starting/Resuming/Suspending but before Started/Resumed) */
+    readonly Transition: Signal.Emittable<ActivityTransition, ActivityTransition>;
+    /** Synchronous Transition signal used by onTransitionSync */
+    readonly TransitionSync: Signal.Emittable<ActivityTransition, ActivityTransition>;
+    /** Add a handler to be invoked _synchronously_ when an activity transition occurs (after Starting/Resuming/Suspending but before Started/Resumed; after updating the activity stack) */
+    onTransitionSync(callback: (t: ActivityTransition) => void): void;
+    /** Checks position of given history state compared to the current activity; returns -1 if given state is behind (i.e. below current stack top), 0 if on par, or 1 if given state is ahead, undefined if not found (most likely replaced) */
+    getHistoryPosition(historyId: string): 0 | 1 | -1 | undefined;
+    /** Returns history ID, title, path, and reference to current activity, if any */
+    getHistoryState(): {
+        title: string | undefined;
+        historyId: string;
+        activity: Activity;
+        path: string | undefined;
+    } | undefined;
+    /** Returns history ID, title, path, and activity on the stack immediately after given history state (i.e. next activity to be added to the platform history), excluding background activities; returns undefined if given state is not found or if there is no activity after given history state */
+    getHistoryAfter(historyId: string): {
+        title: string | undefined;
+        activity: Activity;
+        path: string | undefined;
+        historyId: string;
+    } | undefined;
     /** Helper method to find parent activity/ies for given activity; returns an array of activities to be pushed (including activity itself) */
     private _findParents(activity, excludeTop?);
     /** Helper method to move up to existing root activity, or hub parent activity if needed */
@@ -140,8 +158,9 @@ export class ActivityStack {
     private _processTransition(to, op);
     private _idx;
     private _stack;
-    private _ids;
+    private _historyIds;
     private _transitionP;
+    private _pushP;
 }
 export namespace ActivityStack {
     interface Cursor {
@@ -169,7 +188,7 @@ export interface ActivityTransition {
     to: Activity;
     /** The stack operation being performed: push, replace, or pop */
     op: ActivityTransition.Operation;
-    /** The previous transition that is part of the same operation (pop/push/pop/up) */
+    /** The previous transition that is part of the same operation (pop/push/up) */
     previous: ActivityTransition;
 }
 export namespace ActivityTransition {
@@ -211,7 +230,7 @@ export abstract class Application extends Async.ObservableObject {
     /** The currently active i18n culture service (`CultureService` instance), referred to by ID `culture`; to activate another culture, use `addServiceAlias` to alias another culture to the `culture` identifier; changes will be reflected in this property asynchronously, and will also be reflected in the UI flow direction (`ltr` or `rtl`) and translations using `UI.tl` */
     readonly culture: CultureService;
     /** Signal that is emitted when no activity is found for a location */
-    readonly PageNotFound: Signal.Emittable<string>;
+    readonly PageNotFound: Signal.Emittable<string, string>;
     /** Signal that is emitted when all activities have been dropped and none have been started */
     readonly NoActivity: Signal.VoidEmittable;
     /** Activity stack instance */
@@ -325,7 +344,7 @@ declare module "@typescene/core/App/Culture/Observer" {
 import { Signal } from "@typescene/core/Async";
 import { CultureService } from "@typescene/core/App/Culture/CultureService";
 /** Signal that is emitted when the global i18n culture changes (through `CultureService`) */
-export const CultureChanged: Signal.Emittable<CultureService>;
+export const CultureChanged: Signal.Emittable<CultureService, CultureService>;
 
 }
 
@@ -578,9 +597,9 @@ export class ObservableValue<T> {
     /** Create a new (single) observed value using optional getter and setter functions; note that getters *should* be pure functions without side effects, creating or setting other observables from the getter will result in an error; getter is not called immediately but only when being subscribed to or when obtaining the value itself (from `.value`) */
     constructor(getter?: () => T, setter?: (value: T) => void);
     /** Set a getter function for the observable value, which should return a current value, or another ObservableValue instance, or set `.value` directly; note that getters *should* be pure functions without side effects, creating or setting other observables from the getter will result in an error; the getter is only invoked (asynchronously) if a value had been set previously and needs to be updated; reading `.value` from the getter results in the value previously set, no recursion occurs; returns this */
-    getter(f: () => T): this;
+    getter(f: () => any): this;
     /** Set a setter function for the observable value; setting `.value` directly from the setter results in changing the underlying observable value (which can also be read by the getter, or the setter itself), no recursion occurs; returns this */
-    setter(f: (value: T) => void): this;
+    setter(f: (value: any) => void): this;
     /** Observable value, (re-) evaluated only if necessary; when set to an `ObservableValue` instance, this property returns that instance's value, until this property is set to another value (except if the `ObservableValue` has a setter, which is called first); plain Array values are turned into `ObservableArray` instances, and plain Object instances into `ObservableObject` instances --- unless `.shallow` is set to true */
     value: T | undefined;
     /** Returns .value (observable if used within an observable getter) */
@@ -695,34 +714,34 @@ declare module "@typescene/core/Async/Promise" {
 /** Represents a value to be resolved at any time in the future */
 export class Promise<T> implements PromiseLike<T> {
     /** Delay the execution of a callback but return a promise for its result */
-    static delay<T>(f: (...args: any[]) => T, ms: number, args?: any[]): Promise<T>;
+    static delay<T>(f: (...args: any[]) => T, ms: number, args?: any[]): Promise<T> & PromiseLike<T>;
     /** Return a promise that will be resolved after a delay */
-    static sleep<T>(ms: number, value?: T): Promise<T>;
+    static sleep<T>(ms: number, value?: T): Promise<T> & PromiseLike<T>;
     /** Defer the execution of a callback but return a promise for its result */
-    static defer<T>(f: (...args: any[]) => T, args?: any[]): Promise<T>;
+    static defer<T>(f: (...args: any[]) => T, args?: any[]): Promise<T> & PromiseLike<T>;
     /** Executes given callback, providing it with a Node.js-style (err, result) => {...} handler that immediately resolves or rejects the resulting promise when called; (use as e.g. `Promise.fn(f => fs.readFile('/etc/passwd', f)).then(...))` */
     static fn<T>(callback: (f: (err: any, result: T) => void) => void): Promise<T>;
     /** Return a resolved promise */
-    static resolve<T>(value: T): Promise<T>;
+    static resolve<T>(value: T): Promise<T> & PromiseLike<T>;
     /** Return a rejected promise */
-    static reject(error: Error): Promise<{}>;
+    static reject(error: Error): Promise<never> & PromiseLike<never>;
     /** Return a promise that is fulfilled when all given promises are fulfilled and is immediately rejected when one of the promises is rejected */
-    static all<ValueT>(promises: PromiseLike<ValueT>[]): Promise<ValueT[]>;
+    static all<ValueT>(promises: PromiseLike<ValueT>[]): Promise<ValueT[]> & PromiseLike<ValueT[]>;
     /** Return a promise that is resolved or rejected exactly like the first of the given promises that is resolved or rejected */
-    static race<T>(promises: PromiseLike<T>[]): Promise<T>;
+    static race<T>(promises: PromiseLike<T>[]): Promise<T> & PromiseLike<T>;
     /** Create a new Promise instance by running the given callback function, which is given callbacks to resolve and/or reject the promise; the promise is also rejected if the callback function throws an exception */
     constructor(executor?: (resolve: (value: PromiseLike<T> | T) => void, reject: (error: Error) => void) => void);
     /** Run one of the callbacks as soon as the promise is fulfilled or rejected */
-    then<O>(onFulfilled?: (value: T) => (PromiseLike<O> | O), onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O>;
+    then<O>(onFulfilled?: (value: T) => (PromiseLike<O> | O), onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O> & PromiseLike<O>;
     /** Run one of the callbacks as soon as the promise is fulfilled or rejected */
-    then<O>(onFulfilled?: (value: T) => (PromiseLike<O> | O), onRejected?: (error: Error) => void): Promise<O>;
+    then<O>(onFulfilled?: (value: T) => (PromiseLike<O> | O), onRejected?: (error: Error) => void): Promise<O> & PromiseLike<O>;
     /** Catch rejections and return a new promise */
-    catch<O>(onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O>;
+    catch<O>(onRejected?: (error: Error) => (PromiseLike<O> | O)): Promise<O> & PromiseLike<O>;
     /** Catch rejections and return a new promise */
-    catch<O>(onRejected?: (error: Error) => void): Promise<O>;
+    catch<O>(onRejected?: (error: Error) => void): Promise<O> & PromiseLike<O>;
 }
 /** Return a promise that will be resolved after a delay */
-export function sleep<PromiseT>(ms: number, value?: PromiseT): Promise<PromiseT>;
+export function sleep<PromiseT>(ms: number, value?: PromiseT): Promise<PromiseT> & PromiseLike<PromiseT>;
 
 }
 
@@ -742,6 +761,8 @@ export abstract class Signal<T> {
     static create(): Signal.VoidEmittable;
     /** Create a new emittable signal class with given payload type */
     static create<DataT>(): Signal.Emittable<DataT>;
+    /** Create a new emittable signal class with given payload type, with a specific function signature parameter to avoid specificity type errors */
+    static create<DataT, EmitT>(): Signal.Emittable<DataT, EmitT>;
     /** [implementation] Create a read-only observable value that contains the last emitted value (initially undefined, only contains a value after the first time this signal is emitted) */
     static observe(): ObservableValue<any>;
     /** [implementation] Add a handler */
@@ -761,21 +782,21 @@ export abstract class Signal<T> {
     /** Invoke all handlers and capture promises of their return values in .results (unless argument is true); works only once; returns this */
     emit(noResults?: boolean): this;
     /** Invoke given callback(s) with return values of all handlers, or any exception that occurred during execution of all handlers; returns a Promise that resolves to the return value of the callback(s) itself */
-    then<O>(onFulfilled?: (results: any[]) => O, onRejected?: (error: Error) => O): Promise<O>;
+    then<O>(onFulfilled?: (results: any[]) => O, onRejected?: (error: Error) => O): Promise<O> & PromiseLike<O>;
     /** Catch errors that occur during execution of all handlers; returns a Promise that resolves to the return value of the callback itself */
-    catch<O>(onRejected?: (error: Error) => O): Promise<O>;
+    catch<O>(onRejected?: (error: Error) => O): Promise<O> & PromiseLike<O>;
     /** Array of Promises that resolve to return values of all handlers */
     readonly results: Promise<any>[];
     /** The payload data for this signal instance */
     readonly data: T;
 }
 export namespace Signal {
-    /** Type definition for a callable (emittable) signal *class*; matches the result of `.create` with the same type parameter */
-    interface Emittable<T> {
+    /** Type definition for a callable (emittable) signal *class*; matches the result of `.create` with the same type parameter(s) */
+    interface Emittable<T, U = T> {
         /** Instantiate a signal with given value, ready to be emitted */
-        new (data: T): Signal<T>;
+        new (data: U): Signal<T>;
         /** Emit a signal with given value; does not instantiate this class unless there are actually handlers connected to it */
-        (data: T): void;
+        (data: U): void;
         /** Add a handler to be invoked when this signal is emitted; returns an encapsulation of the connection with a disconnect method */
         connect(handler: (data: T) => any): SignalConnection;
         /** Add a handler to be invoked when this signal is emitted: a method with given name on given target object (resolved only when needed); returns an encapsulation of the connection with a disconnect method */
@@ -789,7 +810,7 @@ export namespace Signal {
         /** Returns true if this signal has any handlers connected to it */
         isConnected(): boolean;
         /** Create a read-only observable value that contains the last emitted value (initially undefined, only contains a value after the first time this signal is emitted) */
-        observe(): ObservableValue<T>;
+        observe(): ObservableValue<U>;
     }
     /** Type definition for a callable (emittable) signal *class*; matches the result of `.create` without a type parameter */
     interface VoidEmittable {
@@ -812,7 +833,7 @@ export namespace Signal {
     }
 }
 /** Signal that is emitted for all exceptions that were unhandled during async execution; a custom handler may be added here, the default handler just logs a warning message to the console; to disable this behavior for specific errors, set error.message to a blank string */
-export const UnhandledException: Signal.Emittable<Error>;
+export const UnhandledException: Signal.Emittable<Error, Error>;
 
 }
 
@@ -1095,7 +1116,7 @@ export class List<BlockT extends Block> extends Block {
     /** Create a list component with given items */
     constructor(items?: Array<BlockT | undefined>);
     /** Method that is called immediately after the renderer for this list is constructed; adds observers for item selection */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
+    protected beforeFirstRender(renderer: ComponentRenderer): void;
     /** List content (observed) */
     items: Array<BlockT | undefined>;
     /** Current (last) selected item index (base 0), or -1 if no item is selected (observed) */
@@ -1118,7 +1139,7 @@ export class List<BlockT extends Block> extends Block {
     /** Set all input values by element name */
     setFormValues(values: any): void;
     /** Signal emitted when the list selection changes, while displayed on screen */
-    readonly SelectionChange: ComponentSignal.Emittable<List.ItemEvent<any>>;
+    readonly SelectionChange: ComponentSignal.Emittable<List.ItemEvent<any>, List.ItemEvent<any>>;
     private _dividers;
 }
 export namespace List {
@@ -1169,7 +1190,7 @@ export class NavList extends Block {
     /** Create a navigation list component */
     constructor(navItems?: NavList.NavItem[], type?: NavList.Type, selectedIndex?: number);
     /** Method that is called immediately after the renderer for this component is constructed; adds observers for nav item selection */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
+    protected beforeFirstRender(renderer: ComponentRenderer): void;
     /** Nav labels, icons, and badges (observed) */
     navItems: NavList.NavItem[];
     /** Space reserved for icons (rem units), if > 0 (observed) */
@@ -1188,7 +1209,7 @@ export class NavList extends Block {
     /** Returns an array of directly contained components (observable) */
     getChildren(): Component[];
     /** Signal emitted when the selected nav item changes, while displayed on screen */
-    readonly NavChange: ComponentSignal.Emittable<NavList.SelectionEvent>;
+    readonly NavChange: ComponentSignal.Emittable<NavList.SelectionEvent, NavList.SelectionEvent>;
     /** Container block that contains the container for currently selected item, if any */
     private _containerBlock;
     /** Factory UID of the factory that created the current container, or undefined if container was not created using a factory */
@@ -1424,7 +1445,7 @@ export class TreeList<BlockT extends TreeList.BlockItem> extends Block {
     /** Create a tree list component with given items */
     constructor(items?: Array<BlockT | undefined>);
     /** Method that is called immediately after the renderer for this list is constructed; adds observers for item selection */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
+    protected beforeFirstRender(renderer: ComponentRenderer): void;
     /** Hierarchical list content (observed); items can use the `TreeList.BlockItem` interface to provide sub content, see e.g. `TreeListRow` */
     items: Array<BlockT | undefined>;
     /** Select given item (block), and immediately deselect others if `.selectionMode` is `ItemClick` or `ItemFocus`; does _not_ check if the item is included in `.items` at all for performance reasons */
@@ -1438,11 +1459,11 @@ export class TreeList<BlockT extends TreeList.BlockItem> extends Block {
     /** Returns an array of directly contained components (observable); i.e. a flattened list of all _visible_ tree list items */
     getChildren(): Component[];
     /** Signal emitted when the list selection changes, while displayed on screen */
-    readonly SelectionChange: ComponentSignal.Emittable<TreeList.ItemEvent<any>>;
+    readonly SelectionChange: ComponentSignal.Emittable<TreeList.ItemEvent<any>, TreeList.ItemEvent<any>>;
     /** Signal emitted when a tree list item is collapsed, while displayed on screen */
-    readonly ItemCollapsed: ComponentSignal.Emittable<TreeList.ItemEvent<any>>;
+    readonly ItemCollapsed: ComponentSignal.Emittable<TreeList.ItemEvent<any>, TreeList.ItemEvent<any>>;
     /** Signal emitted when a tree list item is expanded, while displayed on screen */
-    readonly ItemExpanded: ComponentSignal.Emittable<TreeList.ItemEvent<any>>;
+    readonly ItemExpanded: ComponentSignal.Emittable<TreeList.ItemEvent<any>, TreeList.ItemEvent<any>>;
     /** Flattened observable array, derived from `.items` property */
     private _flattened?;
 }
@@ -1581,9 +1602,9 @@ export abstract class Component extends Async.ObservableObject {
     /** True if this component has been initialized (synchronous) */
     private _initialized?;
     /** Returns a new component signal class specific to this component, with optional signal base class which must derive from ComponentSignal; can be used to define custom signals in a component constructor or public property initializer (or memoized get-accessor for lazy initialization); sets static property `ComponentSignal.component` of the derived signal class to the component instance, as well as any other static properties given */
-    protected createComponentSignal<DataT, SignalT extends {
+    protected createComponentSignal<DataT, EmitT = DataT, SignalT extends {
         new (data: DataT): ComponentSignal<DataT>;
-    } = typeof ComponentSignal>(base?: SignalT & (new (data: DataT) => ComponentSignal<DataT>), properties?: {}): ComponentSignal.Emittable<DataT>;
+    } = typeof ComponentSignal>(base?: SignalT & (new (data: DataT) => ComponentSignal<DataT>), properties?: {}): ComponentSignal.Emittable<DataT, EmitT>;
     /** Identifier string (optional), may be set by component factory constructor, and used with .getComponentById(...) */
     id: string;
     /** Globally unique component identifier */
@@ -1627,19 +1648,19 @@ export abstract class Component extends Async.ObservableObject {
     /** Primary renderer class for this component; injected globally on the component (sub) class, but can be overwritten by assigning to this property (observable) */
     protected Renderer: typeof ComponentRenderer;
     /** Wait for this component to be rendered and return a promise for its output (value of `.out`), unless the component is already rendered, in which case this method returns a resolved promise for the last rendered output; never forces the component to be rendered */
-    getRenderedOutputAsync(): PromiseLike<ComponentRenderer.Output<this, any>>;
+    getRenderedOutputAsync(): PromiseLike<ComponentRenderer.Output<this>>;
     /** Returns the last rendered output for this component, if any (value of `.out`); does not trigger a render */
-    getLastRenderedOutput(): ComponentRenderer.Output<this, any> | undefined;
+    getLastRenderedOutput(): ComponentRenderer.Output<Component, any> | undefined;
     /** Rendered output for this component (observable); retrieving this value triggers a render operation, if it was not already subscribed to, e.g. if the component is displayed on screen; the renderer is lazily constructed from the class reference injected into the `.Renderer` property */
-    readonly out: ComponentRenderer.Output<this, any> | undefined;
+    readonly out: ComponentRenderer.Output<Component, any> | undefined;
     /** Render this component synchronously, always updating any existing rendered output; this method should _not_ be used unless changes may have occurred outside of the observable context, otherwise read the value from `.out`, include it on a `Page`, or use the `.display()` method where available */
-    render(): ComponentRenderer.Output<this, any> | undefined;
+    render(): ComponentRenderer.Output<Component, any> | undefined;
     /** Signal emitted after updating DOM (render) */
-    readonly Rendered: ComponentSignal.Emittable<ComponentRenderer.Output<this, any>>;
+    readonly Rendered: ComponentSignal.Emittable<ComponentRenderer.Output<this, any>, ComponentRenderer.Output<Component, any>>;
     /** Current renderer instance, created upon access */
     private readonly _renderer;
     /** Method that is called immediately after the renderer for this component is constructed; override this method (and invoke `super.beforeFirstRender`) to be able to call or inject renderer methods before this component is first rendered */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
+    protected beforeFirstRender(renderer: ComponentRenderer): void;
     /** Helper method to watch and apply list focus mode on renderer instance */
     private _watchFocusMode(renderer);
     /** Helper method to watch and apply selection mode on renderer instance */
@@ -1690,63 +1711,63 @@ export abstract class Component extends Async.ObservableObject {
     /** Platform hover state, set by MouseEnter/Leave signal handlers */
     private _liveHover?;
     /** Signal emitted when this component _or_ a child component is clicked, touched, or otherwise activated; captured from containers down to contained components, not consumed */
-    readonly Click: ComponentSignal.Emittable<PointerEvent>;
+    readonly Click: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted asynchronously after this component _or_ a child component is clicked, touched, or otherwise activated; propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly Clicked: ComponentSignal.Emittable<PointerEvent>;
+    readonly Clicked: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted when this component _or_ a child component is double-clicked; captured from containers down to contained components, not consumed */
-    readonly DoubleClick: ComponentSignal.Emittable<PointerEvent>;
+    readonly DoubleClick: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted asynchronously after this component _or_ a child component is double-clicked; propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly DoubleClicked: ComponentSignal.Emittable<PointerEvent>;
+    readonly DoubleClicked: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted when a mouse button is pressed down, or a touch occurs, on this component _or_ a child component; captured from containers down to contained components, not consumed */
-    readonly Press: ComponentSignal.Emittable<PointerEvent>;
+    readonly Press: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted asynchronously after a mouse button is pressed down, or a touch occurs, on this component _or_ a child component; propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly Pressed: ComponentSignal.Emittable<PointerEvent>;
+    readonly Pressed: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted when the cursor begins to hover over this component; captured from containers down to contained components, not consumed */
-    readonly MouseEnter: ComponentSignal.Emittable<PointerEvent>;
+    readonly MouseEnter: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted when the cursor has left this component; captured from containers down to contained components, not consumed */
-    readonly MouseLeave: ComponentSignal.Emittable<PointerEvent>;
+    readonly MouseLeave: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted when a context menu is requested for this component or a child component (usually by right-clicking); captured from containers down to contained components, not consumed */
-    readonly MouseContextMenu: ComponentSignal.Emittable<PointerEvent>;
+    readonly MouseContextMenu: ComponentSignal.Emittable<PointerEvent, PointerEvent>;
     /** Signal emitted when a key is pressed down (while this component _or_ a child component is focused); captured from containers down to contained components, not consumed */
-    readonly KeyDown: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly KeyDown: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after a key is pressed (while this component _or_ a child component is focused); captured from containers down to contained components, not consumed */
-    readonly KeyPress: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly KeyPress: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted when this component _or_ a child component receives focus; captured from containers down to contained components, not consumed */
-    readonly Focus: ComponentSignal.Emittable<any>;
+    readonly Focus: ComponentSignal.Emittable<any, any>;
     /** Signal emitted when this component _or_ a child component loses focus; captured from containers down to contained components, not consumed */
-    readonly Blur: ComponentSignal.Emittable<any>;
+    readonly Blur: ComponentSignal.Emittable<any, any>;
     /** Signal emitted asynchronously after this component receives focus; propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly FocusGained: ComponentSignal.Emittable<any>;
+    readonly FocusGained: ComponentSignal.Emittable<any, any>;
     /** Signal emitted asynchronously after this component loses focus, and only if `.FocusGained` was emitted previously; propagates from child components to parents, not consumable */
-    readonly FocusLost: ComponentSignal.Emittable<any>;
+    readonly FocusLost: ComponentSignal.Emittable<any, any>;
     /** Signal emitted when this component _or_ a child component commences a drag operation; captured from containers down to contained components, not consumed */
-    readonly DragStart: ComponentSignal.Emittable<DragEvent>;
+    readonly DragStart: ComponentSignal.Emittable<DragEvent, DragEvent>;
     /** Signal emitted when a drag operation begins to hover over this component; captured from containers down to contained components, not consumable */
-    readonly DragEnter: ComponentSignal.Emittable<DragEvent>;
+    readonly DragEnter: ComponentSignal.Emittable<DragEvent, DragEvent>;
     /** Signal emitted when a drag operation has left this component; captured from containers down to contained components, not consumable */
-    readonly DragLeave: ComponentSignal.Emittable<DragEvent>;
+    readonly DragLeave: ComponentSignal.Emittable<DragEvent, DragEvent>;
     /** Signal emitted when this element or a child element is the target of a drop after a drag operation; captured from containers down to contained components, not consumed */
-    readonly DragDrop: ComponentSignal.Emittable<DragEvent>;
+    readonly DragDrop: ComponentSignal.Emittable<DragEvent, DragEvent>;
     /** Helper function to create a key event signal */
     private _makeKeyEvent(key);
     /** Signal emitted after the enter key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly EnterKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly EnterKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the space bar is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly SpaceBarPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly SpaceBarPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the backspace key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly BackspaceKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly BackspaceKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the forward-delete key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly DeleteKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly DeleteKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the escape key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly EscapeKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly EscapeKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the left arrow/d-pad key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly ArrowLeftKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly ArrowLeftKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the up arrow/d-pad key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly ArrowUpKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly ArrowUpKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the right arrow/d-pad key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly ArrowRightKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly ArrowRightKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Signal emitted after the down arrow/d-pad key is pressed (while focused); propagates from child components to parents, until a component consumes the event by connecting to this signal */
-    readonly ArrowDownKeyPressed: ComponentSignal.Emittable<KeyboardEvent>;
+    readonly ArrowDownKeyPressed: ComponentSignal.Emittable<KeyboardEvent, KeyboardEvent>;
 }
 export namespace Component {
     /** Specification of which animations to play during the lifetime of a component on screen (can be extended for sub component types) */
@@ -1983,7 +2004,7 @@ import Async, { Signal } from "@typescene/core/Async";
 import { Component } from "@typescene/core/UI/Components/Component";
 import { ComponentSignalHandler } from "@typescene/core/UI/Components/ComponentSignal";
 /** Class that contains the code necessary to render a component; to retrieve rendering output, Component methods only use the `.output` property, which is an ObservableValue instance that is populated using the (protected) `.render` method */
-export abstract class ComponentRenderer<ComponentT extends Component, ElementT> {
+export abstract class ComponentRenderer<ComponentT extends Component = Component, ElementT = any> {
     /** Create a new renderer instance for given component */
     constructor(component: ComponentT);
     /** The component that this renderer renders */
@@ -1991,7 +2012,7 @@ export abstract class ComponentRenderer<ComponentT extends Component, ElementT> 
     /** An observable value containing the rendered output, if any; used by the Component rendering methods to retrieve output; this property should *not* be overridden, override the protected `.render` method instead and/or use the `.watch` method to add partial rendering code */
     readonly output: Async.ObservableValue<ComponentRenderer.Output<ComponentT, ElementT> | undefined>;
     /** Signal that is emitted after updating `.output` (but not if undefined) and/or when the `updated` promise on the rendered output is resolved */
-    readonly Rendered: Signal.Emittable<ComponentRenderer.Output<ComponentT, ElementT>>;
+    readonly Rendered: Signal.Emittable<ComponentRenderer.Output<ComponentT, ElementT>, ComponentRenderer.Output<Component, ElementT>>;
     /** Component renderer function; to be overridden, *must* be a pure function, based on the current `.component` and `.output` properties (otherwise *creating* or *setting* ObservableValue instances should be done within a function that is passed to `unobserved`) */
     protected render(): ComponentRenderer.Output<ComponentT, ElementT> | undefined;
     /** Add a method that will be called (synchronously and asynchronously) from a new observable context, after previously added methods, immediately *after* the `.render` method has run once, along with an optional method that will be called (synchronously, unobserved) with the result of the first method; i.e. observable values used in the first method will be subscribed to while the output is subscribed to, but changes to these values will never trigger re-rendering the entire component -- instead, the second function is invoked; useful for partially updating existing output using a subset of component properties; should be called _before_ rendering takes place */
@@ -1999,7 +2020,7 @@ export abstract class ComponentRenderer<ComponentT extends Component, ElementT> 
 }
 export namespace ComponentRenderer {
     /** Encapsulates output for a rendered component; class type parameters indicate the type of component rendered, and the output type (e.g. HTMLElement) */
-    class Output<ComponentT extends Component, ElementT> {
+    class Output<ComponentT extends Component = Component, ElementT = any> {
         /** Create a new instance for given component, with given element (should not be undefined) */
         constructor(component: ComponentT, element: ElementT, context?: any);
         /** The component that the output is generated for */
@@ -2024,7 +2045,7 @@ export namespace ComponentRenderer {
     }
 }
 /** Constructor for a component render event handler */
-export class ComponentRenderHandler extends ComponentSignalHandler<ComponentRenderer.Output<Component, any>> {
+export class ComponentRenderHandler extends ComponentSignalHandler<ComponentRenderer.Output> {
 }
 /** _Class decorator_, maps the decorated `ComponentRenderer` class to a `Component` class as its primary renderer; the renderer class constructor must have a single argument, being the component to be rendered; overrides previously mapped renderer entirely, to extend super class renderer functionality inject a class that extends the previous renderer class [decorator] */
 export function mapComponentRenderer<ComponentT extends Component>(componentClass: typeof Component & {
@@ -2044,9 +2065,9 @@ export class ComponentSignal<DataT> extends Async.Signal<DataT> {
 }
 export namespace ComponentSignal {
     /** Type definition for a callable (emittable) component signal class */
-    interface Emittable<T> extends Signal.Emittable<T> {
+    interface Emittable<T, U = T> extends Signal.Emittable<T, U> {
         /** Emit a signal with given value, for the component this signal is attached to */
-        (data?: T): void;
+        (data?: U): void;
         /** Component for which this signal will be emitted */
         readonly component: Component;
     }
@@ -2054,9 +2075,9 @@ export namespace ComponentSignal {
 /** Abstract wrapper for a handler that can connect to signals derived from `ComponentSignal`; used for automatic type inference of signal handlers */
 export interface ComponentSignalHandler<DataT> extends Function {
     /** Call the handler as a function */
-    (data?: DataT): void;
+    (data?: any): void;
     /** Add this EventHandler as a handler for given event signal */
-    connectTo(signal: ComponentSignal.Emittable<DataT>): Async.SignalConnection;
+    connectTo(signal: ComponentSignal.Emittable<DataT, any>): Async.SignalConnection;
     /** Always true, for duck typing wrapped handlers */
     isEventHandler: true;
 }
@@ -2246,11 +2267,11 @@ export class DialogContainer extends Container {
     /** Object with options to be used when displaying this block as a page component (observed) */
     displayOptions: Page.DisplayOptions;
     /** Signal emitted by the `.open` method before displaying the dialog; if any handler throws an error then the dialog will not open */
-    readonly Opening: ComponentSignal.Emittable<{}>;
+    readonly Opening: ComponentSignal.Emittable<{}, {}>;
     /** Signal emitted when user clicks outside dialog, presses esc or clicks DialogContainer.TopCloseButton; if any handler throws an error then the dialog will not close */
-    readonly Closing: ComponentSignal.Emittable<{}>;
+    readonly Closing: ComponentSignal.Emittable<{}, {}>;
     /** Signal emitted when this dialog has been closed */
-    readonly Closed: ComponentSignal.Emittable<{}>;
+    readonly Closed: ComponentSignal.Emittable<{}, {}>;
 }
 export namespace DialogContainer {
     /** Initializer for .with({ ... }) */
@@ -2421,7 +2442,7 @@ export class Button extends ControlElement {
     /** Encapsulation of button element style (observed) */
     readonly style_button: Style;
     /** Signal emitted when a dropdown option has been selected */
-    readonly DropdownClicked: ComponentSignal.Emittable<string | number>;
+    readonly DropdownClicked: ComponentSignal.Emittable<string | number, string | number>;
 }
 export namespace Button {
     /** Signal that is emitted when a dropdown item has been selected */
@@ -2498,7 +2519,7 @@ export class ButtonGroup extends ControlElement {
     /** Create a button group element */
     constructor(buttons?: Button[]);
     /** Method that is called immediately after the renderer for this button group is constructed; adds observers for button activation */
-    protected beforeFirstRender(renderer: ComponentRenderer<this, any>): void;
+    protected beforeFirstRender(renderer: ComponentRenderer): void;
     /** Buttons to be displayed as part of the button group, in order (observed) */
     buttons: Array<Button | undefined>;
     /** Set to true to show buttons from top to bottom (observed) */
@@ -2786,9 +2807,9 @@ export abstract class InputControl extends ControlElement {
     /** Encapsulation of input element style (observed) */
     readonly style_input: Style;
     /** Signal emitted when the input value is committed (on change); captured from containers down to contained components, not consumed */
-    readonly ValueChange: ComponentSignal.Emittable<any>;
+    readonly ValueChange: ComponentSignal.Emittable<any, any>;
     /** Signal emitted immediately before the input value changes (on input); captured from containers down to contained components, not consumed */
-    readonly ValueInput: ComponentSignal.Emittable<any>;
+    readonly ValueInput: ComponentSignal.Emittable<any, any>;
 }
 export namespace InputControl {
     /** Initializer for .with({ ... }) */
@@ -3171,9 +3192,9 @@ export abstract class Drag {
     /** Resolves to `this` when the observed coordinates actually change by a reasonable amount (to distinguish from a click), useful e.g. for calling `.pickUp(...)` only when resolved */
     readonly abstract moved: PromiseLike<Drag>;
     /** Signal emitted when the drag operation completes successfully */
-    readonly Dropped: Signal.Emittable<Drag>;
+    readonly Dropped: Signal.Emittable<Drag, Drag>;
     /** Signal emitted when the drag operation is canceled */
-    readonly Canceled: Signal.Emittable<Drag>;
+    readonly Canceled: Signal.Emittable<Drag, Drag>;
     /** Constrain effective drag coordinates on (original) X and/or Y axis of the viewport, and/or contrain to stay within given component on screen (calling this method twice does not constrain further, but the constraints are replaced) */
     abstract constrain(constrainX?: boolean, constrainY?: boolean, component?: Component): void;
     /** Make given component follow the mouse cursor while dragging */
@@ -3274,7 +3295,7 @@ export class Page {
     /** Signal that is emitted after the content of this page has been (re-) rendered, e.g. when a component is added or removed (but not when one of the components itself is re-rendered due to changes in its own sub content, use the `Component#Rendered` signal for that) */
     readonly Rendered: Signal.VoidEmittable;
     /** Signal that is emitted when a key is being pressed on the keyboard, while this page is displayed in the foreground */
-    readonly KeyDown: Signal.Emittable<KeyboardEvent>;
+    readonly KeyDown: Signal.Emittable<KeyboardEvent, KeyboardEvent>;
     /** Layout/text flow direction for switching between left-to-right and right-to-left languages */
     flowDirection?: "ltr" | "rtl";
     /** @Internal disabled state */
@@ -3446,19 +3467,24 @@ export default _default;
 }
 
 declare module "@typescene/dom/App/DOMApplication" {
-import { Application } from "@typescene/core/App";
+import { Application, Activity } from "@typescene/core/App";
 /** Platform specific encapsulation of the application as a singleton object */
 export class DOMApplication extends Application {
     /** Disable synchronization of activity stack with browser history */
     static disableBrowserHistory(): void;
     /** Create the application instance (either from a derived class or from the Application class itself); can be called only once */
     constructor(title?: string);
-    /** Returns the full URL from `window.location.href`; used to resolve relative URLs to start routed activities */
+    /** The activity that corresponds with the current history position in the browser; e.g. used for displaying the page title that corresponds to the current URL (observable) */
+    protected historyActivity?: Activity;
+    /** Returns the full URL from `location.href`; used to resolve relative URLs to start routed activities */
     protected getCurrentUrl(): string;
-    /** Sets the browser's current URL (using `window.location.href`), to navigate to another page or website */
+    /** Sets the browser's current URL (using `location.href`), to navigate to another page or website */
     protected navigateToUrl(url: string): void;
+    private _scheduleSync();
+    /** Synchronize activity history with current browser history; invoked ONLY using timer */
+    private _syncHistory();
+    /** Helper method: start activity based on current location */
     private _startLocationActivity(replace?);
-    private _updateHistoryState(op?);
 }
 
 }
@@ -3477,9 +3503,9 @@ export namespace Http {
         FETCH_INCLUDE_CREDENTIALS: boolean;
     }
     /** Signal that is emitted before sending a request; can be used to intercept requests, modify request options, and provide an alternate response; if one of the connected handlers returns a (promise for) an alternate response, i.e. an object that implements `FetchResponse`, then the request will not be sent, and the (first) resulting alternate response is used instead; if one of the connected handlers throws an exception, the original promise for the request is rejected; otherwise the request is sent as per normal */
-    var Requesting: Signal.Emittable<FetchOptions>;
+    var Requesting: Signal.Emittable<FetchOptions, FetchOptions>;
     /** Signal that is emitted after obtaining a remote response (from an actual request, not an alternate response provided by a connected handler of `.Requesting`) */
-    var Responded: Signal.Emittable<FetchResponse>;
+    var Responded: Signal.Emittable<FetchResponse, FetchResponse>;
     /** Definition of a collection of HTTP headers as an object */
     interface Headers {
         [headerName: string]: string;

@@ -39,7 +39,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="UI">UI</a>
             </p>
-<h1>mapComponentRenderer</h1><pre><code>function mapComponentRenderer&lt;ComponentT extends Component&gt;(componentClass: typeof Component &amp; { new (...args: any[]): ComponentT; }): (target: new (component: ComponentT) =&gt; ComponentRenderer&lt;ComponentT, any&gt;) =&gt; void;</pre></code><p><em>Class decorator</em>, maps the decorated <code>ComponentRenderer</code> class to a <code>Component</code> class as its primary renderer; the renderer class constructor must have a single argument, being the component to be rendered; overrides previously mapped renderer entirely, to extend super class renderer functionality inject a class that extends the previous renderer class [decorator].</p>
+<h1>mapComponentRenderer</h1><pre><code>function mapComponentRenderer&lt;ComponentT extends Component&gt;(componentClass: typeof Component &amp; { new (...args: any[]): ComponentT; }): (target: new (component: ComponentT) =&gt; ComponentRenderer&lt;ComponentT, any&gt;) =&gt; void;</pre></code><p><em>Class decorator</em>, maps the decorated <code>ComponentRenderer</code> class to a <code>Component</code> class as its primary renderer; the renderer class constructor must have a single argument, being the component to be rendered; overrides previously mapped renderer entirely, to extend super class renderer functionality inject a class that extends the previous renderer class.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;mapComponentRenderer (UI.mapComponentRenderer)&rdquo;, part of the Typescene toolkit.</p>

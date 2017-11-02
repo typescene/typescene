@@ -39,8 +39,127 @@
                 <a href="index.html">&lt; Text Index</a>
                 
             </p>
-<h1>Component factories</h1><p>Streamline the creation of UI component structures with component factories.</p>
-</div>
+<h1>Component factories</h1><p>Typescene provides a convenient way to represent the static <em>structure</em> of your UI before any of the components are actually created. This is useful when you want to avoid long blocks of code with <code>new</code> statements and lots of property assignments.</p>
+</div><h3>Declaring component structures</h3><p>The <code>with</code> method is available on any component class (along with <code>with*</code> methods such as <code>withText</code> for a label) to create a Component <em>factory</em>.</p>
+<h3>Creating component factories</h3><p>When you create a factory for a container or block component using the static <code>with*</code> method(s), you can pass in a list of factories for components that are added as sub components from top to bottom (or left-to-right and/or right-to-left based on language settings).</p>
+<p>The first parameter can also be an object that specifies a set of property values, which are applied immediately after creating the component, such as <code>width</code> or <code>style</code>.</p>
+<p>Finally, you can pass a function callback that is called immediately after creating a component, given a reference to the new component itself as well as a reference to the outermost component created by the factory.</p>
+</div><div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">// create a component factory from the UI.Container class
+var MyFactory = UI.Container.with(
+    // automatically wrap single controls in a UI.Row:
+    UI.Heading4.withText(&quot;Typescene is fun&quot;),
+    
+    // if you don't need arguments, just pass in a class reference:
+    UI.Divider,
+
+    // or use explicit factories through `with(...)` for everything:
+    UI.Row.with(
+        UI.TextField.with({ placeholderText: &quot;Enter your name&quot; }),
+        UI.Button.with({ label: &quot;Say hello&quot; }, (button, base) =&gt; {
+            // this is called when the button is actually created
+            // (more about this callback below...)
+            button.Clicked.connect(() =&gt; {
+                var textField = base.getComponentsByType(UI.TextField)[0];
+                var name = textField.value || &quot;there&quot;;
+                App.showMessageBox(`Hello ${name}, nice to meet you!`);
+            });
+        })
+    )
+)
+</code></pre>
+</div><p>Note that the result of <code>UI.Container.with</code> above is not a <code>Container</code> instance, but a factory. This factory can be used to create containers on the fly, <em>with</em> the given set of rows and controls inside (which are also created on the fly, recursively, generating new instances every time).</p>
+<p>Thanks to the flexibility of JavaScript this <code>MyFactory</code> factory isn’t some special ‘factory type’: the call to <code>UI.Container.with</code> actually returns a dynamic <code>class</code>. This class derives from <code>UI.Container</code> itself. In fact, every <code>.with</code> method returns a new <em>class</em> that’s based on the class you call this method on. <code>UI.Row.with</code> returns a component class that extends <code>UI.Row</code>, for example:</p>
+<pre><code class="language-typescript">var MyRow = UI.Row.with({ height: &quot;2rem&quot; });
+MyRow.prototype instanceof UI.Row  // =&gt; true
+</code></pre>
+<h3>Using component factories</h3><p>With component factories, you can declare a structure of to-be components, nicely wrapped up into a class that’s just like the <code>UI.Component</code> class itself. After that, you can create multiple instances of this factory, each with a separate set of sub component instances, using <code>new</code>:</p>
+<pre><code class="language-typescript">var form1 = new MyFactory();
+var form2 = new MyFactory();
+// etc...
+</code></pre>
+</div><h3>Using instance callbacks</h3><p>If you pass a <em>function</em> to the <code>.with</code> method, it gets invoked as a callback every time an object is created from the resulting factory.</p>
+<p>The first argument to the callback will be a reference to the component object itself, and the second argument will be a reference to the base (root) component that’s being constructed.</p>
+<pre><code class="language-typescript">var MyFactory = UI.Container.with(
+    UI.Label.withText(&quot;Container height:&quot;),
+    UI.Label.with(
+        async (label, base) =&gt; {
+            await Async.sleep(10);  // wait for DOM
+            label.text = base.getActualDimensions().height + &quot;px&quot;;
+        }
+    )
+)
+</code></pre>
+<p>Note the use of a callback in the first example in this section as well, where the button callback needs a reference to the text field to be able to fetch its value.</p>
+<p>This highlights an issue with the nature of factories, and ‘lazy’ creation of instances.</p>
+</div><div style="background: #eee; padding: 1rem"><h3>Reference issues</h3><p>One prominent issue that presents itself when using component factories in your UI is that a factory only <em>declares</em> the structure of components, and you won’t have access to the individual component instances <strong>until an instance of the factory is created</strong>. This means having to use callbacks, and methods such as <a href="~/UI.Component/getComponentsByType"><code>getComponentsByType</code></a> to find sibling components.</p>
+<p>To make it easier to cross-reference components, you’ll need to write a Component class yourself to get more control over individual instances.</p>
+</div><h3>Creating a Component class</h3><p>You can start a Component class by extending an existing component class, such as <code>UI.Container</code>. Then, initialize sub components manually in the constructor, either by instantiating all of them (e.g. <code>new UI.Row(...)</code> for a row of controls), or using the <a href="~/UI.Component/initializeWith"><code>initializeWith</code></a> method – which is a lot like <code>with</code> but for instances:</p>
+<pre><code class="language-typescript">/** A simple component class that extends UI.Container */
+class MyComponent extends UI.Container {
+    constructor() {
+        super();
+
+        // initialize all content here...?
+        this.initializeWith({
+            style: { /* ... */ }
+            content: [
+                UI.Row.with(/* ... */)
+                // ... etc.
+            ]
+        });
+    }
+}
+</code></pre>
+<p>There’s nothing wrong with this, but there’s an even better way: remember that a component factory is <em>already</em> a class by itself? You can simply extend from the component factory directly, i.e. <code>class MyComponent extends UI.Container.with(...)</code>.</p>
+<h3>Creating a class from a component factory</h3><p>This is the recommended pattern for creating UI components in your Typescene application:</p>
+</div><div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">/** A full-fledged component class that extends a UI.Container factory */
+class MyComponent extends UI.Container.with(
+    UI.Heading4.withText(&quot;Typescene is fun&quot;),
+    UI.Row.with(
+        UI.TextField.with({
+            id: &quot;textField&quot;,
+            placeholderText: &quot;Enter your name&quot;
+        }),
+        UI.Button.withLabel(&quot;Say hello&quot;, &quot;buttonClick&quot;)
+    )
+) {
+    // reference to the TextField because it has a matching ID above:
+    textField: UI.TextField;
+
+    // event handler, referenced by name from Button.withLabel
+    buttonClick() {
+        var name = this.textField.value || &quot;there&quot;;
+        App.showMessageBox(`Hello ${name}, nice to meet you!`);
+    }
+}
+</code></pre>
+</div><p>With component classes that extend component factories, you get the best of both worlds: the structure of your visual hierarchy is clear from the top part (after <code>extends</code>), while you can store properties and event handlers right on the component instance once it’s been created.</p>
+<h3>Using component IDs and properties</h3><p>For every component factory in the <code>extends</code> clause that specifies an <code>id</code> property, your object will contain a property with that same name which automatically refers to the instantiated component.</p>
+<pre><code class="language-typescript">class MyComponent extends UI.Container.with(
+    UI.Heading4.with({ id: &quot;h4&quot;, text: &quot;Typescene is fun&quot; }),
+    UI.Button.with({ id: &quot;myButton&quot;, label: &quot;OK&quot; })
+) {
+    // properties, set automatically by the factory constructor:
+    h4: UI.Heading4;
+    myButton: UI.Button;
+}
+
+var component = new MyComponent();
+component.h4.text += &quot; fun fun&quot;;
+</code></pre>
+</div><h3>Doubling up</h3><p>Now that you know all about component factories, it should be clear why the following actually works, too:</p>
+<pre><code class="language-typescript">// .with(...).with(...)
+var MyLabel = UI.Label.withText(&quot;Hello&quot;)
+    .with({ /* more properties here */ });
+    
+// component class .with(...)
+var MyBlueComponent = MyComponent.with({
+    style: { background: &quot;blue&quot; }
+});
+</code></pre>
+</div><h3>Next steps</h3><p>Creating your UI components the first time often isn’t enough: you’ll want to update parts of your UI based on user input, background activities, or the general state of your application.</p>
+<p><a href="~/start/ui/events"><i class="fa fa-play"></i> Learn how to handle UI events</a>.</p>
+
             <hr>
             <p>This is the documentation page for &ldquo;Component factories&rdquo;, part of the Typescene toolkit.</p>
             <p>

@@ -1,64 +1,68 @@
 import Async, { Signal } from "../../Async";
 import { Activity } from "./Activity";
 
-var currentHistoryIDBase = "_A" + String(Math.random()).slice(-5);
-var currentHistoryID = 0;
-var nextTransitionID = 0;
+var _historyIdBase = "_A" + String(Math.random()).slice(-5);
+var _nextHistoryId = 0;
+var _nextTransitionID = 0;
 
 var previousTransition: ActivityTransition | undefined;
 
 /** Represents a stack of activated activities (like browser history) */
 export class ActivityStack {
     /** Add an activity to the foreground asynchronously, does nothing if given activity was already in the foreground; returns Promise that resolves to the completed transition */
-    public pushAsync(activity: Activity): PromiseLike<ActivityTransition> {
+    public pushAsync(activity: Activity) {
         if (!(activity instanceof Activity))
             throw new Error("Invalid activity");
 
         // push activity and its parents on the stack
-        this._popTransient();
-        this._upToHubOrRoot(activity);
-        return this._transitionP = <PromiseLike<ActivityTransition>>(this._transitionP || Async.Promise.resolve(undefined))
-            .then(t => {
-                previousTransition = undefined;
-                var result: PromiseLike<ActivityTransition> | undefined;
-                this._findParents(activity).forEach(a => {
-                    var p = () => this._processTransition(a,
-                        ActivityTransition.Operation.Push);
-                    result = result ? result.then(p) : p();
-                });
-                return result || t;
+        return this._pushP = this._pushP
+            .then(() => this._upToHubOrRoot(activity))
+            .then(() => {
+                return this._transitionP = this._transitionP
+                    .then<ActivityTransition | undefined>(() => {
+                        previousTransition = undefined;
+                        var result: PromiseLike<ActivityTransition> | undefined;
+                        this._findParents(activity).forEach(a => {
+                            var p = () => this._processTransition(a,
+                                ActivityTransition.Operation.Push);
+                            result = result ? result.then(p) : p();
+                        });
+                        return result;
+                    });
             });
     }
 
     /** Replace the current activity asynchronously (throws error if none), or remove current activity if given activity was already directly below current activity in the activity stack; returns Promise that resolves to the completed transition */
-    public replaceAsync(activity: Activity): PromiseLike<ActivityTransition> {
+    public replaceAsync(activity: Activity) {
         if (!(activity instanceof Activity))
             throw new Error("Invalid activity");
 
         // process replace transaction
-        this._popTransient();
-        this._upToHubOrRoot(activity);
-        return this._transitionP = (this._transitionP || Async.Promise.resolve(undefined))
-            .then(t => {
-                previousTransition = undefined;
-                var lonely = (this.topIndex < 0);
+        return this._pushP = this._pushP
+            .then(() => this._upToHubOrRoot(activity))
+            .then(() => {
+                return this._transitionP = this._transitionP
+                    .then<ActivityTransition | undefined>(() => {
+                        previousTransition = undefined;
+                        var lonely = (this.topIndex < 0);
 
-                // pop if already directly below, otherwise replace or push
-                if (!lonely && this._stack[this.topIndex - 1] === activity)
-                    return this._processTransition(
-                        activity, ActivityTransition.Operation.Pop);
-                else {
-                    // replace/push activity and its parents on the stack
-                    var result: PromiseLike<ActivityTransition> | undefined;
-                    this._findParents(activity, true).forEach(a => {
-                        var p = () => this._processTransition(a,
-                            (result || lonely) ?
-                                ActivityTransition.Operation.Push :
-                                ActivityTransition.Operation.Replace);
-                        result = result ? result.then(p) : p();
+                        // pop if already directly below, otherwise replace or push
+                        if (!lonely && this._stack[this.topIndex - 1] === activity)
+                            return this._processTransition(
+                                activity, ActivityTransition.Operation.Pop);
+                        else {
+                            // replace/push activity and its parents on the stack
+                            var result: PromiseLike<ActivityTransition> | undefined;
+                            this._findParents(activity, true).forEach(a => {
+                                var p = () => this._processTransition(a,
+                                    (result || lonely) ?
+                                        ActivityTransition.Operation.Push :
+                                        ActivityTransition.Operation.Replace);
+                                result = result ? result.then(p) : p();
+                            });
+                            return result;
+                        }
                     });
-                    return result || t;
-                }
             });
     }
 
@@ -67,60 +71,47 @@ export class ActivityStack {
     /** Remove the current foreground activity (go back) asynchronously if and only if it is the given activity, returns Promise that resolves to the completed transition, if any */
     public popAsync(activity: Activity): PromiseLike<ActivityTransition | undefined>;
     public popAsync(activity?: Activity): PromiseLike<ActivityTransition | undefined> {
-        return this._transitionP = (this._transitionP || Async.Promise.resolve(undefined))
-            .then(() => {
-                previousTransition = undefined;
-                if (this.topIndex < 0)
-                    throw new Error("No activity to suspend");
-                if (activity !== undefined && this.top !== activity)
-                    return <any>Async.Promise.resolve(undefined);
+        return this._transitionP = this._transitionP.then(() => {
+            previousTransition = undefined;
+            if (this.topIndex < 0)
+                throw new Error("No activity to suspend");
+            if (activity !== undefined && this.top !== activity)
+                return <any>Async.Promise.resolve(undefined);
 
-                // send signals and return promise
-                return this._processTransition(this._stack[this.topIndex - 1],
-                    ActivityTransition.Operation.Pop);
-            });
+            // send signals and return promise
+            return this._processTransition(this._stack[this.topIndex - 1],
+                ActivityTransition.Operation.Pop);
+        });
     }
 
     /** Remove foreground activities until given activity or activity of given type is in the foreground; returns Promise that resolves to activity, or undefined if there was no matching activity on the stack */
     public upAsync(activityOrClass: Activity | typeof Activity): PromiseLike<Activity | undefined> {
         var isActivity = (activityOrClass instanceof Activity);
-        var recurse = (): PromiseLike<any> => {
+        var result: Activity | undefined;
+        var count = 0;
+        var recurse = (last?: ActivityTransition) => {
             if (isActivity ?
                 (this.top === activityOrClass) :
-                (this.top instanceof <typeof Activity>activityOrClass))
-                return Async.Promise.resolve(this.top);
-            if (this._stack.some(activity => isActivity ?
-                (activity === activityOrClass) :
-                (activity instanceof <typeof Activity>activityOrClass)))
+                (this.top instanceof <typeof Activity>activityOrClass)) {
+                // arrived at given activity, stop now
+                result = this.top;
+                return last;
+            }
+            if (count < 1000 && this.contains(activityOrClass)) {
+                // activity is still below, pop one and recurse
+                count++;
                 return this._processTransition(this._stack[this.topIndex - 1],
                     ActivityTransition.Operation.Pop)
-                    .then(() => recurse());
-            else
-                return Async.Promise.resolve(undefined);
+                    .then<ActivityTransition | undefined>(t => (<any>recurse)(t));
+            }
+
+            // activity cannot be found, bail out
+            return last;
         };
-        return this._transitionP = (this._transitionP || Async.Promise.resolve(undefined))
-            .then(() => {
-                previousTransition = undefined;
-                return recurse();
-            });
-    }
-
-    /** Reload state using given history ID, if possible (i.e. not yet deactivated relevant activities in the meantime); returns a promise that resolves when the state has been reached */
-    public restoreHistoryStateAsync(historyID: string): PromiseLike<void> {
-        var idx = this._ids.lastIndexOf(historyID);
-        if (idx < 0 && historyID !== "0") throw new Error("Cannot resume activities");
-        if (idx === this.topIndex) return <any>Async.Promise.resolve(undefined);
-
-        // either go back or go forward and check again
-        return (idx < this.topIndex ?
-            this.popAsync() :
-            this.pushAsync(this._stack[this.topIndex + 1]))
-            .then(() => this.restoreHistoryStateAsync(historyID));
-    }
-
-    /** Get an ID that represents the current state, for use with `.restoreHistoryStateAsync` */
-    public getHistoryState() {
-        return this._ids[this.topIndex] || "0";
+        return (this._transitionP = this._transitionP.then(() => {
+            previousTransition = undefined;
+            return recurse();
+        })).then(() => result);
     }
 
     /** Get the activity closest to the foreground of the given type, if any (excluding foreground activity itself, and before given activity in second parameter, if any) */
@@ -137,12 +128,28 @@ export class ActivityStack {
         return undefined;
     }
 
-    /** Returns true if the stack contains given activity */
-    public contains(activity: Activity) {
-        for (var i = this.topIndex; i >= 0; i--)
-            if (this._stack[i] === activity) return true;
+    /** Returns true if the stack contains given activity (or an activity that is an instance of given `Activity` class) */
+    public contains(activityOrClass: Activity | typeof Activity) {
+        if (activityOrClass instanceof Activity) {
+            for (var i = this.topIndex; i >= 0; i--)
+                if (this._stack[i] === activityOrClass) return true;
+        }
+        else {
+            for (var i = this.topIndex; i >= 0; i--)
+                if (this._stack[i] instanceof activityOrClass) return true;
+        }
 
         return false;
+    }
+
+    /** Get the next activity ahead of the current stack top, if any (i.e. the activity that was most recently popped); returns undefined if there is no such activity */
+    public peek(ignoreBackgroundActivities?: boolean) {
+        for (var idx = this.topIndex + 1; idx < this._stack.length; idx++) {
+            if (!ignoreBackgroundActivities || !this._stack[idx].options ||
+                !this._stack[idx].options.isBackgroundActivity)
+                return this._stack[idx];
+        }
+        return undefined;
     }
 
     /** The current foreground activity (top of stack, if any; observable) */
@@ -194,8 +201,72 @@ export class ActivityStack {
         return cursor(this.topIndex, this._stack);
     }
 
-    /** Signal that is emitted when a transition occurs (after Starting/Resuming/Suspending but before Started/Resumed) */
+    /** Signal that is emitted when an activity transition occurs (after Starting/Resuming/Suspending but before Started/Resumed) */
     public readonly Transition = Signal.create<ActivityTransition>();
+    
+    /** Synchronous Transition signal used by onTransitionSync */
+    public readonly TransitionSync = Signal.create<ActivityTransition>();
+
+    /** Add a handler to be invoked _synchronously_ when an activity transition occurs (after Starting/Resuming/Suspending but before Started/Resumed; after updating the activity stack) */
+    public onTransitionSync(callback: (t: ActivityTransition) => void) {
+        this.TransitionSync.connect(callback);
+    }
+
+    /** Checks position of given history state compared to the current activity; returns -1 if given state is behind (i.e. below current stack top), 0 if on par, or 1 if given state is ahead, undefined if not found (most likely replaced) */
+    public getHistoryPosition(historyId: string) {
+        var idx = this._historyIds.lastIndexOf(historyId);
+        var top = this.topIndex;
+        if (idx < 0) return undefined;
+        if (idx === top) return 0;
+        return idx < top ? -1 : 1;
+    }
+    
+    /** Returns history ID, title, path, and reference to current activity, if any */
+    public getHistoryState() {
+        var idx = this.topIndex;
+        if (idx < 0) return undefined;
+        var activity = this._stack[idx];
+        var path: string | undefined;
+        try { path = activity.activation.getPath() }
+        catch { }
+        return {
+            title: this.title,
+            historyId: this._historyIds[idx],
+            activity, path
+        };
+    }
+
+    /** Returns history ID, title, path, and activity on the stack immediately after given history state (i.e. next activity to be added to the platform history), excluding background activities; returns undefined if given state is not found or if there is no activity after given history state */
+    public getHistoryAfter(historyId: string) {
+        var idx = this._historyIds.lastIndexOf(historyId);
+        if (historyId && idx < 0) return undefined;
+        var top = this.topIndex;
+        while (++idx <= top &&
+                this._stack[idx].options &&
+                this._stack[idx].options.isBackgroundActivity) {
+            // move past background activity/ies...
+        }
+        if (idx > top) return undefined;
+
+        // get title of this or previous activity/ies
+        var title = this.title;
+        for (var i = idx; i >= 0; i--) {
+            if (this._stack[i].title !== undefined) {
+                title = this._stack[i].title!;
+                break;
+            }
+        }
+
+        // return all properties in one object
+        var activity = this._stack[idx];
+        var path: string | undefined;
+        try { path = activity.activation.getPath() }
+        catch { }
+        return {
+            title, activity, path,
+            historyId: this._historyIds[idx]
+        };
+    }
 
     /** Helper method to find parent activity/ies for given activity; returns an array of activities to be pushed (including activity itself) */
     private _findParents(activity: Activity, excludeTop?: boolean) {
@@ -221,14 +292,12 @@ export class ActivityStack {
 
     /** Helper method to move up to existing root activity, or hub parent activity if needed */
     private _upToHubOrRoot(activity: Activity) {
+        var poppedP = this._popTransient();
+
         // check if activity is a root activity and move up if possible
         if (activity.options.isRootActivity && this.contains(activity)) {
-            this.upAsync(activity);
-
-            // wait until browser history is synchronized
-            this._transitionP =
-                (this._transitionP || Async.Promise.resolve(undefined))
-                .then(() => Async.sleep(2));
+            return poppedP.then(() => this.upAsync(activity))
+                .then(t => Async.sleep(2, t) as typeof poppedP);
         }
         else {
             // find out if existing parent activity is a hub activity
@@ -236,15 +305,13 @@ export class ActivityStack {
             if (parent = activity.options.parentActivity) {
                 if (!(parent instanceof Activity))
                     parent = this.getParent(parent);
-                if (parent && parent.options.isHubActivity)
-                    this.upAsync(parent);
-
-                // wait until browser history is synchronized
-                this._transitionP =
-                    (this._transitionP || Async.Promise.resolve(undefined))
-                    .then(() => Async.sleep(2));
+                if (parent && parent.options.isHubActivity) {
+                    return poppedP.then(() => this.upAsync(parent!))
+                        .then(t => Async.sleep(2, t) as typeof poppedP);
+                }
             }
         }
+        return poppedP;
     }
 
     /** Helper method to remove a transient activity if needed */
@@ -256,6 +323,7 @@ export class ActivityStack {
             }
             if (current.activity) this.upAsync(current.activity);
         }
+        return this._transitionP;
     }
 
     /** Helper method for sending signals and creating promise */
@@ -263,7 +331,7 @@ export class ActivityStack {
         PromiseLike<ActivityTransition> {
         // create transition operation
         var t = Object.freeze(<ActivityTransition>{
-            id: "T" + nextTransitionID++,
+            id: "T" + _nextTransitionID++,
             activityStack: this,
             op, to, from: this.top,
             previous: previousTransition
@@ -316,13 +384,14 @@ export class ActivityStack {
 
                             // push new activity
                             this.topIndex = this._stack.push(t.to) - 1;
-                            this._ids.length = this._stack.length;
-                            this._ids[this.topIndex] =
-                                currentHistoryIDBase + currentHistoryID++;
+                            this._historyIds.length = this._stack.length;
+                            this._historyIds[this.topIndex] =
+                                _historyIdBase + _nextHistoryId++;
                         }
                 }
 
                 // signal that transition has happened
+                this.TransitionSync.emitSync(t);
                 if (t.to) {
                     if (!resuming) t.to.Started(t);
                     t.to.Resumed(t);
@@ -338,8 +407,9 @@ export class ActivityStack {
     private _idx = Async.ObservableValue.fromValue(-1);
 
     private _stack = new Async.ObservableArray<Activity>();
-    private _ids: string[] = [];
-    private _transitionP: PromiseLike<any>;
+    private _historyIds: string[] = [];
+    private _transitionP: PromiseLike<ActivityTransition | undefined> = Async.Promise.resolve(undefined);
+    private _pushP: PromiseLike<ActivityTransition | undefined> = Async.Promise.resolve(undefined);
 }
 export namespace ActivityStack {
     export interface Cursor {
@@ -377,7 +447,7 @@ export interface ActivityTransition {
     /** The stack operation being performed: push, replace, or pop */
     op: ActivityTransition.Operation;
 
-    /** The previous transition that is part of the same operation (pop/push/pop/up) */
+    /** The previous transition that is part of the same operation (pop/push/up) */
     previous: ActivityTransition;
 }
 export namespace ActivityTransition {

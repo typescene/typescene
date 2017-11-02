@@ -39,11 +39,16 @@ export class HomeActivity extends App.Activity {
         this.Starting.connect(() => {
             this.documentService.loadAsync().then(() => {
                 var first = this.documentService.getTOCItems()[0];
-                if (first)
+                if (first) {
                     App.Application.current.startActivityAsync(
                         "/doc/" + (first.textSlug || first.id), true);
+                }
             });
-        })
+        });
+        this.Resuming.connect(t => {
+            if (t.op === App.ActivityTransition.Operation.Pop)
+                Async.defer(() => App.Application.current.dropActivityAsync());
+        });
     }
 
     @App.injectService

@@ -40,7 +40,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="App.ActivityStack">App.ActivityStack</a>
             </p>
-<h1>pushAsync</h1><pre><code>pushAsync(activity: Activity): PromiseLike&lt;ActivityTransition&gt;;</pre></code><p>Add an activity to the foreground asynchronously, does nothing if given activity was already in the foreground; returns Promise that resolves to the completed transition.</p>
+<h1>pushAsync</h1><pre><code>pushAsync(activity: Activity): PromiseLike&lt;ActivityTransition | undefined&gt;;</pre></code><p>Add an activity to the foreground asynchronously, does nothing if given activity was already in the foreground; returns Promise that resolves to the completed transition.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;pushAsync (App.ActivityStack/pushAsync)&rdquo;, part of the Typescene toolkit.</p>

@@ -119,7 +119,7 @@ export class Renderer<T extends Block> extends ComponentRenderer<T, HTMLElement>
             this.element.dir = this.component.flowDirection;
         }
 
-        return out;
+        return <any>out as ComponentRenderer.Output<T, HTMLElement>;
     }
 
     /** DOM element update context */

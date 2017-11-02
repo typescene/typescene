@@ -3,7 +3,7 @@ import { Component } from "./Component";
 import { ComponentSignalHandler } from "./ComponentSignal";
 
 /** Class that contains the code necessary to render a component; to retrieve rendering output, Component methods only use the `.output` property, which is an ObservableValue instance that is populated using the (protected) `.render` method */
-export abstract class ComponentRenderer<ComponentT extends Component, ElementT> {
+export abstract class ComponentRenderer<ComponentT extends Component = Component, ElementT = any> {
     /** Create a new renderer instance for given component */
     constructor(component: ComponentT) {
         this.component = component;
@@ -41,7 +41,7 @@ export abstract class ComponentRenderer<ComponentT extends Component, ElementT> 
     public readonly output: Async.ObservableValue<ComponentRenderer.Output<ComponentT, ElementT> | undefined>;
 
     /** Signal that is emitted after updating `.output` (but not if undefined) and/or when the `updated` promise on the rendered output is resolved */
-    public readonly Rendered = Signal.create<ComponentRenderer.Output<ComponentT, ElementT>>();
+    public readonly Rendered = Signal.create<ComponentRenderer.Output<ComponentT, ElementT>, ComponentRenderer.Output<Component, ElementT>>();
 
     /** Component renderer function; to be overridden, *must* be a pure function, based on the current `.component` and `.output` properties (otherwise *creating* or *setting* ObservableValue instances should be done within a function that is passed to `unobserved`) */
     protected render() { return this.output.value }
@@ -68,7 +68,7 @@ export abstract class ComponentRenderer<ComponentT extends Component, ElementT> 
 
 export namespace ComponentRenderer {
     /** Encapsulates output for a rendered component; class type parameters indicate the type of component rendered, and the output type (e.g. HTMLElement) */
-    export class Output<ComponentT extends Component, ElementT> {
+    export class Output<ComponentT extends Component = Component, ElementT = any> {
         /** Create a new instance for given component, with given element (should not be undefined) */
         constructor(component: ComponentT, element: ElementT, context?: any) {
             this.component = component;
@@ -113,12 +113,12 @@ export namespace ComponentRenderer {
 
 /** Constructor for a component render event handler */
 export class ComponentRenderHandler
-    extends ComponentSignalHandler<ComponentRenderer.Output<Component, any>> { }
+    extends ComponentSignalHandler<ComponentRenderer.Output> { }
 
 /** _Class decorator_, maps the decorated `ComponentRenderer` class to a `Component` class as its primary renderer; the renderer class constructor must have a single argument, being the component to be rendered; overrides previously mapped renderer entirely, to extend super class renderer functionality inject a class that extends the previous renderer class [decorator] */
 export function mapComponentRenderer<ComponentT extends Component>(
     componentClass: typeof Component & { new (...args: any[]): ComponentT }) {
-    return (target: { new (component: ComponentT): ComponentRenderer<ComponentT, any> }) => {
+    return (target: { new (component: ComponentT): ComponentRenderer<ComponentT> }) => {
         Async.inject(componentClass, { Renderer: target });
     };
 }

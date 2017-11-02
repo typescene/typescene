@@ -40,7 +40,48 @@
                 
             </p>
 <h1>UI components</h1><p>Learn how to use UI components – the basic building blocks of your app’s user interface.</p>
-</div>
+</div><h3>Component objects</h3><p>At its core, Typescene is an object oriented UI toolkit. It provides you with all the parts you need to develop a user interface (UI) for your application, hiding most of the implementation details.</p>
+<p>In other words, Typescene provides an <em>abstraction layer</em> that neatly wraps up the presentation of common UI elements in component classes. It lets you create a button element using <code>new Button</code> and set its properties directly on a JavaScript object. Like so:</p>
+<div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">var button = new UI.Button();
+button.label = &quot;Hello&quot;;
+button.width = &quot;15rem&quot;;
+</code></pre>
+</div><p>We call this <code>button</code> object an <em>instance</em> of <code>UI.Button</code>, which is a <em>Component</em> class. All UI component classes ultimately derive from <code>UI.Component</code>.</p>
+<p>The <code>button</code> object wraps functionality around a <code>&lt;button&gt;</code> element in the browser – or rather, an <code>HTMLButtonElement</code> in the browsers Document Object Model (DOM). You can get to this DOM element if you really need to, but usually the component itself provides more than enough control. At most, you’ll want to tweak the appearance of your UI elements using basic CSS properties and classes, through the <code>style</code> and <code>style_*</code> (for controls) properties that exist on most component objects.</p>
+<div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">var button = new UI.Button(&quot;Hello&quot;);
+button.style_button.set({ background: &quot;#e8a&quot;, border: &quot;0&quot; });
+</code></pre>
+</div><h3>Building a component hierarchy</h3><p>Component classes can be grouped into three basic categories:</p>
+<ul>
+<li><strong>Control</strong> components (such as buttons, text input fields, checkboxes, etc.)</li>
+<li><strong>Block</strong> components, to group controls or other blocks together visually (e.g. horizontally in a row, or vertically in a list)</li>
+<li><strong>Container</strong> components, to provide a space for block components on the page, or in a specific layout or modal arrangement.</li>
+</ul>
+<p>These components allow you to create basic pages, dialogs and forms very intuitively.</p>
+<h3>Combining UI components</h3><p>The simplest way to use UI components, is to create objects with <code>new</code> and explicitly link them together in a hierarchy:</p>
+</div><div style="background: #eee; padding: 1rem"><pre><code class="language-typescript">var headingLabel = new UI.Heading4(&quot;Typescene is fun&quot;);
+var headingRow = new UI.Row([headingLabel]);
+var container = new UI.Container([headingRow]);
+
+var textField = new UI.TextField();
+textField.placeholderText = &quot;Enter your name&quot;;
+var button = new UI.Button(&quot;Say hello&quot;);
+var row = new UI.Row([textField, button]);
+container.content.push(row);
+
+// event handling is intuitive, too:
+button.Clicked.connect(() =&gt; {
+    var name = textField.value || &quot;there&quot;;
+    App.showMessageBox(`Hello ${name}, nice to meet you!`);
+});
+</code></pre>
+</div><div style="background: #eee; padding: 1rem"><h3>Rows</h3><p>One of the components you’ll use most frequently is the <code>UI.Row</code> component (or the derived <code>UI.CenterRow</code> and <code>UI.OppositeRow</code> components). A row contains one or more <code>UI.ControlElement</code> components, i.e. <em>controls</em>, which are placed in a single line, such as the text field and button above.</p>
+<p>You can control the spacing around and between components both horizontally and vertically, and adjust the size and placement of all controls in a row – but controls will always remain in a single line within the row itself.</p>
+<p>Most interfaces can be easily broken up into containers (top/bottom/left/right regions) and rows, or perhaps lists of rows. Doing so is often the most important step in going from a design on paper to a prototype in code, and doing it consistently will help both your code structure and the usability of your application.</p>
+<p>Read more about the <code>UI.Row</code> component on its reference page.</p>
+</div><h3>Next step</h3><p>While the example above is perfectly valid and easy to understand in terms of object oriented principles, you’ll find that your code quickly gets difficult to manage when you use this pattern. If your code looks like a long string of variable assignments and constructor calls, it’s difficult to keep track of the resulting visual hierarchy.</p>
+<p><i class="fa fa-play"></i> To fix this, you can <a href="~/start/ui/factories">use component factories</a>.</p>
+
             <hr>
             <p>This is the documentation page for &ldquo;UI components&rdquo;, part of the Typescene toolkit.</p>
             <p>

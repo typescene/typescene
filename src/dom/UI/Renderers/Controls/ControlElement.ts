@@ -7,7 +7,7 @@ import { UpdateContext } from "../../UpdateContext";
 const CSS_CLASS = "UI-Control";
 
 /** @internal DOM-specific component renderer */
-@mapComponentRenderer(<any>ControlElement)
+@mapComponentRenderer(ControlElement as typeof ControlElement & { new(): ControlElement })
 export class Renderer<T extends ControlElement> extends ComponentRenderer<T, HTMLElement> {
     /** Instantiate the renderer for given component */
     constructor(component: T, tagName = "span") {
@@ -68,7 +68,7 @@ export class Renderer<T extends ControlElement> extends ComponentRenderer<T, HTM
             this.element.dir = this.component.flowDirection;
         }
 
-        return out;
+        return <any>out as ComponentRenderer.Output<T, HTMLElement>;
     }
 
     /** DOM element update context */

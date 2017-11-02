@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <title>getHistoryState (App.ActivityStack/getHistoryState)</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Typescene reference: getHistoryState (App.ActivityStack/getHistoryState) - Get an ID that represents the current state, for use with .restoreHistoryStateAsync.
+        <meta name="description" content="Typescene reference: getHistoryState (App.ActivityStack/getHistoryState) - Returns history ID, title, path, and reference to current activity, if any.
 " />
         <link rel="shortcut icon" type="image/png" href="/favicon.png" />
         <link href="/icons/css/font-awesome.min.css" rel="stylesheet">
@@ -40,7 +40,7 @@
                 <a href="index.html">&lt; Text Index</a>
                  | <a href="App.ActivityStack">App.ActivityStack</a>
             </p>
-<h1>getHistoryState</h1><pre><code>getHistoryState(): string;</pre></code><p>Get an ID that represents the current state, for use with <code>.restoreHistoryStateAsync</code>.</p>
+<h1>getHistoryState</h1><pre><code>getHistoryState(): { title: string | undefined; historyId: string; activity: Activity; path: string | undefined; } | undefined;</pre></code><p>Returns history ID, title, path, and reference to current activity, if any.</p>
 
             <hr>
             <p>This is the documentation page for &ldquo;getHistoryState (App.ActivityStack/getHistoryState)&rdquo;, part of the Typescene toolkit.</p>

@@ -22,10 +22,10 @@ export default new Stylesheet("", {
         lineHeight: "1.4rem",
         marginRight: ".5rem"
     },
-    ".form-check-input": {
-        position: "relative",
-        top: ".1em"
-    },
+    // ".form-check-input": {
+    //     position: "relative",
+    //     top: ".1em"
+    // },
 
     // text/select input:
     ".form-control": {

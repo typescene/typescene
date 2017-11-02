@@ -205,7 +205,7 @@ export function mapViewActivity<ActivityT extends Activity>(
         // inject initializer into the activity class
         var current = Async.inject(activityClass, {
             "@initialize": function (this: Activity) {
-                ViewMapping.mapView(this, target, dereferenceTimeout);
+                ViewMapping.mapView(this, <any>target, dereferenceTimeout);
                 current["@initialize"].call(this);
             }
         });
