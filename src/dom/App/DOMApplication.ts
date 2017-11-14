@@ -66,7 +66,7 @@ export class DOMApplication extends Application {
                 ].filter(s => !!s).join(" - ");
             }).subscribe(title => {
                 // apply to DOM document/window
-                document.title = title;
+                if (title) document.title = title;
             });
         });
     }
