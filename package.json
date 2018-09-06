@@ -1,6 +1,6 @@
 {
   "name": "typescene",
-  "version": "2.10.1",
+  "version": "2.10.2",
   "description": "Typescene toolkit",
   "author": "Jelmer Cormont",
   "license": "MIT",
@@ -22,5 +22,8 @@
   },
   "devDependencies": {
     "typescript": "^3.0.3"
+  },
+  "dependencies": {
+    "tslib": "^1.9.3"
   }
 }

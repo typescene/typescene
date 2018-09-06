@@ -14,7 +14,8 @@
     "downlevelIteration": true,
     "strict": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "importHelpers": true
   },
   "files": [
     "index.ts"
