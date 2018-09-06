@@ -1,0 +1,26 @@
+{
+  "name": "typescene",
+  "version": "2.10.0",
+  "description": "Typescene toolkit",
+  "author": "Jelmer Cormont",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/typescene/typescene.git"
+  },
+  "bugs": {
+    "url": "https://github.com/typescene/typescene/issues"
+  },
+  "homepage": "http://typescene.org/",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "typings": "./typings/index.d.ts",
+  "scripts": {
+    "prebuild": "rm -rf dist typings",
+    "build": "tsc -p src",
+    "watch": "tsc -p src -w"
+  },
+  "devDependencies": {
+    "typescript": "^3.0.3"
+  }
+}
