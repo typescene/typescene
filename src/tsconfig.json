@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "commonjs",
+    "lib": [
+      "es5",
+      "dom",
+      "es2015.promise",
+      "es2015.iterable"
+    ],
+    "declaration": true,
+    "outDir": "../dist",
+    "declarationDir": "../typings",
+    "downlevelIteration": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true
+  },
+  "files": [
+    "index.ts"
+  ]
+}
