@@ -517,8 +517,18 @@ class CompositeBindings {
 class ComponentObserver<TComponent extends Component = Component> extends ManagedObject {
     constructor(component: TComponent) {
         super();
-        ManagedObject.createManagedReferenceProperty(this, "parent", false, false, undefined,
-            event => { if (event instanceof CompositeParentChangeEvent) this.emit(event) });
+
+        // propagate composition events from the parent observer
+        ManagedObject.createManagedReferenceProperty(this, "parent",
+            false, false, undefined,
+            event => {
+                if (this.parent && (event instanceof CompositeParentChangeEvent)) {
+                    // propagate only if this is not already the composite parent
+                    if (this.parent.component !== this.component.getCompositeParent()) {
+                        this.emit(event);
+                    }
+                }
+            });
         this.component = component;
     }
 
