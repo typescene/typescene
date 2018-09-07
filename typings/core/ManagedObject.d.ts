@@ -1,5 +1,4 @@
 import { ManagedEvent } from "./ManagedEvent";
-import { HIDDEN_CHILD_EVENT_HANDLER, HIDDEN_EVENT_HANDLER, HIDDEN_REFCOUNT_PROPERTY, HIDDEN_REF_PROPERTY, HIDDEN_STATE_PROPERTY } from "./util";
 export declare enum ManagedState {
     DESTROYED = 0,
     CREATED = 1,
@@ -41,11 +40,6 @@ export declare class ManagedObject {
     protected onManagedStateDestroyingAsync(): Promise<void>;
     private _transitionManagedState;
     static createManagedReferenceProperty<T extends ManagedObject>(object: T, propertyKey: keyof T, isChildReference?: boolean, isDependency?: boolean, preAssignHandler?: (this: T, target: ManagedObject) => void, eventHandler?: (this: T, event: ManagedEvent) => void): void;
-    private readonly [HIDDEN_REF_PROPERTY];
-    private [HIDDEN_REFCOUNT_PROPERTY];
-    private [HIDDEN_STATE_PROPERTY];
-    private [HIDDEN_EVENT_HANDLER]?;
-    private [HIDDEN_CHILD_EVENT_HANDLER]?;
     private _emitting?;
     private _transition?;
 }

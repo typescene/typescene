@@ -1,9 +1,9 @@
 import { ManagedChangeEvent, ManagedEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
-import { HIDDEN_CHILD_EVENT_HANDLER, HIDDEN_REF_PROPERTY, MAKE_REF_MANAGED_PARENT_FN, PROPERTY_ID_PREFIX } from "./util";
+import * as util from "./util";
 
 /** Property ID for the single reference link used by ManagedReference */
-const REF_PROP_ID = PROPERTY_ID_PREFIX + "*ref";
+const REF_PROP_ID = util.PROPERTY_ID_PREFIX + "*ref";
 
 /** Independent reference to a managed object, list, map, or other managed reference */
 export class ManagedReference<T extends ManagedObject = ManagedObject> extends ManagedObject {
@@ -38,14 +38,14 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
     /** Returns the referenced object, or undefined */
     get(): T | undefined {
         // return referenced object
-        let ref = this[HIDDEN_REF_PROPERTY][REF_PROP_ID];
+        let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
         return ref && ref.b;
     }
 
     /** The referenced object, or undefined */
     get target(): T | undefined {
         // return referenced object
-        let ref = this[HIDDEN_REF_PROPERTY][REF_PROP_ID];
+        let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
         return ref && ref.b;
     }
     set target(target: T | undefined) {
@@ -69,7 +69,7 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
         
         // unlink existing reference, if any
-        let cur = this[HIDDEN_REF_PROPERTY][REF_PROP_ID];
+        let cur = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
         if (cur) {
             if (target && cur.b === target) return;
             ManagedObject._discardRefLink(cur);
@@ -79,14 +79,14 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         if (target) {
             let ref = ManagedObject._createRefLink(this, target, REF_PROP_ID, (_obj, _target, e) => {
                 // propagate the event if needed
-                if (this[HIDDEN_CHILD_EVENT_HANDLER] && ManagedObject._isManagedChildRefLink(ref)) {
-                    this[HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
+                if (this[util.HIDDEN_CHILD_EVENT_HANDLER] && ManagedObject._isManagedChildRefLink(ref)) {
+                    this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
                 }
             }, () => {
                 // handle destruction of the target
                 this.emit(ManagedChangeEvent);
             });
-            if (this[HIDDEN_REF_PROPERTY].parent) {
+            if (this[util.HIDDEN_REF_PROPERTY].parent) {
                 // set/move parent-child link on target object
                 ManagedObject._makeManagedChildRefLink(ref);
             }
@@ -96,8 +96,8 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
     }
 
     /** @internal Helper function that fixes an existing referenced object as a child */
-    [MAKE_REF_MANAGED_PARENT_FN]() {
-        let refs = this[HIDDEN_REF_PROPERTY];
+    [util.MAKE_REF_MANAGED_PARENT_FN]() {
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         if (refs[REF_PROP_ID]) {
             ManagedObject._makeManagedChildRefLink(refs[REF_PROP_ID]!);
         }

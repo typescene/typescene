@@ -1,6 +1,6 @@
 import { ManagedChangeEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
-import { defineChainableProperty, exceptionHandler, GETTER_SHADOW_FORCE_ASYNC, GETTER_SHADOW_PROP, HIDDEN_REFCOUNT_PROPERTY } from "./util";
+import * as util from "./util";
 
 /** Next unique ID for an observable class */
 let _nextUID = 1000;
@@ -68,7 +68,7 @@ export function observe<T extends ManagedObject>(Target: ManagedObjectConstructo
                             }
                             // special case reference count (should start at 0)
                             if (p === ".referenceCount") {
-                                _defineObservable(Observer, proto, HIDDEN_REFCOUNT_PROPERTY,
+                                _defineObservable(Observer, proto, util.HIDDEN_REFCOUNT_PROPERTY,
                                     f, false, isAsync, 0);
                             }
                             else {
@@ -101,11 +101,11 @@ export function observe<T extends ManagedObject>(Target: ManagedObjectConstructo
                                 addManagedParentChangeHandler(f); break;
                             case "onReferenceCountChangeAsync":
                                 _defineObservable(Observer, proto,
-                                    HIDDEN_REFCOUNT_PROPERTY, f, false, true, 0);
+                                    util.HIDDEN_REFCOUNT_PROPERTY, f, false, true, 0);
                                 break;
                             case "onReferenceCountChange":
                                 _defineObservable(Observer, proto,
-                                    HIDDEN_REFCOUNT_PROPERTY, f, false, false, 0);
+                                    util.HIDDEN_REFCOUNT_PROPERTY, f, false, false, 0);
                                 break;
                             
                             // for other names, check for "*Change", otherwise handle event by name
@@ -151,8 +151,8 @@ export function shadowObservable(shadowPropertyName: string, forceAsync?: boolea
         if (!descriptor || !descriptor.get) {
             throw Error("[Object] @shadowObservable(...) can only be applied to properties with their own getter method");
         }
-        (descriptor.get as any)[GETTER_SHADOW_PROP] = shadowPropertyName;
-        (descriptor.get as any)[GETTER_SHADOW_FORCE_ASYNC] = !!forceAsync;
+        (descriptor.get as any)[util.GETTER_SHADOW_PROP] = shadowPropertyName;
+        (descriptor.get as any)[util.GETTER_SHADOW_FORCE_ASYNC] = !!forceAsync;
     };
 }
 
@@ -220,7 +220,7 @@ function _addManagedEventHandler(observerClass: any, target: typeof ManagedObjec
             if (eventFilter(e)) {
                 let observer = _getObserverInstance(this, observerClass);
                 try { handler.call(observer, e) }
-                catch (err) { exceptionHandler(err) }
+                catch (err) { util.exceptionHandler(err) }
             }
         });
     }
@@ -252,7 +252,7 @@ function _addManagedEventHandler(observerClass: any, target: typeof ManagedObjec
                     await handler.call(observer, e);
                 }
                 catch (err) {
-                    exceptionHandler(err);
+                    util.exceptionHandler(err);
                 }
             }
         });
@@ -266,7 +266,7 @@ function _defineObservable(observerClass: { new(instance: any): any },
     initialValue?: any) {
     if (!isAsync) {
         // call observer method(s) immediately
-        defineChainableProperty(targetPrototype, observedProperty, false,
+        util.defineChainableProperty(targetPrototype, observedProperty, false,
             (obj, name, next) => {
                 let lastValue = initialValue;
                 let shadowed = (name !== observedProperty);
@@ -284,7 +284,7 @@ function _defineObservable(observerClass: { new(instance: any): any },
     else {
         // use promises to schedule next method invocation
         let limit: number | undefined = (handler as any)[FN_RATE_LIMIT_PROP];
-        defineChainableProperty(targetPrototype, observedProperty, true,
+        util.defineChainableProperty(targetPrototype, observedProperty, true,
             (obj, name, next) => {
                 let lastValue = initialValue;
                 let shadowed = (name !== observedProperty);
@@ -325,7 +325,7 @@ function _defineObservable(observerClass: { new(instance: any): any },
                         }
                     }
                     catch (err) {
-                        exceptionHandler(err);
+                        util.exceptionHandler(err);
                     }
                 };
             });

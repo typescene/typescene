@@ -1,6 +1,6 @@
 import { ManagedChangeEvent, ManagedEvent, ManagedObjectAddedEvent, ManagedObjectRemovedEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
-import { HIDDEN_CHILD_EVENT_HANDLER, HIDDEN_REF_PROPERTY, HIDDEN_STATE_PROPERTY, MAKE_REF_MANAGED_PARENT_FN, MANAGED_MAP_REF_PREFIX } from "./util";
+import * as util from "./util";
 
 /** Represents an unordered list that maps keys (strings) to managed objects */
 export class ManagedMap<T extends ManagedObject = ManagedObject> extends ManagedObject {
@@ -29,15 +29,15 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
 
     /** Returns the current object mapped to given key, if any */
     get(key: string): T | undefined {
-        if (!this[HIDDEN_STATE_PROPERTY]) return undefined;
-        let ref = this[HIDDEN_REF_PROPERTY][MANAGED_MAP_REF_PREFIX + String(key)];
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return undefined;
+        let ref = this[util.HIDDEN_REF_PROPERTY][util.MANAGED_MAP_REF_PREFIX + String(key)];
         return ref && ref.b;
     }
 
     /** Returns true if any object is currently mapped to given key */
     has(key: string) {
-        if (!this[HIDDEN_STATE_PROPERTY]) return false;
-        return !!this[HIDDEN_REF_PROPERTY][MANAGED_MAP_REF_PREFIX + String(key)];
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return false;
+        return !!this[util.HIDDEN_REF_PROPERTY][util.MANAGED_MAP_REF_PREFIX + String(key)];
     }
 
     /**
@@ -46,7 +46,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
      */
     unset(key: string) {
         // unlink existing reference, if any
-        let cur = this[HIDDEN_REF_PROPERTY][MANAGED_MAP_REF_PREFIX + String(key)];
+        let cur = this[util.HIDDEN_REF_PROPERTY][util.MANAGED_MAP_REF_PREFIX + String(key)];
         let target = cur && cur.b;
         if (cur && ManagedObject._discardRefLink(cur)) {
             this.emit(ManagedObjectRemovedEvent, this, target, key);
@@ -63,8 +63,8 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
      * @exception Throws an error if the map itself has been destroyed (see `ManagedObject.managedState`).
      */
     set(key: string, target?: T) {
-        if (!this[HIDDEN_STATE_PROPERTY]) throw Error("[Map] Cannot add objects to a destroyed map");
-        let refs = this[HIDDEN_REF_PROPERTY];
+        if (!this[util.HIDDEN_STATE_PROPERTY]) throw Error("[Map] Cannot add objects to a destroyed map");
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         key = String(key);
 
         // check given value first
@@ -72,7 +72,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         if (!target) return this.unset(key);
         
         // unlink existing reference, if any
-        let propId = MANAGED_MAP_REF_PREFIX + key;
+        let propId = util.MANAGED_MAP_REF_PREFIX + key;
         let cur = refs[propId];
         if (cur) {
             if (target && cur.b === target) return;
@@ -82,8 +82,8 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         // create new reference and update target count
         let ref = ManagedObject._createRefLink(this, target, propId, (_obj, _target, e) => {
             // propagate the event if needed
-            if (this[HIDDEN_CHILD_EVENT_HANDLER] && ManagedObject._isManagedChildRefLink(ref)) {
-                this[HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
+            if (this[util.HIDDEN_CHILD_EVENT_HANDLER] && ManagedObject._isManagedChildRefLink(ref)) {
+                this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
             }
         }, (target) => {
             // handle destruction of the target
@@ -98,7 +98,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
 
     /** Remove given object from this map (same as calling `unset(...)` on all keys that refer to given object) */
     remove(target: T) {
-        let refs = this[HIDDEN_REF_PROPERTY];
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         let removed: boolean | undefined;
         let key: string | undefined;
         for (let propId in refs) {
@@ -115,10 +115,10 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
 
     /** Remove all objects from this map */
     clear() {
-        let refs = this[HIDDEN_REF_PROPERTY];
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         let removed: boolean | undefined;
         for (let propId in refs) {
-            if (propId[0] === MANAGED_MAP_REF_PREFIX) {
+            if (propId[0] === util.MANAGED_MAP_REF_PREFIX) {
                 let ref = refs[propId];
                 if (ManagedObject._discardRefLink(ref)) {
                     removed = true;
@@ -132,11 +132,11 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     /** Returns a list of all (unique) objects in this map */
     objects() {
         let result: T[] = [];
-        if (!this[HIDDEN_STATE_PROPERTY]) return result;
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return result;
         let seen: boolean[] = {} as any;
-        let refs = this[HIDDEN_REF_PROPERTY];
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         for (let propId in refs) {
-            if (propId[0] === MANAGED_MAP_REF_PREFIX) {
+            if (propId[0] === util.MANAGED_MAP_REF_PREFIX) {
                 let target: T = refs[propId] && refs[propId]!.b;
                 if (target && !seen[target.managedId]) {
                     seen[target.managedId] = true;
@@ -150,10 +150,10 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     /** Returns a list of all keys in this map */
     keys() {
         let result: string[] = [];
-        let refs = this[HIDDEN_REF_PROPERTY];
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         if (!refs) return result;
         for (let propId in refs) {
-            if (propId[0] === MANAGED_MAP_REF_PREFIX && refs[propId]) {
+            if (propId[0] === util.MANAGED_MAP_REF_PREFIX && refs[propId]) {
                 result.push(propId.slice(1));
             }
         }
@@ -165,8 +165,8 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         // check if map is included as reference source on target
         // (not the other way around)
         if (target instanceof ManagedObject) {
-            return target[HIDDEN_REF_PROPERTY].some(ref =>
-                ref.a === this && ref.p[0] === MANAGED_MAP_REF_PREFIX);
+            return target[util.HIDDEN_REF_PROPERTY].some(ref =>
+                ref.a === this && ref.p[0] === util.MANAGED_MAP_REF_PREFIX);
         }
         return false;
     }
@@ -174,10 +174,10 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     /** Returns an object with properties for all keys and objects in this map */
     toObject() {
         let result: { [index: string]: T } = {};
-        if (!this[HIDDEN_STATE_PROPERTY]) return result;
-        let refs = this[HIDDEN_REF_PROPERTY];
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return result;
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         for (let propId in refs) {
-            if (propId[0] === MANAGED_MAP_REF_PREFIX && refs[propId]) {
+            if (propId[0] === util.MANAGED_MAP_REF_PREFIX && refs[propId]) {
                 result[propId.slice(1)] = refs[propId]!.b;
             }
         }
@@ -190,8 +190,8 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     }
 
     /** @internal Helper function that fixes existing objects in this list as managed children */
-    [MAKE_REF_MANAGED_PARENT_FN]() {
-        let refs = this[HIDDEN_REF_PROPERTY];
+    [util.MAKE_REF_MANAGED_PARENT_FN]() {
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         for (let propId in refs) {
             if (refs[propId] && refs[propId]!.a === this) {
                 ManagedObject._makeManagedChildRefLink(refs[propId]!);

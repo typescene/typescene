@@ -3,7 +3,7 @@ import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import { ManagedReference } from "./ManagedReference";
-import { HIDDEN_REF_PROPERTY } from "./util";
+import * as util from "./util";
 
 /** Type of error that can be thrown by the `ManagedRecord.validate` method, containing one or more validation errors */
 export interface ManagedRecordValidationError extends Error {
@@ -62,7 +62,7 @@ export class ManagedRecord extends Component {
 
         // use a recursive function to add all referrers
         let addRefs = (ref: ManagedObject) => {
-            ref[HIDDEN_REF_PROPERTY].forEach(reflink => {
+            ref[util.HIDDEN_REF_PROPERTY].forEach(reflink => {
                 let object: ManagedObject = reflink.a;
                 if (object.managedState && !seen[object.managedId]) {
                     seen[object.managedId] = true;

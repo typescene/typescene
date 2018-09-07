@@ -1,6 +1,6 @@
 import { ManagedEvent } from "./ManagedEvent";
 import { ManagedObject } from "./ManagedObject";
-import { setExceptionHandler } from "./util";
+import * as util from "./util";
 
 /** Event that is emitted by `UnhandledErrorEmitter` for each unhandled error */
 export class UnhandledErrorEvent extends ManagedEvent {
@@ -36,7 +36,7 @@ export class UnhandledErrorEmitter extends ManagedObject {
 }
 
 // set exception handler for managed objects (to break circular dependency)
-setExceptionHandler(UnhandledErrorEmitter.emitError);
+util.setExceptionHandler(UnhandledErrorEmitter.emitError);
 
 /** Log given error and emit an event on the `UnhandledErrorEmitter` instance */
 export function logUnhandledException(error: any) {

@@ -1,7 +1,7 @@
 import { ManagedChangeEvent, ManagedEvent, ManagedObjectAddedEvent, ManagedObjectRemovedEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import { shadowObservable } from "./observe";
-import { HIDDEN_CHILD_EVENT_HANDLER, HIDDEN_REF_PROPERTY, HIDDEN_STATE_PROPERTY, MAKE_REF_MANAGED_PARENT_FN, MANAGED_LIST_REF_PREFIX, RefLink } from "./util";
+import * as util from "./util";
 
 // really simple shim for Symbol.iterator in older browsers, only good for ManagedList below
 if (typeof Symbol !== "function") {
@@ -46,7 +46,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     @shadowObservable("_managedCount")
     get count() {
         // check .head first since it is deleted first when the list itself is destroyed
-        return this[HIDDEN_REF_PROPERTY].head ? this._managedCount : 0;
+        return this[util.HIDDEN_REF_PROPERTY].head ? this._managedCount : 0;
     }
     private _managedCount = 0;
 
@@ -68,24 +68,24 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
      * @exception Throws an error if the object is already included in the list, if the given object before which to insert is not found in the list, or if the list itself has been destroyed (see `ManagedObject.managedState`). Also throws an error if `restrict()` was applied and given object(s) are not of the correct type.
      */
     insert(target: T, before?: T) {
-        if (!this[HIDDEN_STATE_PROPERTY]) throw Error("[List] Cannot add objects to a destroyed list");
-        let refs = this[HIDDEN_REF_PROPERTY];
+        if (!this[util.HIDDEN_STATE_PROPERTY]) throw Error("[List] Cannot add objects to a destroyed list");
+        let refs = this[util.HIDDEN_REF_PROPERTY];
 
         // check given value first
         ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
         if (target === undefined) throw ReferenceError();
         if (this.includes(target)) throw Error("[List] Cannot insert object that is already in this list");
-        let beforeRef = before && refs[MANAGED_LIST_REF_PREFIX + before.managedId];
+        let beforeRef = before && refs[util.MANAGED_LIST_REF_PREFIX + before.managedId];
         if (before && (!beforeRef || beforeRef.b !== before)) {
             throw Error("[List] Object not found");
         }
 
         // create new reference and update target count
-        let propId = MANAGED_LIST_REF_PREFIX + target.managedId;
+        let propId = util.MANAGED_LIST_REF_PREFIX + target.managedId;
         let ref = ManagedObject._createRefLink(this, target, propId, (_obj, _target, e) => {
             // propagate the event if needed
-            if (this[HIDDEN_CHILD_EVENT_HANDLER] && ManagedList._isManagedChildRefLink(ref)) {
-                this[HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
+            if (this[util.HIDDEN_CHILD_EVENT_HANDLER] && ManagedList._isManagedChildRefLink(ref)) {
+                this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
             }
         }, (target) => {
             // handle destruction of the target
@@ -126,7 +126,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     remove(target: T) {
         if (!(target instanceof ManagedObject)) throw TypeError();
         let ref = (target instanceof ManagedObject) &&
-            this[HIDDEN_REF_PROPERTY][MANAGED_LIST_REF_PREFIX + target.managedId];
+            this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + target.managedId];
         if (ref && ref.b === target) {
             if (ManagedObject._discardRefLink(ref)) {
                 this._managedCount--;
@@ -142,7 +142,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
      */
     replace(objects: Iterable<T>) {
         // keep track of all operations before they are executed
-        let refs = this[HIDDEN_REF_PROPERTY];
+        let refs = this[util.HIDDEN_REF_PROPERTY];
         let inserts: Array<() => void> = [];
         let addInsertBefore = (object: T, before?: T) =>
             inserts.unshift(() => this.insert(object, before));
@@ -151,9 +151,9 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         let moves: Array<() => void> = [];
         let moved: boolean | undefined;
         let addMoveBefore = (object: T, before?: T) => moves.unshift(() => {
-            let ref = refs[MANAGED_LIST_REF_PREFIX + object.managedId];
+            let ref = refs[util.MANAGED_LIST_REF_PREFIX + object.managedId];
             if (!ref) return;
-            let beforeRef = before && refs[MANAGED_LIST_REF_PREFIX + before.managedId];
+            let beforeRef = before && refs[util.MANAGED_LIST_REF_PREFIX + before.managedId];
             if (ref.k === beforeRef) return;
             moved = true;
             if (refs.head === ref) refs.head = ref.k;
@@ -189,7 +189,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
             }
         }
         while (pendingAdds.length) pendingAdds.pop()!(undefined);
-        let removeRef = this[HIDDEN_REF_PROPERTY].head;
+        let removeRef = this[util.HIDDEN_REF_PROPERTY].head;
         while (removeRef) {
             if (!seen[removeRef.b.managedId]) addRemove(removeRef.b);
             removeRef = removeRef.k;
@@ -216,19 +216,19 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     /** Returns true if given object is currently included in this list */
     includes(target: T) {
         let ref = (target instanceof ManagedObject) &&
-            this[HIDDEN_REF_PROPERTY][MANAGED_LIST_REF_PREFIX + target.managedId];
+            this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + target.managedId];
         return !!ref && ref.b === target;
     }
 
     /** Returns the first object in the list, or undefined if the list is empty */
     first(): T | undefined {
-        let ref = this[HIDDEN_REF_PROPERTY].head;
+        let ref = this[util.HIDDEN_REF_PROPERTY].head;
         return ref && ref.b;
     }
 
     /** Returns the last object in the list, or undefined if the list is empty */
     last(): T | undefined {
-        let ref = this[HIDDEN_REF_PROPERTY].tail;
+        let ref = this[util.HIDDEN_REF_PROPERTY].tail;
         return ref && ref.b;
     }
 
@@ -238,8 +238,8 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
      * @note This operation is very inefficient on longer lists, do not recurse over all the objects in a list using this method; see `ManagedList.forEach` instead, or use a `for (let object of ...)` statement.
      */
     get(index: number) {
-        if (this[HIDDEN_STATE_PROPERTY] && index >= 0) {
-            let ref = this[HIDDEN_REF_PROPERTY].head;
+        if (this[util.HIDDEN_STATE_PROPERTY] && index >= 0) {
+            let ref = this[util.HIDDEN_REF_PROPERTY].head;
             for (let i = index; ref && i > 0; i--) ref = ref.k;
             if (ref && ref.b) return ref.b as T;
         }
@@ -251,7 +251,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
      * @exception Throws an error if the object is not included in this list.
      */
     find(managedId: number): T {
-        let ref = this[HIDDEN_REF_PROPERTY][MANAGED_LIST_REF_PREFIX + managedId];
+        let ref = this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + managedId];
         if (!ref || ref.b.managedId !== managedId) {
             throw Error("[List] Object not found")
         }
@@ -285,13 +285,13 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     /** Implementation of `take` and `takeLast` methods */
     private _take(n: number, target?: T, reverse?: boolean) {
         let result: Array<T> = [];
-        let ref: RefLink | undefined;
-        if (!this[HIDDEN_STATE_PROPERTY]) return result;
+        let ref: util.RefLink | undefined;
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return result;
         if (target && this.includes(target)) {
-            ref = this[HIDDEN_REF_PROPERTY][MANAGED_LIST_REF_PREFIX + target.managedId];
+            ref = this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + target.managedId];
         }
         else {
-            ref = this[HIDDEN_REF_PROPERTY][reverse ? "tail" : "head"];
+            ref = this[util.HIDDEN_REF_PROPERTY][reverse ? "tail" : "head"];
         }
         while (ref && n-- > 0) {
             result[reverse ? "unshift" : "push"](ref.b as T);
@@ -302,8 +302,8 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
 
     /** Returns the index of given object in this list (0 based), or -1 if the component is not included in the list at all */
     indexOf(target: T) {
-        if (!this[HIDDEN_STATE_PROPERTY]) return -1;
-        let ref = this[HIDDEN_REF_PROPERTY].head;
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return -1;
+        let ref = this[util.HIDDEN_REF_PROPERTY].head;
         for (let i = 0; ref; i++, ref = ref.k) {
             if (ref.b === target) return i;
         }
@@ -312,10 +312,10 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
 
     /** Returns an array with all objects currently in this list */
     toArray() {
-        if (!this[HIDDEN_STATE_PROPERTY]) return [];
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return [];
         let result = new Array<T>(this.count);
         let i = 0;
-        let ref = this[HIDDEN_REF_PROPERTY].head;
+        let ref = this[util.HIDDEN_REF_PROPERTY].head;
         while (ref) {
             result[i++] = ref.b as T;
             ref = ref.k;
@@ -352,10 +352,10 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
 
     /** Returns an array with the values of given property for all objects in the list. */
     pluck<K extends keyof T>(propertyName: K): Array<T[K]> {
-        if (!this[HIDDEN_STATE_PROPERTY]) return [];
+        if (!this[util.HIDDEN_STATE_PROPERTY]) return [];
         let result = new Array(this.count);
         let i = 0;
-        let ref = this[HIDDEN_REF_PROPERTY].head;
+        let ref = this[util.HIDDEN_REF_PROPERTY].head;
         while (ref) {
             result[i++] = (ref.b as T)[propertyName];
             ref = ref.k;
@@ -368,8 +368,8 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
      * @note The behavior of the iterator is undefined if objects are inserted immediately after the current object, or if objects beyond the current object are removed. Removing the _current_ object or any previous objects during the iteration is safe and will not disrupt the control flow.
      */
     [Symbol.iterator](): Iterator<T> {
-        let refs = this[HIDDEN_REF_PROPERTY];
-        let nextRef = this[HIDDEN_REF_PROPERTY].head;
+        let refs = this[util.HIDDEN_REF_PROPERTY];
+        let nextRef = this[util.HIDDEN_REF_PROPERTY].head;
         let nextObject = nextRef ? nextRef.b : 0;
         return {
             next(): IteratorResult<T> {
@@ -390,9 +390,9 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     }
 
     /** @internal Helper function that fixes existing objects in this list as managed children */
-    [MAKE_REF_MANAGED_PARENT_FN]() {
-        let refs = this[HIDDEN_REF_PROPERTY];
-        let refsToFix: RefLink[] = [];
+    [util.MAKE_REF_MANAGED_PARENT_FN]() {
+        let refs = this[util.HIDDEN_REF_PROPERTY];
+        let refsToFix: util.RefLink[] = [];
         for (let childRef = refs.head; childRef; childRef = childRef.k) {
             refsToFix.push(childRef);
         }

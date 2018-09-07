@@ -2,7 +2,7 @@ import { Component } from "./Component";
 import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { logUnhandledException } from "./UnhandledErrorEmitter";
-import { BINDING_ID_PREFIX } from "./util";
+import * as util from "./util";
 
 /** Running ID for new `Binding` instances */
 let _nextBindingUID = 16;
@@ -89,7 +89,7 @@ export class Binding {
     isComponentBinding(): true { return true }
 
     /** Unique ID for this binding */
-    readonly id = BINDING_ID_PREFIX + _nextBindingUID++;
+    readonly id = util.BINDING_ID_PREFIX + _nextBindingUID++;
 
     /** @internal Constructor for a reader, that reads current bound and filtered values */
     Reader: {
