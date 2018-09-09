@@ -33,7 +33,6 @@ export class UIConditional extends UIRenderableController {
         }
         if (this._renderCallback) {
             let renderProxy: UIRenderContext.RenderCallback = (output, afterRender) => {
-                console.log("RND", output);
                 this._renderCallback = this._renderCallback!(output, afterRender);
                 return renderProxy;
             };

@@ -18,6 +18,9 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
     /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events */
     propagateEvents(...types: Array<ManagedEvent | { new(...args: any[]): ManagedEvent }>): this;
     propagateEvents(): this {
+        // this uses propagateChildEvents BUT the managed property
+        // handler does NOT check for parent-child links, so events
+        // are always propagated:
         return this.propagateChildEvents.apply(this, arguments);
     }
 
@@ -79,7 +82,9 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         if (target) {
             let ref = ManagedObject._createRefLink(this, target, REF_PROP_ID, (_obj, _target, e) => {
                 // propagate the event if needed
-                if (this[util.HIDDEN_CHILD_EVENT_HANDLER] && ManagedObject._isManagedChildRefLink(ref)) {
+                // -- NOT only for child references
+                // (see `propagateEvents`)
+                if (this[util.HIDDEN_CHILD_EVENT_HANDLER]) {
                     this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
                 }
             }, () => {

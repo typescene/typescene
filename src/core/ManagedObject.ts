@@ -292,7 +292,8 @@ export class ManagedObject {
 
                 // limit by type, or run handler function
                 if (!f) {
-                    if (!types.some((t: any) =>
+                    if (types.length &&
+                        !types.some((t: any) =>
                         (e === t) || typeof t === "function" && (e instanceof t)))
                         return;
                     if (!ManagedCoreEvent.isCoreEvent(e)) {
