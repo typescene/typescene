@@ -83,12 +83,13 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         // create new reference and update target count
         let propId = util.MANAGED_LIST_REF_PREFIX + target.managedId;
         let ref = ManagedObject._createRefLink(this, target, propId, (_obj, _target, e) => {
-            // propagate the event if needed
-            if (this[util.HIDDEN_CHILD_EVENT_HANDLER] && ManagedList._isManagedChildRefLink(ref)) {
+            if (this[util.HIDDEN_CHILD_EVENT_HANDLER] &&
+                ManagedObject._isManagedChildRefLink(ref)) {
+                // propagate the event if needed
                 this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
             }
         }, (target) => {
-            // handle destruction of the target
+            // handle target moved/destroyed
             this._managedCount--;
             this.emit(ManagedObjectRemovedEvent, this, target);
         });

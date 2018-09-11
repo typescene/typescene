@@ -81,12 +81,13 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
 
         // create new reference and update target count
         let ref = ManagedObject._createRefLink(this, target, propId, (_obj, _target, e) => {
-            // propagate the event if needed
-            if (this[util.HIDDEN_CHILD_EVENT_HANDLER] && ManagedObject._isManagedChildRefLink(ref)) {
+            if (this[util.HIDDEN_CHILD_EVENT_HANDLER] &&
+                ManagedObject._isManagedChildRefLink(ref)) {
+                // propagate the event if needed
                 this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
             }
         }, (target) => {
-            // handle destruction of the target
+            // handle target moved/destroyed
             this.emit(ManagedObjectRemovedEvent, this, target, key);
         });
 

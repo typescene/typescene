@@ -492,13 +492,15 @@ export class ManagedObject {
             ref.f = handleEvent;
             ref.g = handleDestroy;
             ref.u = targetRefs.length;
+            ref.j = ref.k = undefined;
         }
         else {
             // create new object
             ref = {
                 u: targetRefs.length,
                 a: source, b: target, p: propId,
-                f: handleEvent, g: handleDestroy
+                f: handleEvent, g: handleDestroy,
+                j: undefined, k: undefined
             };
         }
         targetRefs.push(ref);
@@ -557,9 +559,15 @@ export class ManagedObject {
             if (!(oldParent && oldParent.a === ref.a)) {
                 // set new parent reference
                 targetRefs.parent = ref;
-
-                // make sure all contained objects are child objects
-                if (!oldParent) target[util.MAKE_REF_MANAGED_PARENT_FN]();
+                if (!oldParent) {
+                    // make sure all contained objects are child objects
+                    target[util.MAKE_REF_MANAGED_PARENT_FN]();
+                }
+                else {
+                    // inform old parent that child has moved
+                    this._discardRefLink(oldParent);
+                    oldParent.g && oldParent.g(this);
+                }
                 target.emit(ManagedParentChangeEvent, ref.a);
             }
         }
@@ -616,7 +624,7 @@ export class ManagedObject {
         // (re)define property on prototype
         let propId = util.PROPERTY_ID_PREFIX + _nextRefId++;
         return util.defineChainableProperty(object, propertyKey, false, (obj, name, next) => {
-            return (target, event, topHandler) => {
+            return (target: ManagedObject, event, topHandler) => {
                 if (event) {
                     next && next(target, event, topHandler);
                     if (target && eventHandler) eventHandler.call(obj, event);
@@ -636,20 +644,14 @@ export class ManagedObject {
                 // create new reference and update target count
                 if (target) {
                     let ref = ManagedObject._createRefLink(obj, target, propId, (obj, target, e) => {
-                        // clear child reference when child moves
-                        if (isChildReference && (e instanceof ManagedParentChangeEvent) &&
-                                target[util.HIDDEN_REF_PROPERTY].parent !== ref) {
-                            (obj as any)[name] = undefined;
-                        }
-
                         // propagate event to other handler(s)
                         topHandler(target, e, topHandler);
                         if (isChildReference && obj[util.HIDDEN_CHILD_EVENT_HANDLER]) {
                             obj[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, propertyKey as string);
                         }
                     }, () => {
-                        // handle destruction of the target
-                        if (isDependency) {
+                        // handle target moved/destroyed
+                        if (!target.managedState && isDependency) {
                             // destroy dependent referrer immediately
                             delete (obj as any)[name];
                             obj.destroyManagedAsync().catch(util.exceptionHandler);

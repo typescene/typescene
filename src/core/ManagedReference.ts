@@ -88,7 +88,7 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
                     this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
                 }
             }, () => {
-                // handle destruction of the target
+                // handle target moved/destroyed
                 this.emit(ManagedChangeEvent);
             });
             if (this[util.HIDDEN_REF_PROPERTY].parent) {
