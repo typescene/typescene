@@ -21,7 +21,7 @@
     "watch": "tsc -p src -w"
   },
   "devDependencies": {
-    "typescript": "^3.0.3"
+    "typescript": "^3.1.6"
   },
   "dependencies": {
     "tslib": "^1.9.3"
