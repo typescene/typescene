@@ -8,16 +8,13 @@
       "es2015.promise",
       "es2015.iterable"
     ],
-    "declaration": true,
     "outDir": "../dist",
-    "declarationDir": "../typings",
     "downlevelIteration": true,
     "strict": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "stripInternal": true,
-    "removeComments": true,
+    "stripInternal": true
   },
   "files": [
     "index.ts"

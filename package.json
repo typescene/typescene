@@ -16,8 +16,8 @@
   "module": "./dist/index.js",
   "typings": "./typings/index.d.ts",
   "scripts": {
-    "prebuild": "rm -rf dist typings",
-    "build": "tsc -p src",
+    "prebuild": "rm -rf dist typings && tsc -p src --declaration --declarationDir typings",
+    "build": "tsc -p src --removeComments",
     "watch": "tsc -p src -w"
   },
   "devDependencies": {
