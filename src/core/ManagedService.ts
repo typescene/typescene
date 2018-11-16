@@ -1,7 +1,6 @@
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
-import { managed, managedChild, ManagedReference } from "./ManagedReference";
-import { shadowObservable } from "./observe";
+import { managedChild, ManagedReference } from "./ManagedReference";
 
 /** Singleton container for all services as child components */
 class ServiceContainer extends ManagedObject {
@@ -15,11 +14,11 @@ class ServiceContainer extends ManagedObject {
 }
 
 /**
- * Property decorator: turns the decorated property into a read-only reference to the last registered service with given name (case insensitive). See `ManagedService`.
- * 
+ * Property decorator: turns the decorated property of a managed object into a read-only reference to the last registered service with given name (case insensitive). See `ManagedService`.
+ *
  * The value of the decorated property becomes undefined when the service is destroyed, and changes immediately when a new service is registered with the same name.
- * 
- * @note If this property is on a managed object, changes to the service reference and events on the service object can be observed by an observer (see `@observe` decorator), but _only after_ the property has been read for the first time.
+ *
+ * Changes and events can be observed by an observer, but _only after_ the property has been read at least once.
  * @decorator
  */
 export function service(name: string): PropertyDecorator {
@@ -32,29 +31,10 @@ export function service(name: string): PropertyDecorator {
             ServiceContainer.instance.services.set(ucName, ref);
         }
 
-        // define property but also use a hidden property as a managed reference
-        let hiddenProperty = "*service:" + (propertyKey as string);
-        Object.defineProperty(target, propertyKey, {
-            configurable: false,
-            get(this: any) {
-                if (!this[hiddenProperty]) {
-                    this[hiddenProperty] = ref;
-                    Object.defineProperty(this, hiddenProperty, {
-                        ... (Object.getOwnPropertyDescriptor(this, hiddenProperty) ||
-                            { writable: true }),
-                        enumerable: false
-                    });
-                }
-                return ref!.target;
-            },
-            set(v) {
-                if (v !== ref) throw Error();
-            }
-        });
-        shadowObservable(hiddenProperty)(target, propertyKey);
-        if (target instanceof ManagedObject) {
-            managed(target, hiddenProperty as any);
-        }
+        // use a managed reference property with a fixed read-only reference object
+        ManagedObject.createManagedReferenceProperty(
+            target as any, propertyKey as string, false, false,
+            undefined, undefined, ref);
     };
 }
 

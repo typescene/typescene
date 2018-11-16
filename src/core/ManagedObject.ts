@@ -1,4 +1,5 @@
 import { ManagedCoreEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
+import { ManagedReference } from './ManagedReference';
 import { observe } from "./observe";
 import * as util from "./util";
 
@@ -6,7 +7,7 @@ import * as util from "./util";
 export enum ManagedState {
     /** State for a managed object that has been destroyed */
     DESTROYED = 0,
-    
+
     /** State for a managed object that has just been created */
     CREATED,
 
@@ -108,13 +109,13 @@ export class ManagedObject {
             // already initialized, run function right away
             return f();
         }
-        
+
         // find previous callback on same prototype
         let prevF: typeof f;
         if (Object.prototype.hasOwnProperty.call(this.prototype, "_class_init")) {
             prevF = this.prototype._class_init;
         }
-        
+
         // set function on own prototype, which removes itself when called
         this.prototype._class_init = () => {
             if (prevF) return prevF(), f();
@@ -151,7 +152,7 @@ export class ManagedObject {
             enumerable: false
         });
     }
-    
+
     /** Unique ID of this managed object (read only) */
     readonly managedId = _nextUID++;
 
@@ -205,7 +206,7 @@ export class ManagedObject {
             if (parent && !(parent instanceof <any>ParentClass)) {
                 parentRef = parent[util.HIDDEN_REF_PROPERTY].parent;
                 parent = parentRef && parentRef.a;
-                
+
                 // continue in a loop, but keep track of objects already seen
                 let seen: boolean[] | undefined;
                 while (parent && !(parent instanceof <any>ParentClass)) {
@@ -608,12 +609,17 @@ export class ManagedObject {
      *  true if the containing object should be destroyed when a referenced object is destroyed
      * @param preAssignHandler
      *  an optional handler that is invoked before a new reference is actually assigned, can be used to validate the target
+     * @param eventHandler
+     *  an optional handler that is called when an event occurs on the currently referenced object
+     * @param readonlyRef
+     *  optionally, a read-only managed reference object; when provided, the property will not be writable, and reading it results in the _target_ of the reference object
      * @returns the newly applied property descriptor
      */
     static createManagedReferenceProperty<T extends ManagedObject>(
         object: T, propertyKey: keyof T, isChildReference?: boolean, isDependency?: boolean,
         preAssignHandler?: (this: T, target: ManagedObject) => void,
-        eventHandler?: (this: T, event: ManagedEvent) => void) {
+        eventHandler?: (this: T, event: ManagedEvent) => void,
+        readonlyRef?: ManagedReference) {
         if (!(object instanceof ManagedObject)) {
             throw Error("[Object] Can only create managed properties on instances of ManagedObject");
         }
@@ -626,13 +632,22 @@ export class ManagedObject {
         return util.defineChainableProperty(object, propertyKey, false, (obj, name, next) => {
             return (target: ManagedObject, event, topHandler) => {
                 if (event) {
+                    if (readonlyRef) {
+                        // use reference target instead of reference itself
+                        if (target !== readonlyRef) return;
+                        target = readonlyRef.target!;
+                    }
                     next && next(target, event, topHandler);
                     if (target && eventHandler) eventHandler.call(obj, event);
                     return;
                 }
+                if (readonlyRef && target !== readonlyRef) {
+                    // do not assign to read only reference (but used by getter initially)
+                    throw Error("[Object] Property is not writable");
+                }
                 ManagedObject._validateReferenceAssignment(obj, target);
                 let cur = obj[util.HIDDEN_REF_PROPERTY][propId];
-                if (cur && target && cur.b === target) return;
+                if (cur && target && cur.b === target && !readonlyRef) return;
                 if (isDependency && !target) {
                     throw Error("[Object] Dependency must point to a managed object: " + name);
                 }
@@ -665,12 +680,25 @@ export class ManagedObject {
                         ManagedObject._makeManagedChildRefLink(ref);
                     }
                 }
+                if (readonlyRef) target = readonlyRef.target!;
                 next && next(target, event, topHandler);
             }
         },
-        function () {
-            // getter: return referenced object
+        function (this: any) {
             let ref = this[util.HIDDEN_REF_PROPERTY][propId];
+
+            // dereference read-only reference, if any
+            if (readonlyRef) {
+                if (!ref) {
+                    // assign reference once ONLY
+                    // (set bogus link first to avoid recursion)
+                    ManagedObject._createRefLink(this, readonlyRef, propId);
+                    this[propertyKey] = readonlyRef;
+                }
+                return readonlyRef.target;
+            }
+
+            // normal getter: return referenced object
             return ref && ref.b;
         });
     }

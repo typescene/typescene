@@ -1,5 +1,5 @@
 import { ManagedChangeEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
-import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
+import { ManagedObject, ManagedObjectConstructor, ManagedState } from "./ManagedObject";
 import * as util from "./util";
 
 /** Next unique ID for an observable class */
@@ -19,14 +19,14 @@ const RESOLVED = Promise.resolve();
 
 /**
  * Class decorator: make the decorated class an observer of given target class. The target class must be a sub class of `ManagedObject`. This amends properties of the target class with dynamic setters to invoke the observer's handler methods when any change or event occurs, on _all_ instances of the given target class, as well as derived classes.
- * 
+ *
  * A new observer (instance of the observer class) is created for each instance of the target class, the first time an observed change occurs. The constructor is invoked with a single argument, being a reference to the observed object (an instance of the target class).
- * 
+ *
  * This function finds all methods on the observer class (but NOT on any base classes, i.e. extending an observer class does not consider any methods on the original observer class) and turns appropriate methods into handlers for changes and/or events:
  * - Any method decorated with the `@onPropertyChange` decorator. Methods are invoked with arguments for the current property value, an optional event reference (i.e. change event), and the observed property name.
  * - Any method decorated with the `@onPropertyEvent` decorator. Methods are invoked with arguments for the current property value, and an event reference (any type of event that occurred on the property/ies with names specified in the call to the decorator).
  * - Any method that takes the form `on[PropertyName]Change` where _propertyName_ is the name of the observed property (must have a lowercase first character); or `on_[propertyName]Change` where _propertyName_ is the exact name of the observed property. Methods are invoked with arguments for the current property value, and an optional event reference (i.e. change event).
- * - Any method that takes the form `on[EventName]`, which is invoked with a single `ManagedEvent` argument. The event name (`ManagedEvent.name` property) must match exactly, with the exception of the `onChange` method which is invoked for all events that derive from `ManagedChangeEvent`, and `onEvent` which is invoked for _all_ events.
+ * - Any method that takes the form `on[EventName]`, which is invoked with a single `ManagedEvent` argument. The event name (`ManagedEvent.name` property) must match exactly, with the exception of the `onChange` method which is invoked for all events that derive from `ManagedChangeEvent`, and `onEvent` which is invoked for _all_ events. As a special case, the `onActive` method is called _immediately_ after instantiation if the observed object was already active.
  * - Any method as above with an `...Async` suffix, which is invoked asynchronously and should return a `Promise`. Asynchronous property change handlers are not invoked twice with the same value. If the value has been changed and then changed back before invoking the handler, no handler is called at all. Handlers can be rate limited using the `@rateLimit` decorator.
  * @note Since instances of classes that derive from the target class are _also_ observed, make sure that the observer does not depend on any functionality that may be overridden or fundamentally changed by any derived class.
  * @note This function is available as `observe` and `ManagedObject.observe` on observable classes. See also `ManagedObject.handle` for a simpler way to handle events emitted directly by instances of a managed object class.
@@ -107,7 +107,7 @@ export function observe<T extends ManagedObject>(Target: ManagedObjectConstructo
                                 _defineObservable(Observer, proto,
                                     util.HIDDEN_REFCOUNT_PROPERTY, f, false, false, 0);
                                 break;
-                            
+
                             // for other names, check for "*Change", otherwise handle event by name
                             default:
                                 if (name.slice(-6) === "Change") {
@@ -341,9 +341,16 @@ function _getObserverInstance(obj: any, observerClass: { new(instance: any): any
         Object.defineProperty(obj, OBS_UID_PROP + uid, {
             enumerable: false,
             configurable: false,
-            writable: false,
-            value: (observer = new observerClass(obj))
+            writable: true,
+            value: true  // detect recursion below
         });
+        observer = obj[OBS_UID_PROP + uid] = new observerClass(obj);
+        if (obj[util.HIDDEN_STATE_PROPERTY] === ManagedState.ACTIVE) {
+            observer.onActive && observer.onActive();
+        }
+    }
+    else if (observer === true) {
+        throw Error("[Object] Recursion in observer constructor detected");
     }
     return observer;
 }

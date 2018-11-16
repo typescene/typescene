@@ -160,7 +160,7 @@ export class Component extends ManagedObject {
         }
         // register bindings for child components, if any
         if (rest.length) this.presetBindingsFrom(...rest as any);
-        
+
         // add event handlers, if any
         if (eventHandlers) {
             this.handle(eventHandlers);
@@ -242,20 +242,15 @@ export class Component extends ManagedObject {
         let propertiesToObserve = bindings
             .filter(b => (b.propertyName !== undefined))
             .map(b => b.propertyName!);
-        
+
         // use a specific observer for these components
         let self = this;
         class CompositeObserver {
-            constructor(public component: Component) {
-                if (this.component.managedState === ManagedState.ACTIVE) {
-                    // observer created for active component
-                    this.onActive();
-                }
-            }
+            constructor(public component: Component) { }
 
             /** True if the child components currently exist */
             active?: boolean;
-            
+
             /** Create the component when the composite is activated */
             onActive() {
                 if (!this.active &&

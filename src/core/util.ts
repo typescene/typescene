@@ -42,7 +42,7 @@ export const BINDING_ID_PREFIX = "^bound:";
 export interface RefLink {
     /** Reference UID */
     u: number;
-    
+
     /** The reference source */
     a: any;
 
@@ -65,9 +65,9 @@ export interface RefLink {
     g?: (obj: any) => void;
 }
 
-/** 
+/**
  * @internal Map of RefLink instances for references and back-references
- * @note `parent`, `head`, and `tail` are _duplicate_ references to RefLink instances which are also included in the same map with their own property ID 
+ * @note `parent`, `head`, and `tail` are _duplicate_ references to RefLink instances which are also included in the same map with their own property ID
  */
 export type RefLinkMap = RefLink[] & {
     /** Outward references, by property ID */
@@ -214,7 +214,7 @@ export function defineChainableProperty<T>(
     // set or override prototype property
     let protoGetter = (ownDescriptor && ownDescriptor.get) ||
         (propertyKey === origProperty) && oldGetter ||
-        (() => (ownDescriptor && ownDescriptor.value));
+        getter || (() => (ownDescriptor && ownDescriptor.value));
     Object.defineProperty(targetPrototype, propertyKey, {
         configurable: true,
         enumerable: ownDescriptor ? ownDescriptor.enumerable : true,
