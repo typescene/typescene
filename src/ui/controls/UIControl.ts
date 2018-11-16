@@ -45,7 +45,7 @@ export abstract class UIControl extends UIComponent {
 
     /** Text style options */
     textStyle!: UIStyle.TextStyle;
-    
+
     /** Miscellaneous style options */
     controlStyle!: UIStyle.ControlStyle;
 

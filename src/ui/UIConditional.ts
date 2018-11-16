@@ -15,7 +15,7 @@ export class UIConditional extends UIRenderableController {
 
     /** Content component constructor (read only) */
     readonly ContentConstructor?: UIRenderableConstructor;
-    
+
     /** Current condition state, content is rendered only if this evaluates to true */
     state?: boolean;
 

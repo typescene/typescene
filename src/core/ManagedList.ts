@@ -137,7 +137,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         return this;
     }
 
-    /** 
+    /**
      * Replace the objects in this list with the objects in given array or other list, using a series of calls to `remove()` and `insert()` and/or reordering objects that are already in the list.
      * @exception Throws an error if one of the objects cannot be inserted.
      */
@@ -235,7 +235,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
 
     /**
      * Returns the object at given position in the list (0 based)
-     * @exception Throws an error if the index is not within the bounds of this list. 
+     * @exception Throws an error if the index is not within the bounds of this list.
      * @note This operation is very inefficient on longer lists, do not recurse over all the objects in a list using this method; see `ManagedList.forEach` instead, or use a `for (let object of ...)` statement.
      */
     get(index: number) {
@@ -271,7 +271,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         return this._take(n, startingFrom);
     }
 
-    /** 
+    /**
      * Returns an array with given number of objects taken _from the end_ of the list, or the same number of objects _up to and including_ given object.
      * Returns an empty array if an object is specified but not found in the list.
      * @param n

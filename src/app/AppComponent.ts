@@ -16,7 +16,7 @@ export abstract class AppComponent extends Component {
     /** Application render context, propagated from the parent composite object */
     @managed
     renderContext?: UIRenderContext;
-    
+
     /** Activation context, propagated from the parent composite object */
     @managed
     activationContext?: AppActivationContext;

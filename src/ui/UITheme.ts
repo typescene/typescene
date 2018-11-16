@@ -162,7 +162,7 @@ export class UITheme {
 
     /** Dialog backdrop shader opacity (for `DialogViewActivity`), defaults to 0.3 */
     modalDialogShadeOpacity = .3;
-    
+
     /** Default confirmation/alert dialog builder used by `ViewActivity.showConfirmationDialogAsync` */
     ConfirmationDialogBuilder?: new () => ConfirmationDialogBuilder;
 

@@ -34,7 +34,7 @@ export class UIFormContextController extends Component {
     /** Application render context, propagated from the parent composite object */
     @managed
     renderContext?: UIRenderContext;
-    
+
     /** Form state context, propagated to all child components; defaults to an empty managed record */
     @managed
     formContext = new ManagedRecord();

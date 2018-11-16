@@ -96,7 +96,7 @@ export let UIExpandedLabel = UILabel.with({ shrinkwrap: false });
  * - {x} returns an `UIExpandedLabel` constructor
  * - {10} mixes in a text style with given font size (any number, optionally followed by a CSS unit)
  * - {@color} mixes in a text style with given text color (any color defined by the current theme)
- * 
+ *
  * @note The style tags above can be combined using the `|` (pipe) character where possible, e.g. `{b|i|20|@color}`.
  * @note The text will also be translated when language services are implemented; either using a filter in the `bindf` call, or directly using the current language service. This function will then return a 'translated label' (hence 'tl').
  */

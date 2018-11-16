@@ -20,7 +20,7 @@ export class UIToggle extends UIControl {
 
     isFocusable() { return true }
     isKeyboardFocusable() { return true }
-    
+
     /** Form state context, propagated from the parent composite object */
     @managed
     formContext?: ManagedRecord;

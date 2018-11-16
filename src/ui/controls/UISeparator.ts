@@ -14,7 +14,7 @@ export class UISeparator extends UIControl {
 
     /** Margin in the direction perpendicular to the separator (in dp, or string with unit), defaults to 0 */
     margin: string | number = 0;
-    
+
     /** Separator line color (see `UITheme.replaceColor`), defaults to `@separator` */
     color = "@separator";
 

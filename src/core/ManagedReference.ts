@@ -70,7 +70,7 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
     set(target?: T) {
         // check given value first
         ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
-        
+
         // unlink existing reference, if any
         let cur = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
         if (cur) {
@@ -117,9 +117,9 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
 
 /**
  * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `@observe` decorator).
- * 
+ *
  * The decorated property immediately becomes undefined when the referenced object is destroyed (see `ManagedObject.managedState`).
- * 
+ *
  * @decorator
  */
 export function managed<T extends ManagedObject>(target: T, propertyKey: any) {
@@ -128,12 +128,12 @@ export function managed<T extends ManagedObject>(target: T, propertyKey: any) {
 
 /**
  * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `@observe` decorator).
- * 
+ *
  * This asserts a reverse dependency between the referrer and the referenced object.
  * - The reference _must_ point to an instance of `ManagedObject`, and cannot be set to `undefined`.
  * - When the referenced object is destroyed, the referrer is also destroyed.
  * - An object can contain multiple simultaneous dependencies, and there is no limit on the number of dependents of any referenced object.
- * 
+ *
  * @decorator
  */
 export function managedDependency<T extends ManagedObject>(target: T, propertyKey: any) {
@@ -142,13 +142,13 @@ export function managedDependency<T extends ManagedObject>(target: T, propertyKe
 
 /**
  * Managed object property decorator: amend decorated property to turn it into a managed child reference.
- * 
+ *
  * This asserts a parent-child dependency between the referrer and the referenced object(s), recursively extending to objects in referenced managed lists, maps, and reference instances:
  * - When the parent is destroyed, all children are also destroyed.
  * - When the decorated property is set to another object, the previously referenced object is destroyed.
  * - When the referenced object is assigned to another managed child reference (or list, map, or reference instance that is a child object), the decorated property is set to undefined.
  * - The child object may refer to its parent using the `ManagedObject.getManagedParent` method, and observers can observe the managed parent reference using an `onManagedParentChange[Async]` method.
- * 
+ *
  * @decorator
  */
 export function managedChild<T extends ManagedObject>(target: T, propertyKey: any) {

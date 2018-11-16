@@ -33,16 +33,16 @@ export class UIScrollEvent extends UIComponentEvent {
 
     /** True if (last) scrolled right */
     scrolledRight?: boolean;
-    
+
     /** True if the `UIScrollContainer` is scrolled to the top */
     atTop?: boolean;
-    
+
     /** True if the `UIScrollContainer` is scrolled to the bottom */
     atBottom?: boolean;
-    
+
     /** True if the `UIScrollContainer` is scrolled to the left */
     atLeft?: boolean;
-    
+
     /** True if the `UIScrollContainer` is scrolled to the right */
     atRight?: boolean;
 }

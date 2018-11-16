@@ -21,11 +21,11 @@ export class UIRenderableController extends Component {
         this.content = content;
         this.propagateChildEvents(UIComponentEvent);
     }
-    
+
     /** Application render context, propagated from the parent composite object */
     @managed
     renderContext?: UIRenderContext;
-    
+
     /** Form state context, propagated from the parent composite object */
     @managed
     formContext?: ManagedRecord;

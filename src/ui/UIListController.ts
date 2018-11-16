@@ -115,7 +115,7 @@ export class UIListController extends UIRenderableController {
 
     /** Set to true to enable selection (focus movement) using up/down arrow keys */
     enableArrowKeyFocus = true;
-    
+
     /** List of objects, each object is used to construct one content component */
     @managed
     items = new ManagedList();

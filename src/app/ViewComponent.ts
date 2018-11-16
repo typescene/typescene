@@ -15,7 +15,7 @@ export class ViewComponent extends AppComponent {
         if (View) this.presetActiveComponent("view", View, ViewActivity);
         return super.preset(presets);
     }
-    
+
     /** Form state context, propagated from the parent composite object */
     @managed
     formContext?: ManagedRecord;

@@ -70,7 +70,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         // check given value first
         ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
         if (!target) return this.unset(key);
-        
+
         // unlink existing reference, if any
         let propId = util.MANAGED_MAP_REF_PREFIX + key;
         let cur = refs[propId];

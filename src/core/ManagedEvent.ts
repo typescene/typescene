@@ -2,7 +2,7 @@ import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 
-/** 
+/**
  * Event that can be emitted on a managed object, list/map, or reference, to be received by any object that references it.
  * @note Event instances may be frozen and reused for better performance. See `ManagedEvent.freeze`
  */

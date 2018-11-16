@@ -46,7 +46,7 @@ export class ComponentList<T extends Component = Component> extends Component {
 
     /** Iterates over the components in this list (see `ManagedList.forEach`). */
     forEach(callback: (target: T) => void) { this._list.forEach(callback) }
-    
+
     /** Returns true if given component is currently included in this list */
     includes(component: T) { return this._list.includes(component) }
 

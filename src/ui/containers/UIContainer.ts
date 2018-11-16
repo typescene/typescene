@@ -48,7 +48,7 @@ export abstract class UIContainer extends UIComponent {
 
     /** True if this list may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
     allowKeyboardFocus?: boolean;
-    
+
     /** Options for layout of child components within this container */
     layout!: UIStyle.ContainerLayout;
 

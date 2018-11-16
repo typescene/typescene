@@ -131,7 +131,7 @@ export class Binding {
             arg = fmt.slice(argIdx + 1, -1).trim();
             fmt = fmt.slice(0, argIdx).trim();
         }
-        
+
         // select a filter by ID
         let filter = Binding.filters[fmt];
         if (!filter) throw Error("[Binding] Unknown binding filter: " + fmt);
@@ -290,7 +290,7 @@ export namespace Binding {
                     this.parent.updateComponents();
                     return;
                 }
-                
+
                 // go through all components and update the bound value
                 let id = this.binding.id;
                 this.forEach((component: any) => {
@@ -315,16 +315,16 @@ export namespace Binding {
 
 /**
  * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the composite object.
- * 
+ *
  * The property name is specified in the first argument. Nested properties are allowed (e.g. `foo.bar`), but only the highest level property will be observed. Hence, changes to nested properties may not be reflected in bound values unless a change event is emitted on the highest level property.
- * 
+ *
  * Mapped objects in a `ManagedMap` can be bound using a `#` prefix for keys (e.g. `map.#key`).
  * A `ManagedMap` can be bound as a plain object using a `#` nested property (e.g. `map.#`).
  * Properties of all objects in a `ManagedList` can be bound (as an array) using a `*` prefix for the nested property (e.g. `list.*foo`).
  * A `ManagedList` can be bound as a plain array using a `*` nested property (e.g. `list.*`).
- * 
+ *
  * The property name may be appended with a `|` (pipe) character and a *filter* name: see `Binding.addFilter` for available filters. Multiple filters may be chained together if their names are separated with more pipe characters.
- * 
+ *
  * A default value may also be specified. This value is used when the bound value itself is undefined.
  */
 export function bind(propertyName?: string, defaultValue?: any) {
@@ -333,13 +333,13 @@ export function bind(propertyName?: string, defaultValue?: any) {
 
 /**
  * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with a string that includes property values from the composite object.
- * 
+ *
  * A format string should be passed as a first argument. The text is bound as-is, with the following types of tags replaced:
- * 
+ *
  * - `${binding.foo|filter}`: inserts a bound value, as if the tag content was used as a parameter to `bind`.
  * - `#{one/two}`: inserts one of the given options, based on the value of the previous (or first) binding as an absolute number _or_ length of an array or managed list. The order of given options is 1/other, 0/1/other, 0/1/2/other, etc., unless handled differently by the current language service. Within the options, `#_` is replaced with the value of the relevant binding.
  * - `#{2:one/two}`: as above, but refers to the binding at given index (base 1) instead of the previous binding.
- * 
+ *
  * @note To use plurals or number forms based on values that should not be included in the output themselves, use the `_` (blank) filter, e.g. `"There ${n|_}#{are no/is one/are #_} item#{/s}"`.
  */
 export function bindf(text: string) {
@@ -370,7 +370,7 @@ function _stringFormatter(d: any): string {
             d.map === Array.prototype.map) {
             return (d as any[]).map(_stringFormatter).join(", ");
         }
-    } 
+    }
     return _formatNotUndefined(d, String, "");
 }
 function _ucFormatter(d: any) {

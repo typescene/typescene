@@ -168,7 +168,7 @@ export abstract class UIComponent extends Component {
         this.dimensions = style.getStyles().dimensions;
         this.position = style.getStyles().position;
     }
-    
+
     /** Combined style set; when this is set to an instance of `UIStyle`, the individual style object properties (e.g. `UIComponent.dimensions`) are set to read-only objects taken from the `UIStyle` instance. To override individual properties, set these properties *after* setting `style`, or use `Component.with` to create a new constructor. */
     get style() { return this._style }
     set style(v) {
