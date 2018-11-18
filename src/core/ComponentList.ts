@@ -12,14 +12,11 @@ export class ComponentList<T extends Component = Component> extends Component {
         }
     }
 
-    /** Create a new component with given child components */
-    constructor(...components: T[]) {
+    /** Create an empty component list */
+    constructor() {
         super();
         this._list = new ManagedList<T>();
         this._list.restrict(Component);
-        if (components.length) {
-            this._list.add(...components);
-        }
         this.propagateChildEvents();
     }
 

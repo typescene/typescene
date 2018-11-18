@@ -20,7 +20,7 @@ export class Application extends Component {
         ...activities: Array<ComponentConstructor & (new () => AppActivity)>): Function {
         if (activities.length) {
             this.presetActiveComponent("activities",
-                ComponentList.with(...activities) as typeof Component,
+                ComponentList.with(...activities),
                 AppActivity);
         }
         return super.preset(presets);
