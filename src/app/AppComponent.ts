@@ -8,8 +8,8 @@ export let activationContextBinding = bind("activationContext");
 /** Specialized `Component` that propagates application properties (abstract) */
 export abstract class AppComponent extends Component {
     static preset(presets: object, ...rest: unknown[]): Function {
-        (this as typeof Component).presetBinding("renderContext", renderContextBinding);
-        (this as typeof Component).presetBinding("activationContext", activationContextBinding);
+        (this as any as typeof Component).presetBinding("renderContext", renderContextBinding);
+        (this as any as typeof Component).presetBinding("activationContext", activationContextBinding);
         return super.preset(presets, ...rest);
     }
 

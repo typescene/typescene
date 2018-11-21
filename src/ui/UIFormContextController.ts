@@ -1,5 +1,5 @@
 import { bind, Component, logUnhandledException, managed, managedChild, ManagedEvent, ManagedRecord } from "../core";
-import { UIComponentEvent, UIComponentEventHandler, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { UIComponent, UIComponentEvent, UIComponentEventHandler, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
@@ -7,7 +7,7 @@ import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 export let formContextBinding = bind("formContext");
 
 /** Renderable wrapper that injects a form context record, to be used by (nested) child input controls. */
-export class UIFormContextController extends Component {
+export class UIFormContextController extends Component implements UIRenderable {
     static preset(presets: UIFormContextController.Presets,
         content?: UIRenderableConstructor): Function {
         this.presetBinding("renderContext", renderContextBinding);
@@ -44,13 +44,13 @@ export class UIFormContextController extends Component {
     content?: UIRenderable;
 
     render(callback?: UIRenderContext.RenderCallback) {
-        if (!callback) callback = this._lastRenderCallback;
-        if (callback && this.content) this.content.render(callback);
-        else this._lastRenderCallback = callback;
+        this._renderer.render(this.content, callback);
     }
 
-    private _lastRenderCallback?: UIRenderContext.RenderCallback;
+    private _renderer = new UIComponent.DynamicRendererWrapper();
 }
+
+// observe to emit event when form context changes
 UIFormContextController.observe(class {
     constructor(public controller: UIFormContextController) { }
     onFormContextChange(e: ManagedEvent) {

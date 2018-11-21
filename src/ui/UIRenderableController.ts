@@ -1,10 +1,10 @@
 import { Component, managed, managedChild, ManagedRecord } from "../core";
-import { UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { formContextBinding } from "./UIFormContextController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Base class for a controller that wraps around a single renderable component */
-export class UIRenderableController extends Component {
+export class UIRenderableController extends Component implements UIRenderable {
     static preset(presets: object, content?: UIRenderableConstructor): Function {
         this.presetBinding("renderContext", renderContextBinding);
         this.presetBinding("formContext", formContextBinding);
@@ -34,7 +34,15 @@ export class UIRenderableController extends Component {
     @managedChild
     content?: UIRenderable;
 
-    render(callback: UIRenderContext.RenderCallback) {
-        if (this.content) this.content.render(callback);
+    render(callback?: UIRenderContext.RenderCallback) {
+        this._renderer.render(this.content, callback);
     }
+
+    private _renderer = new UIComponent.DynamicRendererWrapper();
 }
+
+// observe to re-render when content changes
+UIRenderableController.observe(class {
+    constructor (public readonly component: UIRenderableController) {}
+    onContentChange() { this.component.render() }
+});

@@ -1,6 +1,6 @@
 import { Component, logUnhandledException, managedChild, ManagedObject, shadowObservable } from "../core";
 import { UICell } from "./containers/UICell";
-import { UIComponent, UIComponentEvent, UIRenderableConstructor } from "./UIComponent";
+import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { UIRenderContext } from "./UIRenderContext";
 
@@ -20,7 +20,7 @@ export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObjec
 }
 
 /** Component that can be used as an adapter to render items in a `UIList`. Instances are constructed using a single argument (a managed object from `UIList.items`), and are immediately activated to create the cell component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object` and `selected` properties. */
-export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject> extends Component {
+export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject> extends Component implements UIRenderable {
     static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
         this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
         return super.preset({});

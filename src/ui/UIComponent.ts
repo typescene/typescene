@@ -77,7 +77,7 @@ export class UIFocusRequestEvent<TSource extends UIComponent> extends ManagedEve
 }
 
 /** Represents a visible part of the user interface. */
-export abstract class UIComponent extends Component {
+export abstract class UIComponent extends Component implements UIRenderable {
     static preset(presets: UIComponent.Presets, ...rest: unknown[]): Function {
         // replace `requestFocus` with event handler
         if (presets.requestFocus) {
@@ -241,10 +241,55 @@ export namespace UIComponent {
         onArrowUpKeyPress?: UIComponentEventHandler;
         onArrowDownKeyPress?: UIComponentEventHandler;
     }
+
+    /** Stateful renderer for dynamic content (used by `UIRenderableController`, `ViewComponent`, etc.) */
+    export class DynamicRendererWrapper {
+        constructor() { }
+
+        /** Render given content using given callback, or previously stored callback */
+        render(content?: UIRenderable, callback?: UIRenderContext.RenderCallback) {
+            if (!content && this._renderCallback) {
+                // content went missing, use old callback to remove output
+                this._renderCallback = this._renderCallback(undefined);
+                this._seq++;
+            }
+            if (callback && callback !== this._renderCallback) {
+                // save callback first
+                if (this._renderCallback) this._renderCallback(undefined);
+                this._renderCallback = callback;
+                this._seq++;
+            }
+            if (content && this._renderCallback) {
+                // render content now
+                let seq = this._seq;
+                let renderProxy: UIRenderContext.RenderCallback = (output, afterRender) => {
+                    if (seq === this._seq) {
+                        this._renderCallback = this._renderCallback!(output, afterRender);
+                        seq = ++this._seq;
+                    }
+                    return renderProxy;
+                };
+                content.render(renderProxy);
+            }
+        }
+
+        /** Remove previously rendered output */
+        removeAsync() {
+            if (!this._renderCallback) return;
+            return new Promise(resolve => {
+                this._renderCallback = this._renderCallback!(undefined, resolve);
+                this._seq++;
+            });
+        }
+
+        private _renderCallback?: UIRenderContext.RenderCallback;
+        private _seq = 0;
+    }
 }
 
 /** Type definition for a component that can be rendered on its own */
 export interface UIRenderable extends Component {
+    /** Trigger asynchronous rendering for this component, and all contained components (if any) */
     render: UIComponent["render"];
 }
 

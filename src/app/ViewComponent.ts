@@ -1,5 +1,5 @@
 import { logUnhandledException, managed, managedChild, ManagedRecord, ManagedState } from "../core";
-import { formContextBinding, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
+import { formContextBinding, UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 
@@ -8,7 +8,7 @@ import { ViewActivity } from "./ViewActivity";
  * The encapsulated view is only created the first time this component is rendered. After that, all UI component events are propagated from the encapsulated view to the `ViewComponent` instance.
  * @note This class is similar in functionality to `ViewActivity`, but view _activities_ can be added to an application and activated using its activation context (router). View components can only be used as child components of other view components, UI components, or as a child component of a view activity.
  */
-export class ViewComponent extends AppComponent {
+export class ViewComponent extends AppComponent implements UIRenderable {
     static preset(presets: object,
         View?: UIRenderableConstructor): Function {
         this.presetBinding("formContext", formContextBinding);
@@ -34,36 +34,25 @@ export class ViewComponent extends AppComponent {
      * This method is called automatically after the root view component is created and/or when an application render context is made available or emits a change event, and should not be called directly.
      */
     render(callback?: UIRenderContext.RenderCallback) {
-        if (this.managedState !== ManagedState.ACTIVE) {
-            // do not attempt to render but keep callback
-            if (callback) this._renderCallback = callback;
-            this._activateOnRender();
-            return;
+        if (this.managedState !== ManagedState.ACTIVE && this.renderContext) {
+            // activate this component now to create the view
+            this._renderer.render(undefined, callback);
+            this.activateManagedAsync()
+                .then(() => {
+                    // check if (still) active, and attempt to render again
+                    if (this.managedState === ManagedState.ACTIVE) {
+                        this.render();
+                    }
+                })
+                .catch(logUnhandledException);
         }
         else if (!this.renderContext) {
-            throw Error("[ViewComponent] Render context not found");
+            // something is wrong: not a child component
+            throw Error("[ViewComponent] Render context not found (not a child component?)");
         }
         else {
-            // got everything that's needed to render, go ahead
-            if (callback && callback !== this._renderCallback) {
-                if (this._renderCallback) this._renderCallback(undefined);
-                this._renderCallback = callback;
-            }
-            if (this._renderCallback) {
-                let renderProxy: UIRenderContext.RenderCallback = (output, afterRender) => {
-                    if (!output) {
-                        this.removeViewAsync().then(() => {
-                            afterRender && afterRender(undefined)
-                        });
-                        return this._renderCallback!;
-                    }
-                    else {
-                        this._renderCallback = this._renderCallback!(output, afterRender);
-                        return renderProxy;
-                    }
-                };
-                this.view && this.view.render(renderProxy);
-            }
+            // render current view using new or old callback
+            this._renderer.render(this.view, callback);
         }
     }
 
@@ -75,30 +64,10 @@ export class ViewComponent extends AppComponent {
         if (deactivate && this.managedState === ManagedState.ACTIVE) {
             await this.deactivateManagedAsync();
         }
-        if (this._renderCallback) {
-            // remove displayed output
-            return new Promise(resolve => {
-                this._renderCallback = this._renderCallback!(undefined, resolve);
-            });
-        }
+        await this._renderer.removeAsync();
     }
 
-    /** @internal Checks if component can be activated and rendered */
-    protected _activateOnRender() {
-        if (this.renderContext) {
-            // activate this component now to create the view
-            this.activateManagedAsync()
-                .then(() => {
-                    // check if (still) active, and attempt to render again
-                    if (this.managedState === ManagedState.ACTIVE) {
-                        this.render();
-                    }
-                })
-                .catch(logUnhandledException);
-        }
-    }
-
-    private _renderCallback?: UIRenderContext.RenderCallback;
+    private _renderer = new UIComponent.DynamicRendererWrapper();
 }
 
 // observe view activities to render when needed

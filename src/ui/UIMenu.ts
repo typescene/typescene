@@ -15,7 +15,7 @@ export class UIMenuItemSelectedEvent extends UIComponentEvent {
 }
 
 /** Represents a menu that can be displayed on screen. The menu itself is built up dynamically using a platform dependent builder class. */
-export class UIMenu extends Component {
+export class UIMenu extends Component implements UIRenderable {
     static preset(presets: UIMenu.Presets): Function {
         return super.preset(presets);
     }

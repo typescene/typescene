@@ -1,13 +1,12 @@
 import { Binding, logUnhandledException, managed, ManagedChangeEvent, managedChild, ManagedEvent } from "../core";
 import { formContextBinding, UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext, UIRenderPlacement, UITheme } from "../ui";
 import { AppActivity } from "./AppActivity";
-import { ViewComponent } from "./ViewComponent";
 
 /**
  * Represents an application activity with content that can be rendered when activated.
  * @note This class is similar to `ViewComponent`, but has additional functionality to allow it to be used as an application activity (derived from `AppActivity`).
  */
-export class ViewActivity extends AppActivity {
+export class ViewActivity extends AppActivity implements UIRenderable {
     static preset(presets: ViewActivity.Presets,
         View?: UIRenderableConstructor): Function {
         this.presetBinding("formContext", formContextBinding);
@@ -53,8 +52,8 @@ export class ViewActivity extends AppActivity {
     /** @internal Recreate view instance (defined on prototype) */
     ["@resetView"]() { }
 
-    /** View placement mode, should be set if this component is not rendered by another view */
-    placement?: UIRenderPlacement;
+    /** View placement mode, determines if and how view is rendered when activated */
+    placement = UIRenderPlacement.NONE;
 
     /** Modal shade backdrop opacity behind content (0-1), if supported by placement mode */
     modalShadeOpacity?: number;
@@ -72,8 +71,10 @@ export class ViewActivity extends AppActivity {
             this._renderCallback = callback;
         }
         if (!this._renderCallback) {
-            if (!this.placement) throw new Error("[ViewActivity] Placement mode not set");
-            if (!this.renderContext) throw Error("[ViewActivity] Render context not found");
+            if (!this.placement) return;
+            if (!this.renderContext) {
+                throw Error("[ViewActivity] Render context not found (not a child component?)");
+            }
             let placement = this.placement;
             let rootCallback = this.renderContext.getRenderCallback();
             let rootProxy: NonNullable<typeof callback> = (output, afterRender) => {
@@ -87,7 +88,7 @@ export class ViewActivity extends AppActivity {
             };
             this._renderCallback = rootProxy;
         }
-        ViewComponent.prototype.render.call(this, this._renderCallback);
+        this._renderer.render(this.view, this._renderCallback);
     }
 
     /**
@@ -95,11 +96,8 @@ export class ViewActivity extends AppActivity {
      * This method is called automatically after the root view component or render context is removed, and should not be called directly.
      */
     async removeViewAsync() {
-        return ViewComponent.prototype.removeViewAsync.call(this);
+        await this._renderer.removeAsync();
     }
-
-    /** @internal Checks if component can be activated and rendered (shared with `ViewComponent`) */
-    protected _activateOnRender() { return false }
 
     /** Request input focus on the last (or first) focused UI component, if any */
     restoreFocus(firstFocused?: boolean) {
@@ -175,8 +173,8 @@ export class ViewActivity extends AppActivity {
         });
     }
 
-    // this property is shared with `ViewComponent` -- do not change
     private _renderCallback?: UIRenderContext.RenderCallback;
+    private _renderer = new UIComponent.DynamicRendererWrapper();
 }
 
 // observe view activities to render when needed

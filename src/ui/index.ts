@@ -13,4 +13,5 @@ export * from "./UISelectionController";
 export * from "./UIStyle";
 export * from "./UIStyleController";
 export * from "./UITheme";
+export * from "./UIViewRenderer";
 

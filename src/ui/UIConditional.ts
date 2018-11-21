@@ -1,6 +1,5 @@
 import { UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
-import { UIRenderContext } from "./UIRenderContext";
 
 /** Encapsulates content that is added/removed asynchronously based on the value of a (bound) property */
 export class UIConditional extends UIRenderableController {
@@ -16,32 +15,11 @@ export class UIConditional extends UIRenderableController {
     /** Content component constructor (read only) */
     readonly ContentConstructor?: UIRenderableConstructor;
 
-    /** Current condition state, content is rendered only if this evaluates to true */
+    /** Current condition state, content is rendered only if this is set to true */
     state?: boolean;
-
-    /** Render the conditional component, if any. */
-    render(callback?: UIRenderContext.RenderCallback) {
-        if (!this.content) {
-            // do not attempt to render but keep callback
-            if (this._renderCallback) this._renderCallback(undefined);
-            if (callback) this._renderCallback = callback;
-            return;
-        }
-        if (callback && callback !== this._renderCallback) {
-            if (this._renderCallback) this._renderCallback(undefined);
-            this._renderCallback = callback;
-        }
-        if (this._renderCallback) {
-            let renderProxy: UIRenderContext.RenderCallback = (output, afterRender) => {
-                this._renderCallback = this._renderCallback!(output, afterRender);
-                return renderProxy;
-            };
-            this.content.render(renderProxy);
-        }
-    }
-
-    private _renderCallback?: UIRenderContext.RenderCallback;
 }
+
+// observe to set/unset content reference when state changes
 UIConditional.observe(class {
     constructor(public component: UIConditional) { }
     onStateChange() {
@@ -53,9 +31,6 @@ UIConditional.observe(class {
     }
     on_ContentConstructorChange() {
         this.onStateChange();
-    }
-    onContentChange() {
-        this.component.render();
     }
 });
 

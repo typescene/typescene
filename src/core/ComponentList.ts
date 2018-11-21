@@ -1,4 +1,5 @@
 import { Component, ComponentConstructor } from "./Component";
+import { ManagedEvent } from './ManagedEvent';
 import { ManagedList } from "./ManagedList";
 import { managedChild } from "./ManagedReference";
 
@@ -18,6 +19,12 @@ export class ComponentList<T extends Component = Component> extends Component {
         this._list = new ManagedList<T>();
         this._list.restrict(Component);
         this.propagateChildEvents();
+    }
+
+    /** Propagate component events for all components in the list. See `ManagedList.propagateChildEvents`. */
+    propagateEvents(...types: Array<ManagedEvent | { new(...args: any[]): ManagedEvent }>) {
+        this._list.propagateEvents(...types);
+        return this;
     }
 
     /** Add one or more child components to the list */

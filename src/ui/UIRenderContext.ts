@@ -6,7 +6,7 @@ export let renderContextBinding = bind("renderContext");
 
 /** Global view placement modes */
 export enum UIRenderPlacement {
-    PAGE = 1, DIALOG, DRAWER, DROPDOWN, DROPDOWN_COVER,
+    NONE = 0, PAGE = 1, DIALOG, DRAWER, DROPDOWN, DROPDOWN_COVER,
     POPOVER, POPOVER_ABOVE, POPOVER_LEFT, POPOVER_RIGHT
 }
 
@@ -62,5 +62,8 @@ export namespace UIRenderContext {
 
         /** True if clicking on the modal shade area should emit `CloseModal` on the modal view component */
         modalShadeClickToClose?: boolean;
+
+        /** Handler function, added by a previous parent renderer (if any), to detach the visible element from the previous parent's tree structure; any other renderer should call this method before adding the element to a new parent */
+        detach?: () => void;
     }
 }
