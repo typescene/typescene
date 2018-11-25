@@ -4,10 +4,11 @@ import { formContextBinding } from "./UIFormContextController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Base class for a controller that wraps around a single renderable component */
-export class UIRenderableController extends Component implements UIRenderable {
+export class UIRenderableController extends Component.with({
+    renderContext: renderContextBinding,
+    formContext: formContextBinding
+}) implements UIRenderable {
     static preset(presets: object, content?: UIRenderableConstructor): Function {
-        this.presetBinding("renderContext", renderContextBinding);
-        this.presetBinding("formContext", formContextBinding);
         let f = super.preset(presets, content);
         return function (this: UIRenderableController) {
             f.call(this);

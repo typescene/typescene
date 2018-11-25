@@ -6,13 +6,10 @@ import { AppActivationContext } from "./AppActivationContext";
 export let activationContextBinding = bind("activationContext");
 
 /** Specialized `Component` that propagates application properties (abstract) */
-export abstract class AppComponent extends Component {
-    static preset(presets: object, ...rest: unknown[]): Function {
-        (this as any as typeof Component).presetBinding("renderContext", renderContextBinding);
-        (this as any as typeof Component).presetBinding("activationContext", activationContextBinding);
-        return super.preset(presets, ...rest);
-    }
-
+export abstract class AppComponent extends Component.with({
+    renderContext: renderContextBinding,
+    activationContext: activationContextBinding
+}) {
     /** Application render context, propagated from the parent composite object */
     @managed
     renderContext?: UIRenderContext;

@@ -7,11 +7,11 @@ import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 export let formContextBinding = bind("formContext");
 
 /** Renderable wrapper that injects a form context record, to be used by (nested) child input controls. */
-export class UIFormContextController extends Component implements UIRenderable {
+export class UIFormContextController extends Component.with({
+    renderContext: renderContextBinding
+}) implements UIRenderable {
     static preset(presets: UIFormContextController.Presets,
         content?: UIRenderableConstructor): Function {
-        this.presetBinding("renderContext", renderContextBinding);
-
         // use this trick to add form controller as a component, BUT
         // add all bindings on the parent component (except formContext)
         this.presetActiveComponent("content", UIRenderableController.

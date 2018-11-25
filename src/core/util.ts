@@ -106,44 +106,49 @@ export function defineChainableProperty<T>(
     targetPrototype: any, propertyKey: keyof T, isAsyncHandler: boolean,
     makeHandler: ChainedPropertyHandlerFactory<T>, getter?: (this: T) => any) {
     let origProperty = propertyKey;
+    let origShadowed = false;
+    let origGetter = getter;
     let ownDescriptor: PropertyDescriptor | undefined;
 
     // find nearest non-undefined property descriptor
-    let descriptor: PropertyDescriptor | undefined;
-    let oldGetter: (() => any) | undefined;
-    let findDescriptor = (forceParent?: boolean) => {
-        ownDescriptor = Object.getOwnPropertyDescriptor(targetPrototype, origProperty);
-        descriptor = ownDescriptor;
-        propertyKey = origProperty;
+    const findDescriptor = (key: keyof T, forceParent?: boolean, shadowed?: boolean): PropertyDescriptor | undefined => {
+        ownDescriptor = Object.getOwnPropertyDescriptor(targetPrototype, key);
+        let result = ownDescriptor;
         let p = targetPrototype;
-        do {
-            if (!descriptor || forceParent) {
+        while (true) {
+            if (!result || forceParent) {
                 p = Object.getPrototypeOf(p);
-                if (!p) break;
-                descriptor = p && Object.getOwnPropertyDescriptor(p, propertyKey);
+                if (!p) return;
+                result = p && Object.getOwnPropertyDescriptor(p, key);
             }
-            oldGetter = descriptor && descriptor.get;
-
-            // check if async handler is allowed for this property
-            if (!isAsyncHandler && oldGetter && (oldGetter as any)[GETTER_SHADOW_FORCE_ASYNC]) {
-                throw Error("[Object] Synchronous observers are not allowed for property " + propertyKey);
-            }
-
-            // check if property has a settable shadow property
-            if (oldGetter && (oldGetter as any)[GETTER_SHADOW_PROP]) {
-                propertyKey = (oldGetter as any)[GETTER_SHADOW_PROP];
-                descriptor = p && Object.getOwnPropertyDescriptor(p, propertyKey);
+            if (result) {
+                // check getter before returning
+                let g = result.get;
+                if (g) {
+                    // check getter for flags
+                    if (!isAsyncHandler && (g as any)[GETTER_SHADOW_FORCE_ASYNC]) {
+                        throw Error("[Object] Synchronous observers are not allowed for property " + origProperty);
+                    }
+                    else if ((g as any)[GETTER_SHADOW_PROP]) {
+                        // property has a settable shadow property
+                        propertyKey = (g as any)[GETTER_SHADOW_PROP];
+                        origShadowed = true;
+                        return findDescriptor(propertyKey, forceParent, true);
+                    }
+                    else if (!shadowed && !getter &&
+                        !(result.set && (result.set as any)[SETTER_CHAIN])) {
+                        // found non-chained getter method, do not override this one later
+                        getter = g;
+                    }
+                }
+                return result;
             }
         }
-        while (!descriptor)
-    }
-    findDescriptor();
-    if (propertyKey !== origProperty) {
-        ownDescriptor = Object.getOwnPropertyDescriptor(targetPrototype, propertyKey);
     }
 
     // chain getter/handler using existing prototype setter if possible
     // (i.e. existing handler for exact same class)
+    findDescriptor(propertyKey);
     if (ownDescriptor && ownDescriptor.set && (ownDescriptor.set as any)[SETTER_CHAIN]) {
         let chained = (ownDescriptor.set as any)[SETTER_CHAIN];
         (ownDescriptor.set as any)[SETTER_CHAIN] = () => {
@@ -162,23 +167,28 @@ export function defineChainableProperty<T>(
     // otherwise create a new prototype setter
     let protoSetter = function (this: any, v: any) {
         // use chained function to make setter
-        let chain = (protoSetter as any)[SETTER_CHAIN]();
-        let handler = chain.makeHandler(this, propertyKey);
+        let prev = (protoSetter as any)[SETTER_CHAIN]();
+        let handler = prev.makeHandler(this, propertyKey);
         let value: any;
         let instanceSetter = function (this: T, v: any) {
-            chain.setter && chain.setter.call(this, v);
+            prev.setter && prev.setter.call(this, v);
             handler((value = v), undefined, handler);
         }
 
         // define getter based on various prototype getters
-        let instanceGetter = chain.getter || oldGetter || (() => value);
-        if (!chain.getter && (propertyKey !== origProperty)) {
-            let getting: boolean | undefined;
-            instanceGetter = function (this: T) {
-                if (getting) return value;
-                getting = true;
-                try { return this[origProperty] }
-                finally { getting = false }
+        let instanceGetter = prev.getter;
+        if (!instanceGetter) {
+            if (origShadowed) {
+                let getting: boolean | undefined;
+                instanceGetter = function (this: T) {
+                    if (getting) return value;
+                    getting = true;
+                    try { return this[origProperty] }
+                    finally { getting = false }
+                }
+            }
+            else {
+                instanceGetter = getter || (() => value);
             }
         }
 
@@ -195,11 +205,11 @@ export function defineChainableProperty<T>(
 
     // add chaining function to setter for use by later prototypes
     (protoSetter as any)[SETTER_CHAIN] = () => {
-        findDescriptor(true);
+        let descriptor = findDescriptor(origProperty, true);
         let prev = descriptor && descriptor.set &&
             (descriptor.set as any)[SETTER_CHAIN] &&
             (descriptor.set as any)[SETTER_CHAIN]();
-        if (prev && prev.getter && getter) {
+        if (prev && prev.getter && origGetter) {
             throw Error("[Object] Property is already managed in a base class: " + propertyKey);
         }
         return {
@@ -212,9 +222,7 @@ export function defineChainableProperty<T>(
     };
 
     // set or override prototype property
-    let protoGetter = (ownDescriptor && ownDescriptor.get) ||
-        (propertyKey === origProperty) && oldGetter ||
-        getter || (() => (ownDescriptor && ownDescriptor.value));
+    let protoGetter = getter || (() => (ownDescriptor && ownDescriptor.value));
     Object.defineProperty(targetPrototype, propertyKey, {
         configurable: true,
         enumerable: ownDescriptor ? ownDescriptor.enumerable : true,
