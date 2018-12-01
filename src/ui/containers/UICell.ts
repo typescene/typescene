@@ -139,6 +139,16 @@ export let UIFlowCell = UICell.with({
     style: UIStyle.create("UIFlowCell", { dimensions: { grow: 0 } })
 });
 
+/** Shortcut for `UICell` constructor with properties preset such that the cell takes up all of the available space in its parent container, covering all other components */
+export let UICoverCell = UICell.with({
+    style: UIStyle.create("UICoverCell", {
+        position: {
+            gravity: "overlay",
+            top: 0, bottom: 0, left: 0, right: 0
+        }
+    })
+});
+
 export namespace UICell {
     /** UIRow presets type, for use with `Component.with` */
     export interface Presets extends UIContainer.Presets {
