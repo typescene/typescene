@@ -248,16 +248,15 @@ export namespace UIComponent {
 
         /** Render given content using given callback, or previously stored callback */
         render(content?: UIRenderable, callback?: UIRenderContext.RenderCallback) {
+            this._seq++;
             if (!content && this._renderCallback) {
                 // content went missing, use old callback to remove output
                 this._renderCallback = this._renderCallback(undefined);
-                this._seq++;
             }
             if (callback && callback !== this._renderCallback) {
                 // save callback first
                 if (this._renderCallback) this._renderCallback(undefined);
                 this._renderCallback = callback;
-                this._seq++;
             }
             if (content && this._renderCallback) {
                 // render content now
