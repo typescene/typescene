@@ -198,9 +198,9 @@ export class UIStyle {
     /** Returns a new style set that contains all current styles as well as the styles from given style set; the result is reused when the exact same style sets are mixed again */
     mixin(style: UIStyle) {
         if (!style) return this;
-        let id = this.name + "--" + style.name;
+        let id = this.id + "+" + style.id;
         if (_mixins[id]) return _mixins[id];
-        let result = new UIStyle(id, this, style._combined);
+        let result = new UIStyle(this.name + "--" + style.name, this, style._combined);
         for (let cond in style.conditionalStyles) {
             if (style.conditionalStyles[cond as keyof UIStyle.ConditionalStyles]) {
                 result.conditionalStyles[cond as keyof UIStyle.ConditionalStyles] =
