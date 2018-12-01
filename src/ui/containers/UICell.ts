@@ -33,7 +33,7 @@ export class UICell extends UIContainer {
                     this.baseProperties = {
                         background: presets.background,
                         textColor: presets.textColor,
-                        borderWidth: presets.borderWidth || 0,
+                        borderThickness: presets.borderThickness || 0,
                         borderColor: presets.borderColor,
                         borderStyle: presets.borderStyle || "solid",
                         dropShadow: presets.dropShadow || 0
@@ -67,10 +67,10 @@ export class UICell extends UIContainer {
                         selected, highlight.selectedTextColor,
                         focused, highlight.focusedTextColor,
                         highlight.focusedSelectedTextColor);
-                    this.cell.borderWidth = def(this.baseProperties.borderWidth,
-                        selected, highlight.selectedBorderWidth,
-                        focused, highlight.focusedBorderWidth,
-                        highlight.focusedSelectedBorderWidth);
+                    this.cell.borderThickness = def(this.baseProperties.borderThickness,
+                        selected, highlight.selectedBorderThickness,
+                        focused, highlight.focusedBorderThickness,
+                        highlight.focusedSelectedBorderThickness);
                     this.cell.borderColor = def(this.baseProperties.borderColor,
                         selected, highlight.selectedBorderColor,
                         focused, highlight.focusedBorderColor,
@@ -112,8 +112,8 @@ export class UICell extends UIContainer {
     /** Text color (see `UITheme.replaceColor`), defaults to `inherit` to inherit the text color from a containing cell or background window */
     textColor?: string;
 
-    /** Border width (in dp or string with unit, or separate offset values, defaults to 0) */
-    borderWidth?: UICellOffsets = 0;
+    /** Border thickness (in dp or string with unit, or separate offset values, defaults to 0) */
+    borderThickness?: UICellOffsets = 0;
 
     /** Border color (see `UITheme.replaceColor`) */
     borderColor?: string;
@@ -160,8 +160,8 @@ export namespace UICell {
         background?: string;
         /** Text color (see `UITheme.replaceColor`), defaults to `inherit` to inherit the text color from a containing cell or background window */
         textColor?: string;
-        /** Border width (in dp or string with unit, defaults to 0) */
-        borderWidth?: UICellOffsets;
+        /** Border thickness (in dp or string with unit, defaults to 0) */
+        borderThickness?: UICellOffsets;
         /** Border color (see `UITheme.replaceColor`) */
         borderColor?: string;
         /** Border style (CSS), defaults to "solid" */
@@ -195,8 +195,8 @@ export namespace UICell {
         focusedBackground?: string;
         /** Focused cell text color */
         focusedTextColor?: string;
-        /** Focused cell border width (in dp or string with unit, defaults to 0) */
-        focusedBorderWidth?: string | number;
+        /** Focused cell border thickness (in dp or string with unit, defaults to 0) */
+        focusedBorderThickness?: string | number;
         /** Focused cell border color (see `UITheme.replaceColor`) */
         focusedBorderColor?: string;
         /** Focused cell border style (CSS), defaults to "solid" */
@@ -207,8 +207,8 @@ export namespace UICell {
         selectedBackground?: string;
         /** Selected cell text color */
         selectedTextColor?: string;
-        /** Selected cell border width (in dp or string with unit, defaults to 0) */
-        selectedBorderWidth?: string | number;
+        /** Selected cell border thickness (in dp or string with unit, defaults to 0) */
+        selectedBorderThickness?: string | number;
         /** Selected cell border color (see `UITheme.replaceColor`) */
         selectedBorderColor?: string;
         /** Selected cell border style (CSS), defaults to "solid" */
@@ -219,8 +219,8 @@ export namespace UICell {
         focusedSelectedBackground?: string;
         /** Focused and selected cell text color */
         focusedSelectedTextColor?: string;
-        /** Focused and selected cell border width (in dp or string with unit, defaults to 0) */
-        focusedSelectedBorderWidth?: string | number;
+        /** Focused and selected cell border thickness (in dp or string with unit, defaults to 0) */
+        focusedSelectedBorderThickness?: string | number;
         /** Focused and selected cell border color (see `UITheme.replaceColor`) */
         focusedSelectedBorderColor?: string;
         /** Focused and selected cell border style (CSS), defaults to "solid" */
