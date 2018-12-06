@@ -4,7 +4,7 @@ import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 
 /**
- * Represents a application component that encapsulates and renders its view made up of UI components (or other renderable components, e.g. `ViewComponent` instances).
+ * Represents an application component that encapsulates and renders its view made up of UI components (or other renderable components, e.g. `ViewComponent` instances).
  * The encapsulated view is only created the first time this component is rendered. After that, all UI component events are propagated from the encapsulated view to the `ViewComponent` instance.
  * @note This class is similar in functionality to `ViewActivity`, but view _activities_ can be added to an application and activated using its activation context (router). View components can only be used as child components of other view components, UI components, or as a child component of a view activity.
  */
@@ -65,6 +65,13 @@ export class ViewComponent extends AppComponent implements UIRenderable {
             await this.deactivateManagedAsync();
         }
         await this._renderer.removeAsync();
+    }
+
+    /** Request input focus on the view component, if any. */
+    requestFocus() {
+        if (typeof (this.view && (this.view as UIComponent).requestFocus) === "function") {
+            (this.view as UIComponent).requestFocus();
+        }
     }
 
     private _renderer = new UIComponent.DynamicRendererWrapper();

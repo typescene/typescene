@@ -22,31 +22,20 @@ const _defaultContainer = UICloseColumn.with({
 /** Renderable wrapper that populates an encapsulated container with a given list of managed objects and a view adapter (component constructor) */
 export class UIListController extends UIRenderableController {
     static preset(presets: UIListController.Presets,
-        ListItemAdapter?: UIListItemAdapter,
+        ListItemAdapter?: UIListItemAdapter | ((instance: UIListController) => UIListItemAdapter),
         container: ComponentConstructor & (new () => UIContainer) = _defaultContainer): Function {
         this.observe(class {
             constructor(public controller: UIListController) { }
             readonly contentMap = new ManagedMap<UIRenderable>();
             onFocusIn(e: UIComponentEvent) {
-                // focus the appropriate list item
                 if (e.source !== this.controller.content) {
+                    // store focus index
                     this.controller.lastFocusedIndex =
                         Math.max(0, this.controller.getIndexOfComponent(e.source));
                 }
                 else {
+                    // focus appropriate item
                     this.controller.restoreFocus();
-                }
-            }
-            onArrowUpKeyPress(e: UIComponentEvent) {
-                if (this.controller.enableArrowKeyFocus) {
-                    let target = this._getListItemComponent(e.source);
-                    if (target) target.requestFocusPrevious();
-                }
-            }
-            onArrowDownKeyPress(e: UIComponentEvent) {
-                if (this.controller.enableArrowKeyFocus) {
-                    let target = this._getListItemComponent(e.source);
-                    if (target) target.requestFocusNext();
                 }
             }
             _getListItemComponent(source?: Component) {
@@ -65,7 +54,10 @@ export class UIListController extends UIRenderableController {
                 let content = container && container.content;
                 if (!content) return;
                 let list = this.controller.items;
-                let Adapter = ListItemAdapter;
+                let Adapter: UIListItemAdapter = ListItemAdapter as any;
+                if (Adapter && !(Adapter.prototype instanceof ManagedObject)) {
+                    Adapter = (Adapter as any)(this.controller);
+                }
                 if (!list || !Adapter) {
                     content.clear();
                     return;
@@ -110,7 +102,23 @@ export class UIListController extends UIRenderableController {
     /** Create a new list controller for given container */
     constructor(container?: UIContainer) {
         super(container);
-        this.propagateChildEvents(UIComponentEvent);
+        this.propagateChildEvents(e => {
+            if (e instanceof UIComponentEvent) {
+                if (e.name === "ArrowUpKeyPress") {
+                    if (this.focusPreviousItem()) return;
+                    let parentList = this.getParentComponent(UIListController);
+                    parentList && parentList.enableArrowKeyFocus && parentList.restoreFocus();
+                }
+                else if (e.name === "ArrowDownKeyPress") {
+                    if (this.focusNextItem()) return;
+                    let parentList = this.getParentComponent(UIListController);
+                    if (parentList && parentList.enableArrowKeyFocus) return e;
+                }
+                else {
+                    return e;
+                }
+            }
+        });
     }
 
     /** Set to true to enable selection (focus movement) using up/down arrow keys */
@@ -141,16 +149,35 @@ export class UIListController extends UIRenderableController {
     }
 
     /** Request input focus for the last focused list component, or the first item, if possible */
-    restoreFocus(e?: UIComponentEvent) {
+    restoreFocus() {
         // pass on to last focused component (or first)
         let container = this.content as UIContainer;
         if (container && container.content.count > 0) {
             let index = Math.min(container.content.count - 1,
                 Math.max(this.lastFocusedIndex, 0));
             let goFocus: any = container.content.get(index);
-            (window as any).__list = this.content;
             if (typeof goFocus.requestFocus === "function") goFocus.requestFocus();
         }
+    }
+
+    /** Request input focus for the item before the currently focused item; returns true if such an item exists, false if the currently focused item is already the first item or there are no items in the list */
+    focusPreviousItem() {
+        if (this.lastFocusedIndex > 0) {
+            this.lastFocusedIndex--;
+            this.restoreFocus();
+            return true;
+        }
+        return false;
+    }
+
+    /** Request input focus for the item after the currently focused item; returns true if such an item exists, false if the currently focused item is already the last item or if there are no items in the list */
+    focusNextItem() {
+        if (this.lastFocusedIndex < this.items.count - 1) {
+            this.lastFocusedIndex++;
+            this.restoreFocus();
+            return true;
+        }
+        return false;
     }
 }
 
