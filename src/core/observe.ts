@@ -18,7 +18,7 @@ const OBS_UID_PROP = "^o:uid";
 const RESOLVED = Promise.resolve();
 
 /**
- * Class decorator: make the decorated class an observer of given target class. The target class must be a sub class of `ManagedObject`. This amends properties of the target class with dynamic setters to invoke the observer's handler methods when any change or event occurs, on _all_ instances of the given target class, as well as derived classes.
+ * Add an observer to given target class, which must derive from `ManagedObject`. This amends properties of the target class with dynamic setters to invoke a handler when any change or event occurs, on _all_ instances of the given target class, as well as derived classes.
  *
  * A new observer (instance of the observer class) is created for each instance of the target class, the first time an observed change occurs. The constructor is invoked with a single argument, being a reference to the observed object (an instance of the target class).
  *
@@ -29,110 +29,109 @@ const RESOLVED = Promise.resolve();
  * - Any method that takes the form `on[EventName]`, which is invoked with a single `ManagedEvent` argument. The event name (`ManagedEvent.name` property) must match exactly, with the exception of the `onChange` method which is invoked for all events that derive from `ManagedChangeEvent`, and `onEvent` which is invoked for _all_ events. As a special case, the `onActive` method is called _immediately_ after instantiation if the observed object was already active.
  * - Any method as above with an `...Async` suffix, which is invoked asynchronously and should return a `Promise`. Asynchronous property change handlers are not invoked twice with the same value. If the value has been changed and then changed back before invoking the handler, no handler is called at all. Handlers can be rate limited using the `@rateLimit` decorator.
  * @note Since instances of classes that derive from the target class are _also_ observed, make sure that the observer does not depend on any functionality that may be overridden or fundamentally changed by any derived class.
- * @note This function is available as `observe` and `ManagedObject.observe` on observable classes. See also `ManagedObject.handle` for a simpler way to handle events emitted directly by instances of a managed object class.
+ * @note This function is available as `ManagedObject.observe` (static) on observable classes. See also `ManagedObject.handle` for a simpler way to handle events emitted directly by instances of a managed object class.
  * @exception Throws an error if the target class does not derive from `ManagedObject`.
- * @decorator
  */
-export function observe<T extends ManagedObject>(Target: ManagedObjectConstructor<T>) {
-    return function (Observer: { new(instance: T): any }) {
-        let proto = Target.prototype;
-        if (!(proto instanceof ManagedObject)) {
-            throw Error("[Object] Observed target is not a managed object class");
-        }
-        (Target as any as typeof ManagedObject).addGlobalClassInitializer(() => {
-            let addHandler = (filter: (e: ManagedEvent) => boolean, f: (e: ManagedEvent) => void, isAsync?: boolean) => {
-                _addManagedEventHandler(Observer, Target as any, filter, f, isAsync);
-            };
-            let addManagedParentChangeHandler = (f: (v: any, e: ManagedEvent, name: string) => void, isAsync?: boolean) => {
-                let g: any = function (this: any, e: any) {
-                    f.call(this, e.parent, e, "managedParent");
-                }
-                g[FN_RATE_LIMIT_PROP] = (f as any)[FN_RATE_LIMIT_PROP];
-                addHandler(e => (e instanceof ManagedParentChangeEvent), g, isAsync);
-            };
-            for (let name of Object.getOwnPropertyNames(Observer.prototype)) {
-                if (!Object.prototype.hasOwnProperty.call(Observer.prototype, name)) continue;
-                let f = (Observer.prototype as any)[name];
-                if (typeof f === "function") {
-                    if (Array.isArray(f[FN_OBS_NAME_PROP])) {
-                        // define an observable property using hinted property name
-                        let isAsync = name.slice(-5) === "Async";
-                        for (let p of f[FN_OBS_NAME_PROP]) {
-                            // special case managed parent ref
-                            if (p === ".managedParent") {
-                                addManagedParentChangeHandler(f, isAsync);
-                                continue;
-                            }
-                            if (p === "!managedParent") {
-                                throw Error("[Object] Cannot observe events on parent reference");
-                            }
-                            // special case reference count (should start at 0)
-                            if (p === ".referenceCount") {
-                                _defineObservable(Observer, proto, util.HIDDEN_REFCOUNT_PROPERTY,
-                                    f, false, isAsync, 0);
-                            }
-                            else {
-                                // add observable for this property
-                                let isEventHandler = (p[0] === "!");
-                                _defineObservable(Observer, proto, p.slice(1), f, isEventHandler, isAsync);
-                            }
+export function observe<T extends ManagedObject>(
+    Target: ManagedObjectConstructor<T>, Observer: { new(instance: T): any }) {
+    if (!Target || !Observer) debugger;
+    let proto = Target.prototype;
+    if (!(proto instanceof ManagedObject)) {
+        throw Error("[Object] Observed target is not a managed object class");
+    }
+    (Target as any as typeof ManagedObject).addGlobalClassInitializer(() => {
+        let addHandler = (filter: (e: ManagedEvent) => boolean, f: (e: ManagedEvent) => void, isAsync?: boolean) => {
+            _addManagedEventHandler(Observer, Target as any, filter, f, isAsync);
+        };
+        let addManagedParentChangeHandler = (f: (v: any, e: ManagedEvent, name: string) => void, isAsync?: boolean) => {
+            let g: any = function (this: any, e: any) {
+                f.call(this, e.parent, e, "managedParent");
+            }
+            g[FN_RATE_LIMIT_PROP] = (f as any)[FN_RATE_LIMIT_PROP];
+            addHandler(e => (e instanceof ManagedParentChangeEvent), g, isAsync);
+        };
+        for (let name of Object.getOwnPropertyNames(Observer.prototype)) {
+            if (!Object.prototype.hasOwnProperty.call(Observer.prototype, name)) continue;
+            let f = (Observer.prototype as any)[name];
+            if (typeof f === "function") {
+                if (Array.isArray(f[FN_OBS_NAME_PROP])) {
+                    // define an observable property using hinted property name
+                    let isAsync = name.slice(-5) === "Async";
+                    for (let p of f[FN_OBS_NAME_PROP]) {
+                        // special case managed parent ref
+                        if (p === ".managedParent") {
+                            addManagedParentChangeHandler(f, isAsync);
+                            continue;
+                        }
+                        if (p === "!managedParent") {
+                            throw Error("[Object] Cannot observe events on parent reference");
+                        }
+                        // special case reference count (should start at 0)
+                        if (p === ".referenceCount") {
+                            _defineObservable(Observer, proto, util.HIDDEN_REFCOUNT_PROPERTY,
+                                f, false, isAsync, 0);
+                        }
+                        else {
+                            // add observable for this property
+                            let isEventHandler = (p[0] === "!");
+                            _defineObservable(Observer, proto, p.slice(1), f, isEventHandler, isAsync);
                         }
                     }
-                    else if (name[0] === "o" && name[1] === "n") {
-                        // define a handler based on the full method name
-                        let sliceName = (n: number): string => {
-                            let result = name[2].toLowerCase() + name.slice(3, -n);
-                            if (result[0] === "_") result = result.slice(1);
-                            return result;
-                        };
-                        switch (name) {
-                            // handle events specially for specific method names
-                            case "onChangeAsync":
-                                addHandler(e => (e instanceof ManagedChangeEvent), f, true); break;
-                            case "onChange":
-                                addHandler(e => (e instanceof ManagedChangeEvent), f); break;
-                            case "onEventAsync":
-                                addHandler(() => true, f, true); break;
-                            case "onEvent":
-                                addHandler(() => true, f); break;
-                            case "onManagedParentChangeAsync":
-                                addManagedParentChangeHandler(f, true); break;
-                            case "onManagedParentChange":
-                                addManagedParentChangeHandler(f); break;
-                            case "onReferenceCountChangeAsync":
-                                _defineObservable(Observer, proto,
-                                    util.HIDDEN_REFCOUNT_PROPERTY, f, false, true, 0);
-                                break;
-                            case "onReferenceCountChange":
-                                _defineObservable(Observer, proto,
-                                    util.HIDDEN_REFCOUNT_PROPERTY, f, false, false, 0);
-                                break;
+                }
+                else if (name[0] === "o" && name[1] === "n") {
+                    // define a handler based on the full method name
+                    let sliceName = (n: number): string => {
+                        let result = name[2].toLowerCase() + name.slice(3, -n);
+                        if (result[0] === "_") result = result.slice(1);
+                        return result;
+                    };
+                    switch (name) {
+                        // handle events specially for specific method names
+                        case "onChangeAsync":
+                            addHandler(e => (e instanceof ManagedChangeEvent), f, true); break;
+                        case "onChange":
+                            addHandler(e => (e instanceof ManagedChangeEvent), f); break;
+                        case "onEventAsync":
+                            addHandler(() => true, f, true); break;
+                        case "onEvent":
+                            addHandler(() => true, f); break;
+                        case "onManagedParentChangeAsync":
+                            addManagedParentChangeHandler(f, true); break;
+                        case "onManagedParentChange":
+                            addManagedParentChangeHandler(f); break;
+                        case "onReferenceCountChangeAsync":
+                            _defineObservable(Observer, proto,
+                                util.HIDDEN_REFCOUNT_PROPERTY, f, false, true, 0);
+                            break;
+                        case "onReferenceCountChange":
+                            _defineObservable(Observer, proto,
+                                util.HIDDEN_REFCOUNT_PROPERTY, f, false, false, 0);
+                            break;
 
-                            // for other names, check for "*Change", otherwise handle event by name
-                            default:
-                                if (name.slice(-6) === "Change") {
-                                    _defineObservable(Observer, proto, sliceName(6), f);
-                                }
-                                else if (name.slice(-11) === "ChangeAsync") {
-                                    _defineObservable(Observer, proto, sliceName(11), f, false, true);
+                        // for other names, check for "*Change", otherwise handle event by name
+                        default:
+                            if (name.slice(-6) === "Change") {
+                                _defineObservable(Observer, proto, sliceName(6), f);
+                            }
+                            else if (name.slice(-11) === "ChangeAsync") {
+                                _defineObservable(Observer, proto, sliceName(11), f, false, true);
+                            }
+                            else {
+                                // handle events
+                                let eventName = name.slice(2);
+                                if (name.slice(-5) === "Async") {
+                                    eventName = eventName.slice(0, -5);
+                                    addHandler(e => e.name === eventName, f, true);
                                 }
                                 else {
-                                    // handle events
-                                    let eventName = name.slice(2);
-                                    if (name.slice(-5) === "Async") {
-                                        eventName = eventName.slice(0, -5);
-                                        addHandler(e => e.name === eventName, f, true);
-                                    }
-                                    else {
-                                        addHandler(e => e.name === eventName, f, false);
-                                    }
+                                    addHandler(e => e.name === eventName, f, false);
                                 }
-                        }
+                            }
                     }
                 }
             }
-        });
-    };
+        }
+    });
 }
 
 /**

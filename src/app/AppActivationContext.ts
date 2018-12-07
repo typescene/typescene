@@ -15,7 +15,7 @@ export class AppActivationContext extends ManagedObject {
     private _split: string[] = [];
 
     /** Navigate to given (relative) path, in URL format or `:back` to go back in history; to be overridden, the base implementation does nothing. */
-    navigate(path: string) {
+    navigate(_path: string) {
         // to be overridden
     }
 

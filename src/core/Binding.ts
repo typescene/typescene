@@ -277,11 +277,11 @@ export namespace Binding {
         }
 
         /** Update all components in the list with a new value. The current value of the source property (i.e. using `Binding.propertyName`) may be passed in if it is already known. */
-        updateComponents(v?: any) {
+        updateComponents(_v?: any) {
             if (!this.count && !this.parent) return;
 
             // get a new value and check if an update is even necessary
-            let value = this._reader.getValue(...arguments);
+            let value = this._reader.getValue(...arguments);  // _v if given
             if (!this._updatedValue || this._lastValue !== value) {
                 this._updatedValue = true;
                 this._lastValue = value;

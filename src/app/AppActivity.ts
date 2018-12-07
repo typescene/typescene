@@ -1,4 +1,4 @@
-import { ManagedState, observe, rateLimit, shadowObservable } from "../core";
+import { ManagedState, rateLimit, shadowObservable } from "../core";
 import { AppActivationContext } from "./AppActivationContext";
 import { AppComponent } from "./AppComponent";
 import { Application } from "./Application";
@@ -63,7 +63,7 @@ export class AppActivity extends AppComponent {
     private _matchedPath?: Readonly<AppActivationContext.MatchedPath>;
 }
 
-@observe(AppActivity)
+// Observe all activities to check for path activation
 class ActivityObserver {
     constructor(public activity: AppActivity) { }
     @rateLimit(0)
@@ -85,6 +85,7 @@ class ActivityObserver {
         }
     }
 }
+AppActivity.observe(ActivityObserver);
 
 export namespace AppActivity {
     /** Activity presets type, for use with `Component.with` */

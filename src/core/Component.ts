@@ -4,7 +4,7 @@ import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject, ManagedState } from "./ManagedObject";
 import { managedChild } from "./ManagedReference";
-import { observe, onPropertyChange } from "./observe";
+import { onPropertyChange } from "./observe";
 import { logUnhandledException } from "./UnhandledErrorEmitter";
 
 /** Running ID used by `presetBindingsFrom` */
@@ -509,7 +509,6 @@ class CompositeBindings {
 }
 
 /** @internal Base component observer, which observes parent references for all components */
-@observe(Component)
 class ComponentObserver<TComponent extends Component = Component> extends ManagedObject {
     constructor(component: TComponent) {
         super();
@@ -579,6 +578,7 @@ ComponentObserver.handle({
         }
     }
 });
+Component.observe(ComponentObserver);
 
 /**
  * Property decorator: turn the decorated property into an active sub component reference, with the containing object as its composite parent (i.e. the target object for all bindings on the component and child components). Given constructor is used to create a sub component instance *when the containing component is activated*, and sub components are destroyed immediately when the component is deactivated or destroyed.

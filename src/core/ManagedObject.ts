@@ -51,7 +51,7 @@ export class ManagedObject {
     /** Alias of `@observe`. Add given class as an observer of _all instances_ of a derived class. See also `ManagedObject.handle` for a simpler method to handle events. */
     static observe<T extends ManagedObject, C extends ManagedObjectConstructor<T>>(
         this: C, Observer: { new(instance: T): any }) {
-        observe<T>(this)(Observer);
+        observe<T>(this, Observer);
         return this;
     }
 
