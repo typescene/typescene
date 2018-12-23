@@ -25,6 +25,9 @@ export class UITextField extends UIControl {
     @managed
     formContext?: ManagedRecord;
 
+    /** Input type as string, defaults to `text` */
+    type: UITextField.InputType | string = "text";
+
     /** Set to true to enable multiline input; also suppresses the EnterKeyPress event */
     multiline?: boolean;
 
@@ -62,6 +65,8 @@ export let UIBorderlessTextField = UITextField.with({ style: "textfield_borderle
 export namespace UITextField {
     /** UITextField presets type, for use with `Component.with` */
     export interface Presets extends UIControl.Presets {
+        /** Input type as string, defaults to `text` */
+        type?: InputType | string;
         /** Set to true to enable multiline input */
         multiline?: boolean;
         /** Placeholder text */
@@ -71,4 +76,7 @@ export namespace UITextField {
         /** Form state property */
         name?: string;
     }
+
+    /** Standardized input type names */
+    export type InputType = "text" | "password" | "number" | "date" | "color";
 }
