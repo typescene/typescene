@@ -21,7 +21,7 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         // this uses propagateChildEvents BUT the managed property
         // handler does NOT check for parent-child links, so events
         // are always propagated:
-        return this.propagateChildEvents.apply(this, arguments);
+        return this.propagateChildEvents.apply(this, arguments as any);
     }
 
     /**

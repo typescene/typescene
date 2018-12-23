@@ -385,7 +385,7 @@ function _floatFormatter(d: any) {
     return _formatNotUndefined(d, parseFloat);
 }
 function _intFormatter(d: any) {
-    let result = Math.round(_formatNotUndefined(d, parseFloat, 0));
+    let result = Math.round(_formatNotUndefined(d, parseFloat, 0 as any));
     return result > 0 ? result : result < 0 ? result : 0;
 }
 function _decimalFormatter(n: any, decimals: number | string) {

@@ -126,7 +126,7 @@ export class Component extends ManagedObject {
         }
 
         // apply static elements to the new constructor and return it
-        presetFunc = this.preset.apply(PresetComponent, presetArgs);
+        presetFunc = (this.preset as Function).apply(PresetComponent, presetArgs);
         return PresetComponent as any;
     }
 
@@ -227,9 +227,9 @@ export class Component extends ManagedObject {
         let addBindings = (C: ComponentConstructor, q: string) => {
             let b = (C.prototype as Component).getOwnBindings.call(undefined);
             for (let p in b) {
-                if (typeof b[p] === "function") addBindings(b[p], q + ":" + p);
+                if (typeof b[p] === "function") addBindings(b[p] as any, q + ":" + p);
                 else {
-                    let binding: Binding = b[p];
+                    let binding = b[p] as Binding;
                     bindings.push(binding);
                     if (binding.bindings) bindings.push(...binding.bindings);
                 }
