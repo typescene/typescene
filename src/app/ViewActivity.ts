@@ -120,7 +120,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
      * @param modalShadeClickToClose
      *  Set to true to allow the dialog to be closed by clicking outside of it
      * @param eventHandler
-     *  A function that is invoked for all events that are emitted by the view
+     *  A function that is invoked for all events that are emitted by the view; if no function is specified, the `CloseModal` event is handled by destroying the view activity instance.
      * @returns A promise that resolves to the view _activity_ instance after it has been activated.
      */
     showDialogAsync(View: UIRenderableConstructor, modalShadeClickToClose?: boolean,
@@ -133,7 +133,8 @@ export class ViewActivity extends AppActivity implements UIRenderable {
             constructor() {
                 super();
                 this.propagateChildEvents(function (e) {
-                    eventHandler && eventHandler.call(this, e);
+                    if (eventHandler) eventHandler.call(this, e);
+                    else if (e.name === "CloseModal") this.destroyAsync();
                 });
             }
         }
