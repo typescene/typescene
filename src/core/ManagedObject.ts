@@ -672,7 +672,9 @@ export class ManagedObject {
                             obj.destroyManagedAsync().catch(util.exceptionHandler);
                         }
                         else {
-                            (obj as any)[name] = undefined;
+                            // try to set property to undefined
+                            try { (obj as any)[name] = undefined }
+                            catch {}  // do not care about exceptions
                         }
                     });
                     if (isChildReference) {
