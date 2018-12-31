@@ -138,6 +138,37 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     }
 
     /**
+     * Remove given object and following objects up to given number of objects, and optionally insert given objects in their place. Returns the objects that were removed.
+     * @note If `removeCount` is undefined, all objects after and including `target` are removed. If `removeCount` is 0 or negative, no objects are removed at all, and given objects are inserted _before_ `target`. If `target` is undefined, the objects are added to the back of the list.
+     * @exception Throws an error if an object is already included in the list. Throws an error if `restrict()` was applied and given object(s) are not of the correct type.
+     */
+    splice(target?: T, removeCount?: number, ...objects: T[]) {
+        if (target !== undefined && !(target instanceof ManagedObject)) throw TypeError();
+        let result: T[] = [];
+        while (target && !(removeCount!-- < 1)) {
+            // remove target and move ahead to next object
+            let ref = (target instanceof ManagedObject) &&
+                this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + target.managedId];
+            let next = ref && ref.k && ref.k.b;
+            if (ref && ref.b === target) {
+                result.push(target);
+                if (ManagedObject._discardRefLink(ref)) {
+                    this._managedCount--;
+                    this.emit(ManagedObjectRemovedEvent, this, target);
+                }
+            }
+            target = next;
+        }
+
+        // insert given objects one by one before current target,
+        // this is not the most performant but guarantees consistency
+        for (let object of objects) {
+            this.insert(object, target);
+        }
+        return result;
+    }
+
+    /**
      * Replace the objects in this list with the objects in given array or other list, using a series of calls to `remove()` and `insert()` and/or reordering objects that are already in the list.
      * @exception Throws an error if one of the objects cannot be inserted.
      */
