@@ -138,14 +138,23 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     }
 
     /**
+     * Remove objects from given target _until_ (but not including) second argument, and optionally insert given objects in their place. Returns the objects that were removed.
+     * @note If `stop` is undefined, all objects after and including `target` are removed. If `target` is undefined, the objects are added to the back of the list.
+     * @exception Throws an error if an object is already included in the list. Throws an error if `restrict()` was applied and given object(s) are not of the correct type.
+     */
+    splice(target?: T, stop?: T, ...objects: T[]): T[];
+    /**
      * Remove given object and following objects up to given number of objects, and optionally insert given objects in their place. Returns the objects that were removed.
      * @note If `removeCount` is undefined, all objects after and including `target` are removed. If `removeCount` is 0 or negative, no objects are removed at all, and given objects are inserted _before_ `target`. If `target` is undefined, the objects are added to the back of the list.
      * @exception Throws an error if an object is already included in the list. Throws an error if `restrict()` was applied and given object(s) are not of the correct type.
      */
-    splice(target?: T, removeCount?: number, ...objects: T[]) {
+    splice(target?: T, removeCount?: number, ...objects: T[]): T[];
+    splice(target?: T, stop?: number | T, ...objects: T[]) {
         if (target !== undefined && !(target instanceof ManagedObject)) throw TypeError();
         let result: T[] = [];
-        while (target && !(removeCount!-- < 1)) {
+        let removeCount: number | undefined;
+        if (typeof stop === "number") removeCount = stop;
+        while (target && target !== stop && !(removeCount!-- < 1)) {
             // remove target and move ahead to next object
             let ref = (target instanceof ManagedObject) &&
                 this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + target.managedId];
