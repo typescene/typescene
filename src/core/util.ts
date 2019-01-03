@@ -11,8 +11,11 @@ export const HIDDEN_STATE_PROPERTY = "^state";
 /** @internal Arbitrary name of the hidden method that handles events on the same object */
 export const HIDDEN_EVENT_HANDLER = "^handler";
 
-/** @internal Arbitrary name of the hidden method that handles and forwards events from referenced objects */
-export const HIDDEN_CHILD_EVENT_HANDLER = "^refhandler";
+/** @internal Arbitrary name of the hidden method that handles and forwards events from referenced child objects */
+export const HIDDEN_CHILD_EVENT_HANDLER = "^refchandler";
+
+/** @internal Arbitrary name of the hidden method that handles and forwards events from referenced non-child objects (in lists and reference objects ONLY) */
+export const HIDDEN_NONCHILD_EVENT_HANDLER = "^refnchandler";
 
 /** @internal Arbitrary name of property on property getter to contain shadow property name */
 export const GETTER_SHADOW_PROP = "^shadow";

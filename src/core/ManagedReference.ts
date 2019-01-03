@@ -13,15 +13,18 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         if (target) this.set(target);
     }
 
-    /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events */
+    /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
     propagateEvents(f?: ((this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void)): this;
-    /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events */
+    /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
     propagateEvents(...types: Array<ManagedEvent | { new(...args: any[]): ManagedEvent }>): this;
     propagateEvents(): this {
-        // this uses propagateChildEvents BUT the managed property
-        // handler does NOT check for parent-child links, so events
-        // are always propagated:
-        return this.propagateChildEvents.apply(this, arguments as any);
+        this.propagateChildEvents.apply(this, arguments as any);
+        Object.defineProperty(this, util.HIDDEN_NONCHILD_EVENT_HANDLER, {
+            configurable: true,
+            enumerable: false,
+            value: this[util.HIDDEN_CHILD_EVENT_HANDLER]
+        });
+        return this;
     }
 
     /**
@@ -82,9 +85,10 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         if (target) {
             let ref = ManagedObject._createRefLink(this, target, REF_PROP_ID, (_obj, _target, e) => {
                 // propagate the event if needed
-                // -- NOT only for child references
-                // (see `propagateEvents`)
-                if (this[util.HIDDEN_CHILD_EVENT_HANDLER]) {
+                if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
+                    this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
+                }
+                else if (this[util.HIDDEN_CHILD_EVENT_HANDLER]) {
                     this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
                 }
             }, () => {
@@ -107,6 +111,9 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
             ManagedObject._makeManagedChildRefLink(refs[REF_PROP_ID]!);
         }
     }
+
+    /** @internal */
+    private [util.HIDDEN_NONCHILD_EVENT_HANDLER]?: (e: ManagedEvent, name: string) => void;
 
     /** Returns the referenced object itself, or undefined (alias of `get()` method) */
     toJSON() {

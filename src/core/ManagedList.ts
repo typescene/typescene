@@ -24,9 +24,18 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         for (let t of objects) this.insert(t);
     }
 
-    /** Propagate events from objects in this list by emitting them on the list object itself, optionally restricted to given types of events */
-    propagateEvents(...types: Array<ManagedEvent | { new(...args: any[]): ManagedEvent }>) {
-        return this.propagateChildEvents(...types);
+    /** Propagate events from all objects in this list by emitting them on the list object itself, optionally restricted to given types of events or a filter function */
+    propagateEvents(f?: ((this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void)): this;
+    /** Propagate events from all objects in this list by emitting them on the list object itself, optionally restricted to given types of events or a filter function */
+    propagateEvents(...types: Array<ManagedEvent | { new(...args: any[]): ManagedEvent }>): this;
+    propagateEvents() {
+        this.propagateChildEvents.apply(this, arguments as any);
+        Object.defineProperty(this, util.HIDDEN_NONCHILD_EVENT_HANDLER, {
+            configurable: true,
+            enumerable: false,
+            value: this[util.HIDDEN_CHILD_EVENT_HANDLER]
+        });
+        return this;
     }
 
     /**
@@ -83,9 +92,11 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         // create new reference and update target count
         let propId = util.MANAGED_LIST_REF_PREFIX + target.managedId;
         let ref = ManagedObject._createRefLink(this, target, propId, (_obj, _target, e) => {
-            if (this[util.HIDDEN_CHILD_EVENT_HANDLER] &&
+            if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
+                this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
+            }
+            else if (this[util.HIDDEN_CHILD_EVENT_HANDLER] &&
                 ManagedObject._isManagedChildRefLink(ref)) {
-                // propagate the event if needed
                 this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
             }
         }, (target) => {
@@ -442,4 +453,8 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
             ManagedObject._makeManagedChildRefLink(childRef);
         }
     }
+
+    /** @internal */
+    private [util.HIDDEN_NONCHILD_EVENT_HANDLER]?: (e: ManagedEvent, name: string) => void;
+
 }
