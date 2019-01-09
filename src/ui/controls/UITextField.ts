@@ -51,10 +51,16 @@ UITextField.observe(class {
     }
     onInput() { this.onChange() }
     onChange() {
-        if (this.component.formContext && this.component.name &&
-            (this.component.formContext as any)[this.component.name] !== this.component.value) {
-            (this.component.formContext as any)[this.component.name] = this.component.value;
-            this.component.formContext.emit(ManagedChangeEvent.CHANGE);
+        let value: any = this.component.value;
+        if (this.component.formContext && this.component.name) {
+            let oldValue = (this.component.formContext as any)[this.component.name];
+            if (typeof oldValue === "number" && this.component.type === "number") {
+                value = parseFloat(value);
+            }
+            if (oldValue !== this.component.value) {
+                (this.component.formContext as any)[this.component.name] = value;
+                this.component.formContext.emit(ManagedChangeEvent.CHANGE);
+            }
         }
     }
 });
