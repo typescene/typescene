@@ -44,6 +44,12 @@ export class UITheme {
     /** The current theme. This value may be changed but it is not observed. */
     static current: UITheme;
 
+    /** Returns a suitable text color for given background color */
+    public static getTextColor(bg: string) {
+        return this.isBrightColor(bg) ?
+            "rgba(0,0,0,.8)" : "rgba(255,255,255,.95)";
+    }
+
     /** Returns true if the pseudo-luminance of given color (in hex format `#112233` or `#123` or rgb(a) format `rgb(255, 255, 255)` or hsl format `hsl(255, 0%, 0%)`) is greater than 55%; can be used e.g. to decide on a contrasting text color for a given background color */
     public static isBrightColor(color: string) {
         color = String(color);
@@ -122,22 +128,21 @@ export class UITheme {
      */
     static replaceColor(color: string) {
         if (!color) return color;
-        return color.replace(/\@(\w+)((\^)?[\+\-]\d+\%)?(\/\d+\%)?(\:text)?/g, (_str, id, lum, contrast, alpha, txt) => {
+        return color.replace(/\@(\w+)(\:text)?((\^)?[\+\-]\d+\%)?(\:text)?(\/\d+\%)?(\:text)?/g, (_str, id, txt, lum, contrast, txt2, alpha, txt3) => {
             let result = (this.current.colors as any)[id] || "rgba(1,2,3,0)";
             if (/\@\w/.test(result)) result = this.replaceColor(result);
+            if (txt) result = this.getTextColor(result);
             if (lum) {
                 let p = parseFloat(contrast ? lum.slice(1) : lum) / 100;
                 if (contrast && !this.isBrightColor(result)) p = -p;
                 result = this.mixColors(result, p > 0 ? "#fff" : "#000", Math.abs(p));
             }
+            if (txt2) result = this.getTextColor(result);
             if (alpha) {
                 let p = parseFloat(alpha.slice(1)) / 100;
                 result = this.mixColors(result, "rgba(,,,0)", 1 - p);
             }
-            if (txt) {
-                result = this.isBrightColor(result) ?
-                    "rgba(0,0,0,.8)" : "rgba(255,255,255,.95)";
-            }
+            if (txt3) result = this.getTextColor(result);
             return result;
         });
     }
