@@ -85,7 +85,7 @@ export let UICloseLabel = UILabel.with({ style: "label_close" });
 export let UIExpandedLabel = UILabel.with({ shrinkwrap: false });
 
 /**
- * Shortcut function that returns a `UILabel` constructor with given text.
+ * Shortcut function that returns a `UILabel` constructor with given text, and optional text styles.
  * If the text contains tags of the format `${...}` then the text is first wrapped in a call to `bindf`, to include nested bindings and format the result.
  * If the text starts with a tag in curly braces (i.e. `{...}`), then the result is affected in the following ways:
  * - {b} mixes in a text style that sets the `bold` flag
@@ -100,13 +100,12 @@ export let UIExpandedLabel = UILabel.with({ shrinkwrap: false });
  * @note The style tags above can be combined using the `|` (pipe) character where possible, e.g. `{b|i|20|@color}`.
  * @note The text will also be translated when language services are implemented; either using a filter in the `bindf` call, or directly using the current language service. This function will then return a 'translated label' (hence 'tl').
  */
-export function tl(text: string) {
+export function tl(text: string, textStyle?: Partial<UIStyle.TextStyle>) {
     let constructor: typeof UILabel = UILabel;
-    let textStyle: Partial<UIStyle.TextStyle> | undefined;
     if (text[0] === "{") {
         let lastIndex = text.indexOf("}");
         if (lastIndex > 0) {
-            textStyle = {};
+            if (!textStyle) textStyle = {};
             let styleTag = text.slice(1, lastIndex);
             text = text.slice(lastIndex + 1);
             for (let tag of styleTag.split("|")) {
