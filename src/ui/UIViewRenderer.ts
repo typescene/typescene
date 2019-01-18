@@ -64,11 +64,13 @@ UIViewRenderer.observe(class {
 export namespace UIViewRenderer {
     /** UIViewRenderer presets type, for use with `Component.with` */
     export interface Presets {
-        /** Rendered view, if bound directly (do not use together with `list` property) */
+        /** Rendered view, if bound directly (not to be used together with `managedList` or `managedMap` properties) */
         view?: Binding;
-        /** List of renderable views (must be bound to either a `ManagedList` or `ComponentList`), one of which can be selected for rendering using the `listIndex` proeprty */
-        list?: Binding;
-        /** Index of the view to be rendered from the `list` bound property, defaults to 0 */
-        listIndex?: number;
+        /** List of renderable views (must be bound to either a `ManagedList` or `ComponentList`), one of which can be selected for rendering using the `index` property */
+        managedList?: Binding;
+        /** Map of renderable views (must be bound to a `ManagedMap`), one of which can be selected for rendering using the `index` property */
+        managedMap?: Binding;
+        /** Index of the view to be rendered from the `managedList` or `managedMap` properties, defaults to 0 */
+        index?: number | string;
     }
 }
