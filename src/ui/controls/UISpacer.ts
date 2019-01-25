@@ -13,15 +13,15 @@ export class UISpacer extends UIControl {
         return this.with({ dimensions: { minWidth }, shrinkwrap });
     }
 
-    /** Create a new spacer with given width and height */
-    constructor(width?: string | number, height?: string | number) {
+    /** Create a new spacer with given (maximum) width and height */
+    constructor(width?: string | number, height?: string | number, shrink?: boolean) {
         super();
         if (width !== undefined || height !== undefined) {
             this.dimensions = {
                 ...this.dimensions,
                 width: width !== undefined ? width : this.dimensions.width,
                 height: height !== undefined ? height : this.dimensions.height,
-                grow: 0, shrink: 1
+                grow: 0, shrink: shrink ? 1 : 0
             };
             this.shrinkwrap = true;
         }
