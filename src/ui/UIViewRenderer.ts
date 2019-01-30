@@ -28,6 +28,7 @@ export class UIViewRenderer extends Component implements UIRenderable {
     render(callback?: UIRenderContext.RenderCallback) {
         // skip extra rendering if view didn't actually change
         if (!callback && this.view === this._lastRendered) return;
+        this._lastRendered = this.view;
 
         // use given callback to (re-) render view
         this._renderer.render(this.view, callback);
