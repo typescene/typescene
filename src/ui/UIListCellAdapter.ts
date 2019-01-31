@@ -7,7 +7,7 @@ import { UIRenderContext } from "./UIRenderContext";
 /** Event that is emitted on a particular `UIListCellAdapter`. */
 export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObject> extends UIComponentEvent {
     constructor(name: string, source: UIComponent, cell: UICell, object?: TObject, event?: any) {
-        super(name, source, event);
+        super(name, source, undefined, event);
         this.object = object;
         this.cell = cell;
     }
