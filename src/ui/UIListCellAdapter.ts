@@ -1,4 +1,4 @@
-import { Component, logUnhandledException, managedChild, ManagedObject, shadowObservable } from "../core";
+import { Component, logUnhandledException, managed, managedChild, ManagedObject, shadowObservable } from "../core";
 import { UICell } from "./containers/UICell";
 import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
@@ -59,6 +59,7 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject> ex
     }
 
     /** The encapsulated object */
+    @managed
     readonly object: TObject;
 
     /** True if the cell is currently selected (based on `Select` and `Deselect` events) */
