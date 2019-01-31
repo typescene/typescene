@@ -118,6 +118,7 @@ export class Binding {
      * - `dec(1)`, `dec(2)`, `dec(3)` etc.: convert values to decimal numbers as strings, with given number of fixed decimals.
      * - `?` or `!!`, `not?` or `!`: convert values to boolean, applying boolean NOT for `!` and `not?`, and NOT-NOT for `?` and `!!`.
      * - `or(...)`: use given string if value is undefined or a blank string; the string cannot contain a `}` character.
+     * - `then(...)`: use given string if value is NOT undefined or a blank string, otherwise `undefined`; the string cannot contain a `}` character.
      * - `uniq`: leave only unique values in an array, and discard undefined values
      * - `blank` or `_`: output an empty string, but make the unfiltered value available for the #{...} pattern in `bindf`.
      */
@@ -155,6 +156,7 @@ export class Binding {
         "?": v => !!v,
         "!!": v => !!v,
         "or": (v, alt) => (v || alt),
+        "then": (v, str) => (v && str || undefined),
         "s": _stringFormatter,
         "str": _stringFormatter,
         "string": _stringFormatter,
