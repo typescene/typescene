@@ -1,8 +1,9 @@
-import { Component, logUnhandledException, managed, managedChild, ManagedObject, shadowObservable } from "../core";
+import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedRecord, shadowObservable } from "../core";
 import { UICell } from "./containers/UICell";
 import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { formContextBinding } from './UIFormContextController';
 import { UIRenderableController } from "./UIRenderableController";
-import { UIRenderContext } from "./UIRenderContext";
+import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Event that is emitted on a particular `UIListCellAdapter`. */
 export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObject> extends UIComponentEvent {
@@ -20,7 +21,12 @@ export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObjec
 }
 
 /** Component that can be used as an adapter to render items in a `UIList`. Instances are constructed using a single argument (a managed object from `UIList.items`), and are immediately activated to create the cell component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object` and `selected` properties. */
-export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject> extends Component implements UIRenderable {
+export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
+    extends Component.with({
+        renderContext: renderContextBinding,
+        formContext: formContextBinding
+    })
+    implements UIRenderable {
     static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
         this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
         return super.preset({});
@@ -49,6 +55,22 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject> ex
         });
     }
 
+    /** Application render context, propagated from the parent composite object */
+    @managed
+    renderContext?: UIRenderContext;
+
+    /** Form state context, propagated from the parent composite object */
+    @managed
+    formContext?: ManagedRecord;
+
+    /** The encapsulated object */
+    @managed
+    readonly object: TObject;
+
+    /** The encapsulated cell, as a child component */
+    @managedChild
+    readonly cell?: UICell;
+
     async onManagedStateActiveAsync() {
         await super.onManagedStateActiveAsync();
         if (this._lastRenderCallback) {
@@ -58,10 +80,6 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject> ex
         }
     }
 
-    /** The encapsulated object */
-    @managed
-    readonly object: TObject;
-
     /** True if the cell is currently selected (based on `Select` and `Deselect` events) */
     @shadowObservable("_selected")
     get selected() { return this._selected }
@@ -69,10 +87,6 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject> ex
     /** True if the cell is currently hovered over using the mouse cursor (based on `MouseEnter` and `MouseLeave` events) */
     @shadowObservable("_hovered")
     get hovered() { return this._hovered }
-
-    /** The encapsulated cell, as a child component */
-    @managedChild
-    readonly cell?: UICell;
 
     /** Request input focus on the current cell */
     requestFocus() {
