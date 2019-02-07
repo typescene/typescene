@@ -40,6 +40,13 @@ export class ManagedCoreEvent extends ManagedEvent {
     private readonly _coreEventMarker = true;
 }
 
+/** Alias of the `ManagedCoreEvent.ACTIVE` event */
+export const ACTIVE = ManagedCoreEvent.ACTIVE;
+/** Alias of the `ManagedCoreEvent.INACTIVE` event */
+export const INACTIVE = ManagedCoreEvent.INACTIVE;
+/** Alias of the `ManagedCoreEvent.DESTROYED` event */
+export const DESTROYED = ManagedCoreEvent.DESTROYED;
+
 /** Event that is emitted when a managed object is assigned to a managed child reference (see `@managedChild` decorator) */
 export class ManagedParentChangeEvent extends ManagedCoreEvent {
     constructor(parent: ManagedObject) {
@@ -60,6 +67,9 @@ export class ManagedChangeEvent extends ManagedEvent {
         super(name);
     }
 }
+
+/** Alias of the `ManagedChangeEvent.CHANGE` event */
+export const CHANGE = ManagedChangeEvent.CHANGE;
 
 /** Event that is emitted when an item is added to a `ManagedList` or `ManagedMap` */
 export class ManagedObjectAddedEvent extends ManagedChangeEvent {
