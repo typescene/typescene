@@ -4,6 +4,9 @@ import { UIRenderContext } from "./UIRenderContext";
 import { UIStyle } from "./UIStyle";
 import { UITheme } from "./UITheme";
 
+/** String type or object with toString method */
+export type Stringable = string | { toString(): string };
+
 /** Empty style instance, used on plain UIComponent instances */
 let _emptyStyle = new UIStyle();
 

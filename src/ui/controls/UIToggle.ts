@@ -1,4 +1,5 @@
 import { managed, ManagedChangeEvent, ManagedRecord } from "../../core";
+import { Stringable } from '../UIComponent';
 import { formContextBinding } from "../UIFormContextController";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
@@ -26,7 +27,7 @@ export class UIToggle extends UIControl {
     formContext?: ManagedRecord;
 
     /** Label text, if any */
-    label?: string;
+    label?: Stringable;
 
     /** Highlight (background) color, if any */
     highlightColor?: string;
@@ -60,7 +61,7 @@ export namespace UIToggle {
     /** UIToggle presets type, for use with `Component.with` */
     export interface Presets extends UIControl.Presets {
         /** Label text, if any */
-        label?: string;
+        label?: Stringable;
         /** Highlight (background) color, if any */
         highlightColor?: string;
         /** Toggle state */

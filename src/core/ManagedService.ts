@@ -27,7 +27,7 @@ export function service(name: string): PropertyDecorator {
         let ref = ServiceContainer.instance.services.get(ucName);
         if (!ref) {
             // create new placeholder for this name
-            ref = new ManagedReference().restrict(ManagedService).propagateEvents();
+            ref = new ManagedReference().restrict(ManagedService as any).propagateEvents() as any;
             ServiceContainer.instance.services.set(ucName, ref);
         }
 
@@ -39,7 +39,7 @@ export function service(name: string): PropertyDecorator {
 }
 
 /** Represents a named service that can be referenced by other classes using the `@service` decorator after registering the object with a well known name. */
-export class ManagedService extends ManagedObject {
+export abstract class ManagedService extends ManagedObject {
     /**
      * Retrieve the currently active service with given name (case insensitive).
      * @note Services may be registered and destroyed. To obtain a reference that is always up to date, use the `@service` decorator on a class property.
@@ -50,18 +50,18 @@ export class ManagedService extends ManagedObject {
         return ref && ref.target;
     }
 
-    /** Create a new instance of the service. The service is not available until it is registered using the `ManagedService.register` method. */
-    constructor(name: string) {
+    /** Create a new instance of the service. The service is not available until it is registered using the `ManagedService.register` method */
+    constructor(name?: string) {
         super();
-        this.name = name;
+        if (name) (this as any).name = name;
     }
 
     /** The name of this service, set only once by the service constructor. The preferred format for service names is `Namespace.CamelCaseName`. */
-    readonly name: string;
+    abstract readonly name: string;
 
     /** Register this service, making it available through properties decorated with the `@service` decorator until the service object is destroyed (either directly, or when another service is registered with the same name) */
     register() {
-        let ucName = String(this.name).toUpperCase();
+        let ucName = String(this.name || "").toUpperCase();
         if (!ucName) throw Error("[Service] Service name cannot be blank");
         let ref = ServiceContainer.instance.services.get(ucName);
         if (ref) {
@@ -69,7 +69,7 @@ export class ManagedService extends ManagedObject {
             ref.target = this;
         }
         else {
-            ref = new ManagedReference(this).restrict(ManagedService).propagateEvents();
+            ref = new ManagedReference(this).restrict(ManagedService as any).propagateEvents() as any;
             ServiceContainer.instance.services.set(ucName, ref);
         }
     }

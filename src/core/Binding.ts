@@ -1,4 +1,5 @@
 import { Component } from "./Component";
+import { tt } from './I18nService';
 import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { logUnhandledException } from "./UnhandledErrorEmitter";
@@ -28,6 +29,7 @@ export class Binding {
             path = parts.shift()!.split(".");
             propertyName = path.shift();
             if (!path.length) path = undefined;
+            else if (path[0] === "!") path = path.slice(1), this.addFilter("!");
             for (let part of parts) this.addFilter(part);
         }
         this.propertyName = propertyName;
@@ -116,6 +118,7 @@ export class Binding {
      * - `n`, `num`, or `number`: convert non-undefined values to a floating-point number using the `parseFloat(...)` function.
      * - `i`, `int`, or `integer`: convert values to whole numbers using the `Math.round(...)` function. Undefined values are converted to `0`.
      * - `dec(1)`, `dec(2)`, `dec(3)` etc.: convert values to decimal numbers as strings, with given number of fixed decimals.
+     * - `tt` or `tt(type)`: translate values using the `tt` function (i18n).
      * - `?` or `!!`, `not?` or `!`: convert values to boolean, applying boolean NOT for `!` and `not?`, and NOT-NOT for `?` and `!!`.
      * - `or(...)`: use given string if value is undefined or a blank string; the string cannot contain a `}` character.
      * - `then(...)`: use given string if value is NOT undefined or a blank string, otherwise `undefined`; the string cannot contain a `}` character.
@@ -157,6 +160,7 @@ export class Binding {
         "!!": v => !!v,
         "or": (v, alt) => (v || alt),
         "then": (v, str) => (v && str || undefined),
+        "tt": tt,
         "s": _stringFormatter,
         "str": _stringFormatter,
         "string": _stringFormatter,
@@ -181,15 +185,15 @@ export class Binding {
  */
 export class StringFormatBinding extends Binding {
     /** Creates a new binding for given format string. See `bindf`. */
-    constructor(text: string) {
+    constructor(text: string | { toString(): string }) {
         super(undefined);
-        text = String(text);
+        console.log("BINDF", text);
 
         // prepare bindings for all tags in given format string
         let bindings: Array<Binding> = [];
         let bindSources: string[] = [];
         let indexBySource: { [s: string]: number } = {};
-        let match = text.match(/\$\{([^\}]+)\}/g);
+        let match = String(text).match(/\$\{([^\}]+)\}/g);
         if (match) {
             for (let s of match) {
                 let binding = new Binding(s.slice(2, -1), "");
@@ -202,6 +206,12 @@ export class StringFormatBinding extends Binding {
 
         // amend reader to get values from bindings and compile text
         this.Reader = class extends this.Reader {
+            constructor(composite: Component) {
+                super(composite);
+                console.log("READER", text);
+                this.text = String(text);
+            }
+            text: string;
             getValue() {
                 // take values for all bindings first
                 let values = bindings.map((binding, i) => {
@@ -214,7 +224,7 @@ export class StringFormatBinding extends Binding {
 
                 // replace all tags for bindings and pluralizers in format string
                 let lastIndex = 0;
-                let result = text
+                let result = this.text
                     .replace(/[\$\#]\{(?:(\d+)\:)?([^\}]+)\}/g, (tag, idx, s) => {
                         if (tag[0] === "$") {
                             // replace with plain binding value
@@ -326,6 +336,8 @@ export namespace Binding {
  * A `ManagedList` can be bound as a plain array using a `*` nested property (e.g. `list.*`).
  *
  * The property name may be appended with a `|` (pipe) character and a *filter* name: see `Binding.addFilter` for available filters. Multiple filters may be chained together if their names are separated with more pipe characters.
+ *
+ * For convenience, `!property` is automatically rewritten as `property|!` to negate property values.
  *
  * A default value may also be specified. This value is used when the bound value itself is undefined.
  */

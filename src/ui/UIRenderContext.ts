@@ -12,7 +12,7 @@ export enum UIRenderPlacement {
 
 /** Base application render context, to be extended with platform specific render implementation. */
 export abstract class UIRenderContext extends ManagedObject {
-    /** Emit a change event for this context, e.g. when the viewport orientation changes. This will trigger all views to re-render if needed. */
+    /** Emit a change event for this context, e.g. when the viewport orientation or current locale changes. This will trigger all views to re-render if needed. */
     emitRenderChange() { this.emit(ManagedChangeEvent.CHANGE) }
 
     /** Remove all rendered output from the screen */

@@ -1,4 +1,4 @@
-import { Binding, logUnhandledException, managed, ManagedChangeEvent, managedChild, ManagedEvent } from "../core";
+import { Binding, logUnhandledException, managed, ManagedChangeEvent, managedChild, ManagedEvent, tt } from "../core";
 import { formContextBinding, UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext, UIRenderPlacement, UITheme } from "../ui";
 import { AppActivity } from "./AppActivity";
 
@@ -143,11 +143,11 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     }
 
     /**
-     * Display a confirmation/alert dialog with given content. If the 'cancel' button label is not provided, the dialog will only contain a 'confirm' button.
+     * Display a confirmation/alert dialog with given content. If the 'cancel' button label is not provided, the dialog will only contain a 'confirm' button. All strings are automatically translated to the current locale using the `tt` function.
      * @param message
-     *  The message to be displayed, or multiple message paragraphs (if array type)
+     *  The message to be displayed, or multiple message paragraphs (for arrays)
      * @param title
-     *  The dialog title, displayed at the top of the dialog
+     *  The dialog title, displayed at the top of the dialog (optional)
      * @param confirmButtonLabel
      *  The label for the 'confirm' button
      * @param cancelButtonLabel
@@ -160,11 +160,11 @@ export class ViewActivity extends AppActivity implements UIRenderable {
             throw Error("[ViewActivity] Dialog builder not found");
         }
         let builder = new Builder();
-        if (Array.isArray(message)) message.forEach(m => builder.addMessage(m));
-        else builder.addMessage(message);
-        if (title) builder.setTitle(title);
-        if (confirmButtonLabel) builder.setConfirmButtonLabel(confirmButtonLabel);
-        if (cancelButtonLabel) builder.setCancelButtonLabel(cancelButtonLabel);
+        if (Array.isArray(message)) message.forEach(m => builder.addMessage(String(tt(m))));
+        else builder.addMessage(String(tt(message)));
+        if (title) builder.setTitle(String(tt(title)));
+        if (confirmButtonLabel) builder.setConfirmButtonLabel(String(tt(confirmButtonLabel)));
+        if (cancelButtonLabel) builder.setCancelButtonLabel(String(tt(cancelButtonLabel)));
         let Dialog = builder.build();
         return new Promise<boolean>(resolve => {
             this.showDialogAsync(Dialog, !cancelButtonLabel, function (e) {

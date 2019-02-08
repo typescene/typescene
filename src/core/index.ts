@@ -1,6 +1,7 @@
 export * from "./Binding";
 export * from "./Component";
 export * from "./ComponentList";
+export * from "./I18nService";
 export * from "./ManagedEvent";
 export * from "./ManagedList";
 export * from "./ManagedMap";

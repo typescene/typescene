@@ -1,6 +1,6 @@
 import { Application } from "../../app";
-import { Binding } from "../../core";
-import { UIComponent } from "../UIComponent";
+import { Binding, tt } from "../../core";
+import { Stringable, UIComponent } from "../UIComponent";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
 
@@ -21,8 +21,9 @@ export class UIButton extends UIControl {
         return super.preset(presets);
     }
 
-    /** Creates a preset button class with given label and onClick handler, if any */
-    static withLabel(label: string, onClick?: string) {
+    /** Creates a preset button class with given label (localized using `tt` if available) and onClick handler, if any */
+    static withLabel(label: Stringable | Binding, onClick?: string) {
+        if (typeof label === "string") label = tt(label);
         return this.with({ label, onClick });
     }
 
@@ -47,7 +48,7 @@ export class UIButton extends UIControl {
     disableKeyboardFocus?: boolean;
 
     /** Label text */
-    label = "";
+    label: Stringable = "";
 
     /** Icon name (platform and build system dependent) */
     icon?: string;
@@ -90,7 +91,7 @@ export namespace UIButton {
     /** UILabel presets type, for use with `Component.with` */
     export interface Presets extends UIControl.Presets {
         /** Label text */
-        label?: string;
+        label?: Stringable;
         /** Icon name (platform and build system dependent) */
         icon?: string;
         /** Icon size (in dp or string with unit) */

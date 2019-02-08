@@ -1,5 +1,5 @@
 import { Component, managedChild } from "../core";
-import { UIComponent, UIComponentEvent, UIComponentEventHandler, UIRenderable } from "./UIComponent";
+import { Stringable, UIComponent, UIComponentEvent, UIComponentEventHandler, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
 import { UIMenuBuilder, UITheme } from "./UITheme";
 
@@ -44,7 +44,7 @@ export class UIMenu extends Component implements UIRenderable {
         if (this.options.length) {
             this.builder.clear();
             for (let option of this.options) {
-                this.builder.addOption(option.key, option.text);
+                this.builder.addOption(option.key, String(option.text));
             }
         }
         if (this.gravity) this.builder.setGravity(this.gravity);
@@ -61,7 +61,7 @@ export class UIMenu extends Component implements UIRenderable {
     gravity?: "start" | "stretch" | "end";
 
     /** List of initial menu options; for advanced menus use `onBuild` to build the menu dynamically */
-    options: Array<{ key: string, text: string }> = [];
+    options: Array<{ key: string, text: Stringable }> = [];
 
     /** The key of the menu item that was last selected, if any */
     selected?: string;

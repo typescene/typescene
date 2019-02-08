@@ -1,4 +1,5 @@
 import { managed, ManagedChangeEvent, ManagedRecord } from "../../core";
+import { Stringable } from '../UIComponent';
 import { formContextBinding } from "../UIFormContextController";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
@@ -32,7 +33,7 @@ export class UITextField extends UIControl {
     multiline?: boolean;
 
     /** Placeholder text */
-    placeholder = "";
+    placeholder: Stringable = "";
 
     /** Input value */
     value = "";
@@ -76,9 +77,9 @@ export namespace UITextField {
         /** Set to true to enable multiline input */
         multiline?: boolean;
         /** Placeholder text */
-        placeholder?: string;
+        placeholder?: Stringable;
         /** Input value */
-        value?: string;
+        value?: Stringable;
         /** Form state property */
         name?: string;
     }
