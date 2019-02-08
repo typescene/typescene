@@ -139,7 +139,6 @@ export function tl(text: string, textStyle?: Partial<UIStyle.TextStyle>) {
         }
     }
     let resultText: any = noTT ? text : tt(text);
-    console.log("RESULT IS", resultText);
     if (text.indexOf("${") >= 0) resultText = bindf(resultText);
     return constructor.with({ text: resultText, textStyle });
 }

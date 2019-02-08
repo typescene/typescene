@@ -187,7 +187,6 @@ export class StringFormatBinding extends Binding {
     /** Creates a new binding for given format string. See `bindf`. */
     constructor(text: string | { toString(): string }) {
         super(undefined);
-        console.log("BINDF", text);
 
         // prepare bindings for all tags in given format string
         let bindings: Array<Binding> = [];
@@ -208,7 +207,6 @@ export class StringFormatBinding extends Binding {
         this.Reader = class extends this.Reader {
             constructor(composite: Component) {
                 super(composite);
-                console.log("READER", text);
                 this.text = String(text);
             }
             text: string;
