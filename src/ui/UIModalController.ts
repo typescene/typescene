@@ -23,9 +23,11 @@ export class UIModalController extends UIRenderableController {
                     if (e.name === "ShowModal") {
                         let instance = Modal && new Modal();
                         this.modal = instance || undefined;
+                        return;
                     }
                     else if (e.name === "CloseModal") {
                         this.modal = undefined;
+                        return;
                     }
                     return e;
                 }
