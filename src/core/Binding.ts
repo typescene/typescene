@@ -27,9 +27,12 @@ export class Binding {
         if (propertyName !== undefined) {
             let parts = String(propertyName).split("|");
             path = parts.shift()!.split(".");
-            propertyName = path.shift();
+            propertyName = path.shift()!;
+            if (propertyName[0] === "!") {
+                propertyName = propertyName.slice(1);
+                this.addFilter("!");
+            }
             if (!path.length) path = undefined;
-            else if (path[0] === "!") path = path.slice(1), this.addFilter("!");
             for (let part of parts) this.addFilter(part);
         }
         this.propertyName = propertyName;
