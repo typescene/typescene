@@ -1,6 +1,6 @@
 import { Application } from "../app";
-import { Binding, ComponentConstructor, managedChild } from "../core";
-import { UIComponent, UIComponentEvent, UIComponentEventHandler, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { Binding, ComponentConstructor, ComponentEventHandler, managedChild } from "../core";
+import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { UIRenderContext, UIRenderPlacement } from "./UIRenderContext";
 
@@ -113,8 +113,8 @@ export namespace UIModalController {
         /** True if clicking outside the modal component should close it, defaults to true */
         modalShadeClickToClose?: boolean;
         /** Event handler that is invoked when the modal component is made visible */
-        onShowModal: UIComponentEventHandler<UIModalController>;
+        onShowModal: ComponentEventHandler<UIModalController>;
         /** Event handler that is invoked when the modal component is removed */
-        onCloseModal: UIComponentEventHandler<UIModalController>;
+        onCloseModal: ComponentEventHandler<UIModalController>;
     }
 }

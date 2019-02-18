@@ -1,7 +1,7 @@
-import { Component, ComponentConstructor, managed, ManagedList, ManagedMap, ManagedObject } from "../core";
+import { Component, ComponentConstructor, ComponentEventHandler, managed, ManagedEvent, ManagedList, ManagedListChangeEvent, ManagedMap, ManagedObject } from "../core";
 import { UICloseColumn } from "./containers/UIColumn";
 import { UIContainer } from "./containers/UIContainer";
-import { UIComponent, UIComponentEvent, UIRenderable } from "./UIComponent";
+import { UIComponentEvent, UIRenderable } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { UIStyle } from "./UIStyle";
 
@@ -18,6 +18,9 @@ const _defaultContainer = UICloseColumn.with({
         containerLayout: { distribution: "start" }
     })
 });
+
+/** Use a resolved promise to make updates async */
+const RESOLVED = Promise.resolve();
 
 /** Renderable wrapper that populates an encapsulated container with a given list of managed objects and a view adapter (component constructor) */
 export class UIListController extends UIRenderableController {
@@ -38,17 +41,20 @@ export class UIListController extends UIRenderableController {
                     this.controller.restoreFocus();
                 }
             }
-            _getListItemComponent(source?: Component) {
-                let target: UIComponent | undefined;
-                while (source && source !== this.controller.content) {
-                    if (source instanceof UIComponent) target = source;
-                    source = source.getParentComponent();
+            onFirstIndexChangeAsync() { return this.doUpdateAsync() }
+            onMaxItemsChangeAsync() { return this.doUpdateAsync() }
+            onItemsChange(_v?: any, e?: ManagedEvent) {
+                if (!e || (e instanceof ManagedListChangeEvent)) {
+                    this.doUpdateAsync();
                 }
-                return target;
             }
-            onFirstIndexChange() { this.onItemsChangeAsync() }
-            onMaxItemsChange() { this.onItemsChangeAsync() }
-            onItemsChangeAsync() {
+            _updateQueued = false;
+            async doUpdateAsync() {
+                if (this._updateQueued) return;
+                this._updateQueued = true;
+                await RESOLVED;
+                this._updateQueued = false;
+
                 // update the container's content, if possible
                 let container = this.controller.content as UIContainer;
                 let content = container && container.content;
@@ -94,6 +100,9 @@ export class UIListController extends UIRenderableController {
                 for (let oldKey in created) {
                     map.remove(created[oldKey]);
                 }
+
+                // emit an event specific to this UIListController
+                this.controller.propagateComponentEvent("ListItemsChange");
             }
         })
         return super.preset(presets, container);
@@ -192,5 +201,7 @@ export namespace UIListController {
         firstIndex?: number;
         /** Maximum number of items to be shown in the list (for e.g. pagination, or sliding window positioning), defaults to `undefined` to show all items */
         maxItems?: number;
+        /** Event handler for any change in displayed list items, and list initialization */
+        onListItemsChange: ComponentEventHandler<UIListController>;
     }
 }

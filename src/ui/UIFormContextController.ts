@@ -1,5 +1,5 @@
-import { bind, Component, logUnhandledException, managed, managedChild, ManagedEvent, ManagedRecord } from "../core";
-import { UIComponent, UIComponentEvent, UIComponentEventHandler, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { bind, Component, ComponentEventHandler, logUnhandledException, managed, managedChild, ManagedEvent, ManagedRecord } from "../core";
+import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
@@ -64,8 +64,8 @@ export namespace UIFormContextController {
         /** Form state object; must be a (binding to a) managed record, see `ManagedRecord` */
         formContext?: ManagedRecord;
         /** Event handler for any change to the form state */
-        onFormContextChange: UIComponentEventHandler<UIFormContextController>;
+        onFormContextChange: ComponentEventHandler<UIFormContextController>;
         /** Event handler for Enter key presses (ignoring Enter key presses on multiline text fields and buttons, which do not emit the EnterKeyPress event) */
-        onEnterKeyPress: UIComponentEventHandler<UIFormContextController>;
+        onEnterKeyPress: ComponentEventHandler<UIFormContextController>;
     }
 }

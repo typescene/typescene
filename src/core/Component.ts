@@ -25,6 +25,10 @@ export class ComponentEvent extends ManagedEvent {
     inner?: ManagedEvent;
 }
 
+/** Event handler type, can be used to define the type of a preset event handler as a string or function */
+export type ComponentEventHandler<TComponent = Component, TEvent = ComponentEvent> =
+    string | ((this: TComponent, e: TEvent) => void);
+
 /**
  * Generic constructor type for Component, matching both parameterless constructors and those with one or more required parameters.
  * For a constructable type, combine with a specific function type, e.g. `ComponentConstructor & (new () => MyComponent)`.

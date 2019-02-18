@@ -1,4 +1,4 @@
-import { ManagedChangeEvent, ManagedEvent, ManagedObjectAddedEvent, ManagedObjectRemovedEvent } from "./ManagedEvent";
+import { ManagedEvent, ManagedListChangeEvent, ManagedObjectAddedEvent, ManagedObjectRemovedEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import { shadowObservable } from "./observe";
 import * as util from "./util";
@@ -250,7 +250,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         // process all changes one by one, keeping the list consistent
         for (let f of removes) f();
         for (let f of moves) f();
-        if (moved) this.emit(ManagedChangeEvent.CHANGE);
+        if (moved) this.emit(ManagedListChangeEvent, undefined, this);
         for (let f of inserts) f();
         return this;
     }

@@ -71,17 +71,24 @@ export class ManagedChangeEvent extends ManagedEvent {
 /** Alias of the `ManagedChangeEvent.CHANGE` event */
 export const CHANGE = ManagedChangeEvent.CHANGE;
 
-/** Event that is emitted when an item is added to a `ManagedList` or `ManagedMap` */
-export class ManagedObjectAddedEvent extends ManagedChangeEvent {
-    constructor(source: ManagedList | ManagedMap, object: ManagedObject, key?: string) {
-        super("ManagedObjectAdded");
+/** Base type for events that are emitted when changes occur to a `ManagedList` or `ManagedMap` */
+export class ManagedListChangeEvent extends ManagedChangeEvent {
+    constructor(name = "ManagedListChange", source: ManagedList | ManagedMap) {
+        super(name);
         this.source = source;
+    }
+
+    /** The list or map that was changed */
+    readonly source: ManagedList | ManagedMap;
+}
+
+/** Event that is emitted when an item is added to a `ManagedList` or `ManagedMap` */
+export class ManagedObjectAddedEvent extends ManagedListChangeEvent {
+    constructor(source: ManagedList | ManagedMap, object: ManagedObject, key?: string) {
+        super("ManagedObjectAdded", source);
         this.object = object;
         this.key = key;
     }
-
-    /** The list or map that the object was added to */
-    readonly source: ManagedList | ManagedMap;
 
     /** The key that was added, only for events emitted by `ManagedMap` */
     readonly key?: string;
@@ -91,16 +98,12 @@ export class ManagedObjectAddedEvent extends ManagedChangeEvent {
 }
 
 /** Event that is emitted when an item is removed from a `ManagedList` */
-export class ManagedObjectRemovedEvent extends ManagedChangeEvent {
+export class ManagedObjectRemovedEvent extends ManagedListChangeEvent {
     constructor(source: ManagedList | ManagedMap, object: ManagedObject, key?: string) {
-        super("ManagedObjectRemoved");
-        this.source = source;
+        super("ManagedObjectRemoved", source);
         this.object = object;
         this.key = key;
     }
-
-    /** The list or map that the object was removed from */
-    readonly source: ManagedList | ManagedMap;
 
     /** The key that was removed, only for events emitted by `ManagedMap` */
     readonly key?: string;

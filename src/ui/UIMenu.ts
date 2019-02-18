@@ -1,5 +1,5 @@
-import { Component, managedChild } from "../core";
-import { Stringable, UIComponent, UIComponentEvent, UIComponentEventHandler, UIRenderable } from "./UIComponent";
+import { Component, ComponentEventHandler, managedChild } from "../core";
+import { Stringable, UIComponent, UIComponentEvent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
 import { UIMenuBuilder, UITheme } from "./UITheme";
 
@@ -75,8 +75,8 @@ export namespace UIMenu {
         /** Menu gravity in relation to reference component (start/stretch/end) */
         gravity: "start" | "stretch" | "end";
         /** Event handler that is invoked every time just before the menu is rendered */
-        onBuild: UIComponentEventHandler<UIMenu>;
+        onBuild: ComponentEventHandler<UIMenu>;
         /** Event handler that is invoked after a menu item has been picked */
-        onSelectMenuItem: UIComponentEventHandler<UIMenu, UIMenuItemSelectedEvent>;
+        onSelectMenuItem: ComponentEventHandler<UIMenu, UIMenuItemSelectedEvent>;
     }
 }
