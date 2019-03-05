@@ -1,6 +1,6 @@
 {
   "name": "typescene",
-  "version": "2.11.19",
+  "version": "2.11.20",
   "description": "Typescene toolkit",
   "author": "Jelmer Cormont",
   "license": "MIT",
@@ -15,7 +15,10 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "typings": "./typings/index.d.ts",
-  "files": ["dist", "typings"],
+  "files": [
+    "dist",
+    "typings"
+  ],
   "scripts": {
     "clean": "rm -rf dist typings",
     "prepublishOnly": "npm run build",
