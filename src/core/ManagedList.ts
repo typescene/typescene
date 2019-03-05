@@ -126,7 +126,9 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         this._managedCount++;
 
         // set/move parent-child link if needed, and emit change event
-        if (refs.parent) ManagedObject._makeManagedChildRefLink(ref);
+        if (refs.parent && !this._isWeakRef) {
+            ManagedObject._makeManagedChildRefLink(ref);
+        }
         this.emit(ManagedObjectAddedEvent, this, target);
         return this;
     }

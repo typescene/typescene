@@ -95,7 +95,7 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
                 // handle target moved/destroyed
                 this.emit(ManagedChangeEvent);
             });
-            if (this[util.HIDDEN_REF_PROPERTY].parent) {
+            if (this[util.HIDDEN_REF_PROPERTY].parent && !this._isWeakRef) {
                 // set/move parent-child link on target object
                 ManagedObject._makeManagedChildRefLink(ref);
             }

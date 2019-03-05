@@ -92,7 +92,9 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         });
 
         // set/move parent-child link if needed, and emit change event
-        if (refs.parent) ManagedObject._makeManagedChildRefLink(ref);
+        if (refs.parent && !this._isWeakRef) {
+            ManagedObject._makeManagedChildRefLink(ref);
+        }
         this.emit(ManagedObjectAddedEvent, this, target, key);
         return this;
     }
