@@ -104,8 +104,15 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         return this;
     }
 
+    /** Stop newly referenced objects from becoming child objects even if this `ManagedReference` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference objects when the parent object is destroyed */
+    weakRef() {
+        this._isWeakRef = true;
+        return this;
+    }
+
     /** @internal Helper function that fixes an existing referenced object as a child */
     [util.MAKE_REF_MANAGED_PARENT_FN]() {
+        if (this._isWeakRef) return;
         let refs = this[util.HIDDEN_REF_PROPERTY];
         if (refs[REF_PROP_ID]) {
             ManagedObject._makeManagedChildRefLink(refs[REF_PROP_ID]!);
@@ -120,6 +127,8 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
         let target = this.target;
         return { "$ref": target ? target.managedId : undefined };
     }
+
+    private _isWeakRef?: boolean;
 }
 
 /**
