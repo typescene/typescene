@@ -15,6 +15,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "typings": "./typings/index.d.ts",
+  "files": ["dist", "typings"],
   "scripts": {
     "clean": "rm -rf dist typings",
     "prepublishOnly": "npm run build",
