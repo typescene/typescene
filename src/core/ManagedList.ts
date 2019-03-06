@@ -382,6 +382,18 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
         return this.toArray();
     }
 
+    /** Returns true if given callback function returns a truthy value for at least one of the objects in this list */
+    some(callback: (target: T) => any) {
+        for (let target of this) if (callback(target)) return true;
+        return false;
+    }
+
+    /** Returns true if given callback function returns a truthy value for every object in this list (or if the list is empty) */
+    every(callback: (target: T) => any) {
+        for (let target of this) if (!callback(target)) return false;
+        return true;
+    }
+
     /**
      * Iterates over the objects in this list and invokes given callback for each object (alternative to for...of statement)
      * @param callback

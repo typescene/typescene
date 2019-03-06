@@ -48,6 +48,12 @@ export class ComponentList<T extends Component = Component> extends Component {
     /** Returns the first component in the list */
     first() { return this._list.first() }
 
+    /** Returns true if given callback function returns a truthy value for at least one of the components in this list */
+    some(callback: (target: T) => any) { return this._list.some(callback) }
+
+    /** Returns true if given callback function returns a truthy value for every component in this list (or if the list is empty) */
+    every(callback: (target: T) => any) { return this._list.every(callback) }
+
     /** Iterates over the components in this list (see `ManagedList.forEach`). */
     forEach(callback: (target: T) => void) { this._list.forEach(callback) }
 
