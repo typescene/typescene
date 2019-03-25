@@ -20,7 +20,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
     @managed
     formContext?: ManagedRecord;
 
-    /** The root component that makes up the content for this view, as a child component; this component is only created when it is first rendered */
+    /** The root component that makes up the content for this view, as a child component; only created when the `ViewComponent` is rendered */
     @managedChild
     view?: UIRenderable;
 
@@ -37,14 +37,16 @@ export class ViewComponent extends AppComponent implements UIRenderable {
         if (this.managedState !== ManagedState.ACTIVE && this.renderContext) {
             // activate this component now to create the view
             this._renderer.render(undefined, callback);
-            this.activateManagedAsync()
-                .then(() => {
-                    // check if (still) active, and attempt to render again
-                    if (this.managedState === ManagedState.ACTIVE) {
-                        this.render();
-                    }
-                })
-                .catch(logUnhandledException);
+            if (this.managedState === ManagedState.CREATED) {
+                this.activateManagedAsync()
+                    .then(() => {
+                        // check if (still) active, and attempt to render again
+                        if (this.managedState === ManagedState.ACTIVE) {
+                            this.render();
+                        }
+                    })
+                    .catch(logUnhandledException);
+            }
         }
         else if (!this.renderContext) {
             // something is wrong: not a child component

@@ -1,4 +1,4 @@
-import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedRecord, shadowObservable } from "../core";
+import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedRecord, ManagedState, shadowObservable } from "../core";
 import { UICell } from "./containers/UICell";
 import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { formContextBinding } from './UIFormContextController';
@@ -20,7 +20,7 @@ export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObjec
     readonly object?: TObject;
 }
 
-/** Component that can be used as an adapter to render items in a `UIList`. Instances are constructed using a single argument (a managed object from `UIList.items`), and are immediately activated to create the cell component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object` and `selected` properties. */
+/** Component that can be used as an adapter to render items in a `UIList`. Instances are constructed using a single argument (a managed object from `UIList.items`), and are activated when rendered to create the cell component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object` and `selected` properties. */
 export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     extends Component.with({
         renderContext: renderContextBinding,
@@ -33,13 +33,12 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     }
 
     /**
-     * Create a new component for given object, and activate this object immediately.
+     * Create a new component for given object. The encapsulated cell is only created when the instance is rendered.
      * @param object
      *  The encapsulated object */
     constructor(object: TObject) {
         super();
         this.object = object;
-        this.activateManagedAsync().catch(logUnhandledException);
         this.propagateChildEvents(e => {
             if (this.cell && e instanceof UIComponentEvent) {
                 if (e.source === this.cell) {
@@ -67,17 +66,22 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     @managed
     readonly object: TObject;
 
-    /** The encapsulated cell, as a child component */
+    /** The encapsulated cell, as a child component; only created when the `UIListCellAdapter` is rendered */
     @managedChild
     readonly cell?: UICell;
 
     async onManagedStateActiveAsync() {
         await super.onManagedStateActiveAsync();
-        if (this._lastRenderCallback) {
-            let callback = this._lastRenderCallback;
-            this._lastRenderCallback = undefined;
+        if (this._pendingRenderCallback) {
+            let callback = this._pendingRenderCallback;
+            this._pendingRenderCallback = undefined;
             this.cell && this.cell.render(callback);
         }
+    }
+
+    async onManagedStateInactiveAsync() {
+        await super.onManagedStateInactiveAsync();
+        this._pendingRenderCallback = undefined;
     }
 
     /** True if the cell is currently selected (based on `Select` and `Deselect` events) */
@@ -104,11 +108,18 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     }
 
     render(callback: UIRenderContext.RenderCallback) {
-        if (this.cell) this.cell.render(callback);
-        else this._lastRenderCallback = callback;
+        if (this.managedState === ManagedState.CREATED) {
+            // activate this component now to create the view
+            this._pendingRenderCallback = callback;
+            this.activateManagedAsync().catch(logUnhandledException);
+        }
+        else {
+            if (this.cell) this.cell.render(callback);
+            else this._pendingRenderCallback = callback;
+        }
     }
 
-    private _lastRenderCallback?: UIRenderContext.RenderCallback;
+    private _pendingRenderCallback?: UIRenderContext.RenderCallback;
     private _selected = false;
     private _hovered = false;
 }

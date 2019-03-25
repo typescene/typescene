@@ -5,7 +5,6 @@ import { ManagedMap } from "./ManagedMap";
 import { ManagedObject, ManagedState } from "./ManagedObject";
 import { managedChild } from "./ManagedReference";
 import { onPropertyChange } from "./observe";
-import { logUnhandledException } from "./UnhandledErrorEmitter";
 
 /** Running ID used by `presetBindingsFrom` */
 let _presetBindingsFromID = 0;
@@ -260,15 +259,12 @@ export class Component extends ManagedObject {
                 if (!this.active &&
                     this.component.managedState === ManagedState.ACTIVE &&
                     self._components[propertyName] === constructor) {
-                    try {
-                        this.active = true;
-                        let allBound = this.component._getCompositeBindings();
-                        allBound.bind(bindings);
-                        let c = new constructor();
-                        c.setCompositeParent(this.component);
-                        (this.component as any)[propertyName] = c;
-                    }
-                    catch (err) { logUnhandledException(err) }
+                    this.active = true;
+                    let allBound = this.component._getCompositeBindings();
+                    allBound.bind(bindings);
+                    let c = new constructor();
+                    c.setCompositeParent(this.component);
+                    (this.component as any)[propertyName] = c;
                 }
             }
 
