@@ -77,7 +77,7 @@ export class AppActivationContext extends ManagedObject {
 }
 
 export namespace AppActivationContext {
-    /** Captured path segments, matched by `ActivationContext.math` */
+    /** Captured path segments, matched by `ActivationContext.match` */
     export interface MatchedPath {
         /** The full path that was matched */
         path: string;
