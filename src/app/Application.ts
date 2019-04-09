@@ -35,7 +35,7 @@ export class Application extends Component {
     }
 
     /** The application name */
-    readonly name = "Application";
+    readonly name: string = "Application";
 
     /** List of root activities, as child components */
     @managedChild
