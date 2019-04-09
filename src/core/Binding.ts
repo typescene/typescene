@@ -404,10 +404,9 @@ function _intFormatter(d: any) {
     return result > 0 ? result : result < 0 ? result : 0;
 }
 function _decimalFormatter(n: any, decimals: number | string) {
-    if (n == undefined) return "";
+    if (n === undefined || isNaN(n)) return "";
     decimals = +decimals;
-    let shifted = Math.round((parseFloat(n) + "e+" + decimals) as any);
-    return Number(shifted + "e-" + decimals).toFixed(decimals);
+    return (+(parseFloat(n).toFixed(decimals + 1) + "1")).toFixed(decimals);
 }
 function _uniqueFormatter(d: any) {
     if (d instanceof ManagedList) d = d.toArray();
