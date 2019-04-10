@@ -235,7 +235,7 @@ export class StringFormatBinding extends Binding {
                         else {
                             // replace with pluralization option
                             let bindingIndex = idx ? Number(idx) - 1 : lastIndex;
-                            return _pluralFormatter(values[bindingIndex], s);
+                            return tt.getPlural(values[bindingIndex], s.split("/"));
                         }
                     });
                 return super.getValue(result);
@@ -352,8 +352,9 @@ export function bind(propertyName?: string, defaultValue?: any) {
  * A format string should be passed as a first argument. The text is bound as-is, with the following types of tags replaced:
  *
  * - `${binding.foo|filter}`: inserts a bound value, as if the tag content was used as a parameter to `bind`.
- * - `#{one/two}`: inserts one of the given options, based on the value of the previous (or first) binding as an absolute number _or_ length of an array or managed list. The order of given options is 1/other, 0/1/other, 0/1/2/other, etc., unless handled differently by the current language service. Within the options, `#_` is replaced with the value of the relevant binding.
+ * - `#{one/two}`: inserts one of the given options, based on the value of the previous (or first) binding as an absolute number _or_ length of an array or managed list. The order of given options is 1/other, 0/1/other, 0/1/2/other, etc., unless handled differently by the current language service. Within the options, `#_` is replaced with the value of the relevant binding (clipped to an integer value).
  * - `#{2:one/two}`: as above, but refers to the binding at given index (base 1) instead of the previous binding.
+ * - `***{...}***`: removed altogether, this is meant for unique string identifiers or comments to translators.
  *
  * @note To use plurals or number forms based on values that should not be included in the output themselves, use the `_` (blank) filter, e.g. `"There ${n|_}#{are no/is one/are #_} item#{/s}"`.
  */
@@ -423,29 +424,4 @@ function _uniqueFormatter(d: any) {
         values.push(v);
         return true;
     });
-}
-function _pluralFormatter(n: any, forms: string) {
-    if (typeof n === "object") {
-        if (Array.isArray(n)) n = n.length;
-        else if (n instanceof ManagedList) n = n.count;
-        else if (typeof n.valueOf === "function") {
-            n = n.valueOf();
-            if (Array.isArray(n)) n = n.length;
-            else if (n instanceof ManagedList) n = n.count;
-        }
-    }
-    let options = forms.split("/");
-    let value = (typeof n === "string" ?
-        parseFloat(n) : Number(n)) || 0;
-    let absValue = Math.abs(value);
-    let result: string;
-    if (options.length === 2) {
-        // pick from one/other
-        result = options[absValue >= 1 && absValue < 2 ? 0 : 1];
-    }
-    else {
-        // otherwise pick from zero/one/etc...
-        result = options[Math.min(options.length - 1, Math.floor(absValue))];
-    }
-    return result.replace(/#_/g, String(value));
 }
