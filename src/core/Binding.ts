@@ -187,8 +187,8 @@ export class Binding {
  * String format bindings should be created using the `bindf` function instead of this constructor.
  */
 export class StringFormatBinding extends Binding {
-    /** Creates a new binding for given format string. See `bindf`. */
-    constructor(text: string | { toString(): string }) {
+    /** Creates a new binding for given format string (or any object that can be converted to a string). See `bindf`. */
+    constructor(text: any) {
         super(undefined);
 
         // prepare bindings for all tags in given format string
