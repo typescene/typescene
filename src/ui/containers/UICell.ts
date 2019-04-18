@@ -16,6 +16,7 @@ export type UICellOffsets = string | number | {
     left?: string | number, right?: string | number
 };
 
+/** Represents a UI component that visually groups other components in a rectangular cell */
 export class UICell extends UIContainer {
     static preset(presets: UICell.Presets,
         ...rest: Array<UIRenderableConstructor | undefined>): Function {
