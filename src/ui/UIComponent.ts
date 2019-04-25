@@ -42,7 +42,7 @@ export class UIBeforeFirstRenderEvent<TSource extends UIComponent> extends Manag
 
 /** Event that is emitted on a particular UI component when it is rendered, to be handled by a platform specific renderer (observer). Should not be propagated. */
 export class UIRenderEvent<TSource extends UIComponent> extends ManagedEvent {
-    /** Create a new event that encapsulates given render callback (from the application level `RenderContext`, or from a containing UI component) */
+    /** Create a new event that encapsulates given render callback (from the application level `UIRenderContext`, or from a containing UI component) */
     constructor(source: TSource, renderCallback: UIRenderContext.RenderCallback) {
         super("UIRender");
         this.source = source;

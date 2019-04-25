@@ -14,15 +14,15 @@
   "homepage": "http://typescene.org/",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "typings": "./typings/index.d.ts",
+  "typings": "./index.d.ts",
   "files": [
     "dist",
-    "typings"
+    "index.d.ts"
   ],
   "scripts": {
-    "clean": "rm -rf dist typings",
+    "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
-    "prebuild": "rm -rf dist typings && tsc -p src --declaration --declarationDir typings",
+    "prebuild": "rm -rf dist && tsc -p src --declaration",
     "build": "tsc -p src --removeComments",
     "watch": "tsc -p src -w"
   },

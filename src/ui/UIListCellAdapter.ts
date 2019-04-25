@@ -20,7 +20,7 @@ export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObjec
     readonly object?: TObject;
 }
 
-/** Component that can be used as an adapter to render items in a `UIList`. Instances are constructed using a single argument (a managed object from `UIList.items`), and are activated when rendered to create the cell component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object` and `selected` properties. */
+/** Component that can be used as an adapter to render items in a `UIListController`. Instances are constructed using a single argument (a managed object from `UIListController.items`), and are activated when rendered to create the cell component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object` and `selected` properties. */
 export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     extends Component.with({
         renderContext: renderContextBinding,

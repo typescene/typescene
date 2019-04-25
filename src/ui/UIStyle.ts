@@ -353,7 +353,7 @@ export namespace UIStyle {
         clip?: boolean;
     }
 
-    /** Separator style, for use with `UIList` */
+    /** Separator style, for use with containers and lists */
     export interface SeparatorOptions {
         /** Separator type, defaults to line */
         type?: "line" | "spacer";

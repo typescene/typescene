@@ -19,10 +19,10 @@ export class AppActivity extends AppComponent {
     /** Optional human readable name for this activity */
     name?: string;
 
-    /** Optional activation path; if set to a string, this activity is automatically activated and deactivated asynchronously, depending on the current target path (e.g. URL path, handled by a platform dependent `ActivationContext` instance). */
+    /** Optional activation path; if set to a string, this activity is automatically activated and deactivated asynchronously, depending on the current target path (e.g. URL path, handled by a platform dependent `AppActivationContext` instance). */
     path?: string;
 
-    /** The path segments that were captured *last* based on the target path, as matched by the `ActivationContext`, for a path such as `foo/bar/:id`, `foo/*name`, or `./:id`. This property is set when the activity is activated through `activateAsync`. */
+    /** The path segments that were captured *last* based on the target path, as matched by the `AppActivationContext`, for a path such as `foo/bar/:id`, `foo/*name`, or `./:id`. This property is set when the activity is activated through `activateAsync`. */
     @shadowObservable("_matchedPath")
     get match() { return this._matchedPath }
 
@@ -36,7 +36,7 @@ export class AppActivity extends AppComponent {
         return this.getManagedParent(Application);
     }
 
-    /** Activate this activity, based on given captured path segments (returned by `ActivationContext.match`, for a path such as `foo/bar/:id`, `foo/*name`, or `./:id`). This method is called automatically when the activity path matches the current target path, and can be overridden to validate the captured path segments before activation. */
+    /** Activate this activity, based on given captured path segments (returned by `AppActivationContext.match`, for a path such as `foo/bar/:id`, `foo/*name`, or `./:id`). This method is called automatically when the activity path matches the current target path, and can be overridden to validate the captured path segments before activation. */
     async activateAsync(match?: AppActivationContext.MatchedPath) {
         this._matchedPath = Object.freeze(match || { path: "" });
         await this.activateManagedAsync();

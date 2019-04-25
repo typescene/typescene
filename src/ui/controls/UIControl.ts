@@ -37,7 +37,7 @@ export abstract class UIControl extends UIComponent {
         this.controlStyle = { ...result, ...controlStyle };
     }
 
-    /** Apply properties from given object on top of the default `texttyle` properties from the current style set */
+    /** Apply properties from given object on top of the default `textStyle` properties from the current style set */
     protected applyTextStyle(textStyle: Partial<UIStyle.TextStyle>) {
         let result = this.style.getOwnStyles().textStyle;
         this.textStyle = { ...result, ...textStyle };

@@ -5,7 +5,9 @@ import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import { ManagedReference } from "./ManagedReference";
 import * as util from "./util";
 
-/** Type of error that can be thrown by the `ManagedRecord.validate` method, containing one or more validation errors */
+/**
+ * @interface _Also usable as a type:_ Type of error that can be thrown by the `ManagedRecord.validate` method, containing one or more validation errors
+ */
 export interface ManagedRecordValidationError extends Error {
     isValidationError: true;
     errors: Array<Error | {}>;

@@ -22,7 +22,7 @@ export class AppActivationContext extends ManagedObject {
     /**
      * Check if given activity path matches the current target path.
      * @param path
-     *  The activity path to match, without leading slashes (e.g. `foo/bar`). Paths with a trailing slash (e.g. `foo/bar/`) match the exact path as well as sub paths. Paths may contain partial captures as either `:foo` or `*foo`, matching a single segment without slashes and the full remainder of the target path, respectively - but *not* an empty segment. The prefix `./` is replaced with the path (string) of the closest parent activity that has a `path` string property.
+     *  The activity path to match, without leading slashes (e.g. `foo/bar`). Paths with a trailing slash (e.g. `foo/bar/`) match the exact path as well as sub paths. Paths may contain partial captures as either `:foo` or `*foo`, matching a single segment without slashes and the full remainder of the target path, respectively - but *not* an empty segment. The prefix `./` is replaced with the path (string) of the closest parent activity that has a `AppActivity.path` string property.
      * @param activity
      *  The activity that is used to search for parent activities if necessary.
      * @returns An object with properties for all partial captures *if* given path matches the current target, or undefined otherwise.
@@ -77,7 +77,7 @@ export class AppActivationContext extends ManagedObject {
 }
 
 export namespace AppActivationContext {
-    /** Captured path segments, matched by `ActivationContext.match` */
+    /** Captured path segments, matched by `AppActivationContext.match` */
     export interface MatchedPath {
         /** The full path that was matched */
         path: string;

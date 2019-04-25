@@ -26,7 +26,7 @@ export namespace UIRenderContext {
     /** Callback function that accepts rendered output and returns a next callback. */
     export interface RenderCallback<TOutput extends Output = Output<UIRenderable, any>> {
         /**
-         * One-time callback function that accepts rendered output and a callback function. This callback format is used by the `RenderContext` application renderer as well as renderers of UI components that contain other components.
+         * One-time callback function that accepts rendered output and a callback function. This callback format is used by the `UIRenderContext` application renderer as well as renderers of UI components that contain other components.
          * @param output
          *  The rendered output. If this is undefined, the output is removed.
          * @param afterRender
@@ -36,7 +36,7 @@ export namespace UIRenderContext {
         (output?: TOutput, afterRender?: (out?: Output) => void): RenderCallback<TOutput>;
     }
 
-    /** Encapsulates a rendered output element, to be placed on screen by a platform specific `RenderContext` instance. */
+    /** Encapsulates a rendered output element, to be placed on screen by a platform specific `UIRenderContext` instance. */
     export class Output<TComponent extends UIRenderable = UIRenderable, TElement = any> {
         constructor(source: TComponent, element: TElement, placement?: UIRenderPlacement, reference?: UIComponent) {
             this.source = source;
@@ -51,7 +51,7 @@ export namespace UIRenderContext {
         /** The rendered element, as a platform-dependent object or handle */
         element: TElement;
 
-        /** Placement mode, used by `RenderContext` for root output elements */
+        /** Placement mode, used by `UIRenderContext` for root output elements */
         placement?: UIRenderPlacement;
 
         /** Placement reference for dropdowns and popovers */

@@ -21,7 +21,7 @@ export class UIViewRenderer extends Component implements UIRenderable {
     /** Index of the view to be rendered from `managedList` (if number) or `managedMap` (if string), defaults to 0 */
     index: number | string = 0;
 
-    /** The current view (or view activity) to be rendered, can be bound, or automatically selected using `list` and `listIndex` properties; _not_ a child component */
+    /** The current view (or view activity) to be rendered, can be bound, or automatically selected using `managedList` or `managedMap` and `index` properties; _not_ a child component */
     @managed
     view?: UIRenderable;
 

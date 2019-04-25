@@ -21,7 +21,7 @@ export class ComponentList<T extends Component = Component> extends Component {
         this.propagateChildEvents();
     }
 
-    /** Propagate component events for all components in the list. See `ManagedList.propagateChildEvents`. */
+    /** Propagate component events for all components in the list. See `ManagedList.propagateEvents`. */
     propagateEvents(...types: Array<ManagedEvent | { new(...args: any[]): ManagedEvent }>) {
         this._list.propagateEvents(...types);
         return this;
