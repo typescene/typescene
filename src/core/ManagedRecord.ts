@@ -29,17 +29,6 @@ export let ManagedRecordValidationError: {
 
 /** Represents data that is managed as a single unit, with managed inward and outward references */
 export class ManagedRecord extends Component {
-    /** Create a new instance of `ManagedRecord` that contains given properties. All values are copied directly onto the new instance. */
-    static create<T extends object>(properties?: T) {
-        let result: ManagedRecord & { [p in keyof T]: T[p] } = new ManagedRecord() as any;
-        if (properties) {
-            for (let p in properties) {
-                result[p] = properties[p] as any;
-            }
-        }
-        return result;
-    }
-
     /**
      * Validate the data represented by this record. To be overridden by specific record classes, which should also always call `super.validate()`. Multiple (nested) errors may be thrown using the `ManagedRecordValidationError` constructor.
      * @exception By default, throws an error if this record has already been destroyed.
@@ -123,5 +112,18 @@ export class ManagedRecord extends Component {
                 return s[0];
             }
         }
+    }
+}
+
+export namespace ManagedRecord {
+    /** Create a new instance of `ManagedRecord` that contains given properties. All values are copied directly onto the new instance. */
+    export function create<T extends object>(properties?: T) {
+        let result: ManagedRecord & { [p in keyof T]: T[p] } = new ManagedRecord() as any;
+        if (properties) {
+            for (let p in properties) {
+                result[p] = properties[p] as any;
+            }
+        }
+        return result;
     }
 }
