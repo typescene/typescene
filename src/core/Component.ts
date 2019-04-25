@@ -81,8 +81,8 @@ export class Component extends ManagedObject {
         TPreset extends ComponentPresetType<TComponentCtor>,
         TRest extends ComponentPresetRestType<TComponentCtor>>(
         this: TComponentCtor & { preset(presets: TPreset): Function },
-        presets: { [P in keyof TPreset]?: TPreset[P] | { isComponentBinding(): true } } &
-            { [other: string]: any, with?: never },
+        presets:  { [P in keyof TPreset]?: TPreset[P] | { isComponentBinding(): true } } &
+            Exclude<{ [other: string]: any }, { with: any }>,
         ...rest: TRest):
         TComponentCtor;
     static with<TComponentCtor extends ComponentConstructor,
@@ -94,7 +94,7 @@ export class Component extends ManagedObject {
         TPreset extends ComponentPresetType<TComponentCtor>,
         TRest extends ComponentPresetRestType<TComponentCtor>>(
         this: TComponentCtor & { preset(presets: TPreset): Function },
-        presets: { [P in keyof TPreset]?: TPreset[P] | { isComponentBinding(): true } } & { with?: never },
+        presets: Exclude<{ [P in keyof TPreset]?: TPreset[P] | { isComponentBinding(): true } }, { with: any }>,
         ...rest: TRest):
         TComponentCtor;
     static with<TComponentCtor extends ComponentConstructor,
