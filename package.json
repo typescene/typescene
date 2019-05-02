@@ -12,11 +12,12 @@
     "url": "https://github.com/typescene/typescene/issues"
   },
   "homepage": "http://typescene.org/",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "main": "./index.js",
+  "module": "./index.js",
   "typings": "./index.d.ts",
   "files": [
     "dist",
+    "index.js",
     "index.d.ts"
   ],
   "scripts": {
