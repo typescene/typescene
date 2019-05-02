@@ -92,7 +92,7 @@ export namespace AppActivity {
     export interface Presets {
         /** Human readable name for this activity */
         name?: string,
-        /** (Partial) activation path, see `Activity.path` */
+        /** (Partial) activation path, see `AppActivity.path` */
         path?: string
     }
 }

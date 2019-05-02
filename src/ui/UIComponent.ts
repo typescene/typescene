@@ -131,7 +131,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
         this.emit(UIComponentEvent, name, this, inner, event);
     }
 
-    /** Trigger asynchronous rendering for this component, and all contained components (if any). Rendered output is passed to given callback (from the application level `RenderContext`, or from a containing UI component). */
+    /** Trigger asynchronous rendering for this component, and all contained components (if any). Rendered output is passed to given callback (from the application level `UIRenderContext`, or from a containing UI component). */
     render(callback: UIRenderContext.RenderCallback) {
         if (!this._firstRendered) {
             this._firstRendered = true;
