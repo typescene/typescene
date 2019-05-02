@@ -1,7 +1,7 @@
 {
   "name": "typescene",
   "version": "2.11.25",
-  "description": "Typescene toolkit",
+  "description": "Typescene framework",
   "author": "Jelmer Cormont",
   "license": "MIT",
   "repository": {
@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/typescene/typescene/issues"
   },
-  "homepage": "http://typescene.org/",
+  "homepage": "http://typescene.dev/",
   "main": "./index.js",
   "module": "./index.js",
   "typings": "./index.d.ts",
@@ -21,14 +21,15 @@
     "index.d.ts"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "rimraf dist",
     "prepublishOnly": "npm run build",
-    "prebuild": "rm -rf dist && tsc -p src --declaration",
+    "prebuild": "rimraf dist && tsc -p src --declaration",
     "build": "tsc -p src --removeComments",
     "watch": "tsc -p src -w"
   },
   "devDependencies": {
-    "typescript": "^3.2.2"
+    "rimraf": "^2.6.3",
+    "typescript": "^3.4.5"
   },
   "dependencies": {
     "tslib": "^1.9.3"
