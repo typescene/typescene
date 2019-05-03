@@ -26,14 +26,6 @@ export class Application extends Component {
         return super.preset(presets);
     }
 
-    /** Create a new `Application` instance. Do not use the base constructor, but use a class created using `Component.with` instead (exposed as `Application.with`). */
-    constructor() {
-        super();
-        if (!this.isPresetComponent()) {
-            throw Error("[Application] Cannot construct application using this constructor");
-        }
-    }
-
     /** The application name */
     readonly name: string = "Application";
 
