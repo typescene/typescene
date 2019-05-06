@@ -182,7 +182,7 @@ export namespace UICell {
         /** Set to true to allow this cell *itself* to receive input focus using the keyboard as well as other methods; implies `allowFocus` */
         allowKeyboardFocus?: boolean;
         /** Other CSS attributes that are applied directly to the container, if supported (plain object). */
-        css?: Partial<CSSStyleDeclaration>;
+        css?: Partial<CSSStyleDeclaration> & { className?: string };
 
         onMouseEnter?: UIComponentEventHandler<UICell>;
         onMouseLeave?: UIComponentEventHandler<UICell>;
