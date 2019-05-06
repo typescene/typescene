@@ -208,7 +208,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
             let ref = refs[util.MANAGED_LIST_REF_PREFIX + object.managedId];
             if (!ref) return;
             let beforeRef = before && refs[util.MANAGED_LIST_REF_PREFIX + before.managedId];
-            if (ref.k === beforeRef) return;
+            if (ref === beforeRef || ref.k === beforeRef) return;
             moved = true;
             if (refs.head === ref) refs.head = ref.k;
             if (refs.tail === ref) refs.tail = ref.j;
