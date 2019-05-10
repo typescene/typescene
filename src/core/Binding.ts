@@ -28,7 +28,7 @@ export class Binding {
             let parts = String(propertyName).split("|");
             path = parts.shift()!.split(".");
             propertyName = path.shift()!;
-            if (propertyName[0] === "!") {
+            while (propertyName[0] === "!") {
                 propertyName = propertyName.slice(1);
                 this.addFilter("!");
             }
@@ -338,7 +338,7 @@ export namespace Binding {
  *
  * The property name may be appended with a `|` (pipe) character and a *filter* name: see `Binding.addFilter` for available filters. Multiple filters may be chained together if their names are separated with more pipe characters.
  *
- * For convenience, `!property` is automatically rewritten as `property|!` to negate property values.
+ * For convenience, `!property` is automatically rewritten as `property|!` to negate property values, and `!!property` to convert any value to a boolean value.
  *
  * A default value may also be specified. This value is used when the bound value itself is undefined.
  */
