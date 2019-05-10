@@ -114,7 +114,7 @@ export class ManagedObject {
     /** @internal Set to the class itself when global preset method has run */
     static CLASS_INIT = ManagedObject;
 
-    /** Add a callback that is invoked by the constructor of this class, the first time an instance is created. The callback always runs only once. If an instance of this class has already been constructed, the callback is invoked immediately and its return value is returned. */
+    /** @internal Add a callback that is invoked by the constructor of this class, the first time an instance is created. The callback always runs only once. If an instance of this class has already been constructed, the callback is invoked immediately and its return value is returned. */
     static addGlobalClassInitializer<T>(f: () => T | void) {
         if (this.CLASS_INIT === this) {
             // already initialized, run function right away
@@ -609,7 +609,7 @@ export class ManagedObject {
     }
 
     /**
-     * Amend given property (on object or prototype) to turn it into a managed reference property.
+     * @internal Amend given property (on object or prototype) to turn it into a managed reference property.
      * @param object
      *  the instance or prototype object in which to amend given property
      * @param propertyKey
