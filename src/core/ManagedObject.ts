@@ -66,10 +66,14 @@ export class ManagedObject {
         return this;
     }
 
-    /** Attach a fixed event handler for _all instances_ of a derived class. */
+    /** Attach an event handler to be invoked for all events that are emitted on _all instances_ of a class. */
     static handle<T extends ManagedObject>(
         this: ManagedObjectConstructor<T>, handler: (this: T, e: ManagedEvent) => void): void;
-    /** Attach event handlers for _all instances_ of a derived class. The event name (`ManagedEvent.name` property) is used to find an event handler in given object. See also `ManagedObject.observe` for a more advanced way to observe events as well as property changes. */
+    /**
+     * Attach event handlers for _all instances_ of a derived class. The event name (`ManagedEvent.name` property) is used to find an event handler in given object.
+     *
+     * @note See also `ManagedObject.observe` for a more advanced way to observe events as well as property changes.
+     */
     static handle<T extends ManagedObject>(
         this: ManagedObjectConstructor<T>, handlers: { [eventName: string]: (this: T, e: ManagedEvent) => void }): void;
     static handle<T extends ManagedObject>(
@@ -176,7 +180,7 @@ export class ManagedObject {
 
     /**
      * Returns the current number of managed references that point to this object
-     * @note Observer classes (see `ManagedObject.observe`) may use the `onReferenceCountChangeAsync` method to observe this value asynchronously.
+     * @note Observers (see `ManagedObject.observe`) may use an `onReferenceCountChangeAsync` method to observe this value asynchronously.
      */
     protected getReferenceCount() { return this[util.HIDDEN_REFCOUNT_PROPERTY] }
 
@@ -196,7 +200,7 @@ export class ManagedObject {
     /**
      * Returns the managed object that contains a _managed child reference_ that points to this instance (see `@managedChild` and `@compose` decorators).
      * The object itself is never returned, even if it contains a managed child reference that points to itself.
-     * @note The reference to the managed parent (but not its events) can be observed by an observer class (see `ManagedObject.observe`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method.
+     * @note The reference to the managed parent (but not its events) can be observed (see `ManagedObject.observe`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
      */
     protected getManagedParent(): ManagedObject | undefined;
     /**
@@ -354,7 +358,10 @@ export class ManagedObject {
             this.onManagedStateInactiveAsync);
     }
 
-    /** Destroy this managed object (i.e. change state to `DESTROYING` and then to `DESTROYED`, clear all managed references from and to this object, and destroy all managed children) */
+    /**
+     * Destroy this managed object (i.e. change state to `DESTROYING` and then to `DESTROYED`, clear all managed references from and to this object, and destroy all managed children)
+     * @note Managed child objects are automatically destroyed when their parent's reference (decorated with `@managedChild`) is cleared or changed, or the child object is removed from a managed list or map that is itself a managed child, OR when the parent object itself is destroyed. Managed objects are also automatically destroyed when one or more of their own properties (those decorated with `@managedDependency`) are cleared or changed, or the dependency object itself is destroyed.
+     */
     protected async destroyManagedAsync() {
         let n = 3;
         let state: ManagedState;

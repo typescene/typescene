@@ -27,37 +27,37 @@ export class ComponentList<T extends Component = Component> extends Component {
         return this;
     }
 
-    /** Add one or more child components to the list */
+    /** Add one or more child components to the list (see `ManagedList.add`) */
     add(...components: T[]) {
         this._list.add(...components);
         return this;
     }
 
-    /** Clear the list */
+    /** Clear the list (see `ManagedList.clear`) */
     clear() {
         this._list.clear();
         return this;
     }
 
-    /** The number of components currently in the list */
+    /** The number of components currently in the list (see `ManagedList.count`) */
     get count() { return this._list.count }
 
     /** Returns the component with given ID (see `ManagedObject.managedId`). */
     find(id: number) { return this._list.find(id) }
 
-    /** Returns the first component in the list */
+    /** Returns the first component in the list (see `ManagedList.first`) */
     first() { return this._list.first() }
 
-    /** Returns true if given callback function returns a truthy value for at least one of the components in this list */
+    /** Returns true if given callback function returns a truthy value for at least one of the components in this list (see `ManagedList.some`) */
     some(callback: (target: T) => any) { return this._list.some(callback) }
 
-    /** Returns true if given callback function returns a truthy value for every component in this list (or if the list is empty) */
+    /** Returns true if given callback function returns a truthy value for every component in this list, or if the list is empty (see `ManagedList.every`) */
     every(callback: (target: T) => any) { return this._list.every(callback) }
 
     /** Iterates over the components in this list (see `ManagedList.forEach`). */
     forEach(callback: (target: T) => void) { this._list.forEach(callback) }
 
-    /** Returns true if given component is currently included in this list */
+    /** Returns true if given component is currently included in this list (see `ManagedList.includes`) */
     includes(component: T) { return this._list.includes(component) }
 
     /** Returns the object at given position in the list (see `ManagedList.get`) */
@@ -72,42 +72,42 @@ export class ComponentList<T extends Component = Component> extends Component {
         return this;
     }
 
-    /** Returns the last component in the list */
+    /** Returns the last component in the list (see `ManagedList.last`) */
     last() { return this._list.last() }
 
-    /** Iterates over the objects in this list and returns an array with results. See `ManagedList.map`. */
+    /** Iterates over the objects in this list and returns an array with results (see `ManagedList.map`). */
     map<TResult>(callback: (target: T) => TResult) {
         return this._list.map(callback);
     }
 
-    /** Returns an array with the values of given property for all components in the list. */
+    /** Returns an array with the values of given property for all components in the list (see `ManagedList.pluck`) */
     pluck<K extends keyof T>(propertyName: K) {
         return this._list.pluck(propertyName);
     }
 
-    /** Remove given component from the list. Does not throw an error if the component was not included in the list. */
+    /** Remove given component from the list. Does not throw an error if the component was not included in the list (see `ManagedList.remove`) */
     remove(component: T) {
         this._list.remove(component);
         return this;
     }
 
-    /** Replace the components in the list with given components. See `ManagedList.replace`. */
+    /** Replace the components in the list with given components (see `ManagedList.replace`) */
     replace(components: Iterable<T>) {
         this._list.replace(components);
         return this;
     }
 
-    /** Returns an array with given number of components taken from the list. See `ManagedList.take`. */
+    /** Returns an array with given number of components taken from the list (see `ManagedList.take`) */
     take(n: number, startingFrom?: T) {
         return this._list.take(n, startingFrom);
     }
 
-    /** Returns an array with given number of components taken from the list. See `ManagedList.takeLast`. */
+    /** Returns an array with given number of components taken from the list (see `ManagedList.takeLast`) */
     takeLast(n: number, endingAt?: T) {
         return this._list.takeLast(n, endingAt);
     }
 
-    /** Returns an array with all components currently in this list */
+    /** Returns an array with all components currently in this list (see `ManagedList.toArray`) */
     toArray() { return this._list.toArray() }
 
     /** Returns an array representation of this list (alias of `toArray` method) */

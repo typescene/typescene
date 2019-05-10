@@ -44,8 +44,8 @@ export class UITheme {
     /** The current theme. This value may be changed but it is not observed. */
     static current: UITheme;
 
-    /** Returns a suitable text color for given background color */
-    public static getTextColor(bg: string) {
+    /** Returns a suitable text color for given background color (mostly black, or mostly white) */
+    public static getTextColor(bg: string): string {
         return this.isBrightColor(bg) ?
             "rgba(0,0,0,.8)" : "rgba(255,255,255,.95)";
     }

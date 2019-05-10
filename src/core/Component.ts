@@ -134,8 +134,10 @@ export class Component extends ManagedObject {
     }
 
     /**
-     * Add bindings, components, and event handlers from given presets to the current component constructor. This method is called by `Component.with`, and should be called by all derived classes as well, through `super`.
-     * Any rest parameters accepted by overriding methods are passed down from `Component.with` as well, except plain objects which are interpreted as preset objects.
+     * Add bindings, components, and event handlers from given presets to the current component constructor. This method is called by `Component.with` with the same arguments.
+     * Component classes _may_ override this method and return the result of `super.preset(...)` if:
+     * - the `.with()` function for a component class should accept custom type(s) for its arguments. The parameter signature for the `preset` method is used to determine the parameter signature for `.with()` on a component class.
+     * - component instances should be prepared in any way other than setting property values, adding bindings, or event handlers immediately after being constructed (using the returned callback).
      * @returns A function (*must* be typed as `Function` even in derived classes) that is called by the constructor for each new instance, to apply remaining values from the preset object to the component object that is passed through `this`.
      */
     static preset(presets: object, ...rest: unknown[]): Function {
@@ -178,7 +180,10 @@ export class Component extends ManagedObject {
         }
     }
 
-    /** Add given binding to this component constructor, so that the property with given name *on all instances* will be updated with value(s) taken from the parent composite object. Optionally given function is used to set the property value using the updated (bound) value; otherwise, values are copied directly except for arrays, which are used to replace the values in a managed list (see `ManagedList.replace`). */
+    /**
+     * Add given binding to this component constructor, so that the property with given name *on all instances* will be updated with value(s) taken from the parent composite object. Optionally given function is used to set the property value using the updated (bound) value; otherwise, values are copied directly except for arrays, which are used to replace the values in a managed list (see `ManagedList.replace`).
+     * @note This method is used by `preset` when the argument to `.with()` includes a binding (see `bind`). This method should not be used directly unless passing a binding to `.with()` is not possible.
+     */
     static presetBinding<TComponent extends Component>(
         this: ComponentConstructor<TComponent>,
         propertyName: string, binding: Binding,
@@ -200,7 +205,10 @@ export class Component extends ManagedObject {
         });
     }
 
-    /** Inherit bindings from given component constructor(s) on this constructor, so that all inherited bindings will be bound on the parent composite object and (nested) child instances of given constructors can be updated as and when needed. */
+    /**
+     * Inherit bindings from given component constructor(s) on this constructor. Inherited bindings will be bound to the same parent composite object as bindings passed to `.with()` directly, to update bound properties of (nested) child instances.
+     * @note This method must be used by a custom `preset` function if the preset component (may) have managed child objects (see `@managedChild`) of the given type and the constructor is not passed to `super.preset(...)`.
+     */
     static presetBindingsFrom(...constructors: Array<ComponentConstructor | undefined>) {
         let ownBindings = { ...this.prototype.getOwnBindings() };
         for (let C of constructors) {
@@ -410,8 +418,8 @@ export class Component extends ManagedObject {
     getOwnBindings(): Readonly<{ [key: string]: Binding | ComponentConstructor }> { return {} }
 
     /**
-     * Create and emit an event with given name and a reference to this component. The base implementation emits a plain `ComponentEvent`, but this method may be overridden to emit other events.
-     * This method is used by classes created using `Component.with` if an event handler is specified using the `{ ... onEventName: "+OtherEvent" }` pattern.
+     * Create and emit an event with given name, a reference to this component, and an optional inner (propagated) event. The base implementation emits a plain `ComponentEvent`, but this method may be overridden to emit other events.
+     * @note This method is used by classes created using `Component.with` if an event handler is specified using the `{ ... onEventName: "+OtherEvent" }` pattern.
      */
     public propagateComponentEvent(name: string, inner?: ManagedEvent) {
         this.emit(ComponentEvent, name, this, inner);

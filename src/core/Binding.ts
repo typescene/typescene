@@ -333,7 +333,9 @@ export namespace Binding {
 /**
  * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the composite object.
  *
- * The property name is specified in the first argument. Nested properties are allowed (e.g. `foo.bar`), but only the highest level property will be observed. Hence, changes to nested properties may not be reflected in bound values unless a change event is emitted on the highest level property.
+ * The property name is specified using the first argument. Nested properties are allowed (e.g. `foo.bar`), but _only_ the first property will be observed. Hence, changes to nested properties are not be reflected automatically.
+ *
+ * To observe changes to nested properties, emit a `ManagedChangeEvent` on the highest level property.
  *
  * Mapped objects in a `ManagedMap` can be bound using a `#` prefix for keys (e.g. `map.#key`).
  * A `ManagedMap` can be bound as a plain object using a `#` nested property (e.g. `map.#`).
