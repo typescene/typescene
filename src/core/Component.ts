@@ -362,6 +362,7 @@ export class Component extends ManagedObject {
                 let bound = this._compositeParent &&
                     this._compositeParent.getBoundBinding(binding);
                 if (!bound) {
+                    if (binding.ignoreUnbound) continue;
                     throw TypeError("[Component] Binding not found for " + p);
                 }
                 this._componentBindings!.push(bound);

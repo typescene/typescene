@@ -1,5 +1,5 @@
 import { Binding, logUnhandledException, managed, ManagedChangeEvent, managedChild, ManagedEvent, tt } from "../core";
-import { formContextBinding, UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext, UIRenderPlacement, UITheme } from "../ui";
+import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext, UIRenderPlacement, UITheme } from "../ui";
 import { AppActivity } from "./AppActivity";
 
 /**
@@ -9,7 +9,6 @@ import { AppActivity } from "./AppActivity";
 export class ViewActivity extends AppActivity implements UIRenderable {
     static preset(presets: ViewActivity.Presets,
         View?: UIRenderableConstructor): Function {
-        this.presetBinding("formContext", formContextBinding);
         let addViewComponent = (View: UIRenderableConstructor) => {
             this.presetActiveComponent("view", View, AppActivity);
             if (!Object.prototype.hasOwnProperty.call(View, "preset")) {

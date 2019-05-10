@@ -19,9 +19,10 @@ export class Binding {
     }
 
     /** Create a new binding for given property and default value. See `bind`. */
-    constructor(source?: string, defaultValue?: any) {
+    constructor(source?: string, defaultValue?: any, ignoreUnbound?: boolean) {
         let path: string[] | undefined;
         let propertyName = source !== undefined ? String(source) : undefined;
+        if (ignoreUnbound) this.ignoreUnbound = true;
 
         // parse property name, path, and filters
         if (propertyName !== undefined) {
@@ -112,6 +113,9 @@ export class Binding {
 
     /** Parent binding, if any (e.g. for nested bindings in string format bindings) */
     parent?: Binding;
+
+    /** Set to true to ignore this binding when a component is added to a composite parent that has not been preset with this binding (to avoid the 'Binding not found for X' error), which can happen if a component is not added through `@compose` but as a regular child object using `@managedChild`. */
+    ignoreUnbound?: boolean;
 
     /**
      * Add a filter to this binding, which transforms values to a specific type or format. These can be chained by adding multiple filters in order of execution.
@@ -341,9 +345,11 @@ export namespace Binding {
  * For convenience, `!property` is automatically rewritten as `property|!` to negate property values, and `!!property` to convert any value to a boolean value.
  *
  * A default value may also be specified. This value is used when the bound value itself is undefined.
+ *
+ * If the final parameter is set to true, the binding is ignored when the component is added to a composite parent that has not been preset with this binding (to avoid the 'Binding not found for X' error), which can happen if a component is not added through `@compose` but as a regular child object using `@managedChild`.
  */
-export function bind(propertyName?: string, defaultValue?: any) {
-    return new Binding(propertyName, defaultValue);
+export function bind(propertyName?: string, defaultValue?: any, ignoreUnbound?: boolean) {
+    return new Binding(propertyName, defaultValue, ignoreUnbound);
 }
 
 /**

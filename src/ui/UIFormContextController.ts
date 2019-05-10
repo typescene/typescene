@@ -4,7 +4,7 @@ import { UIRenderableController } from "./UIRenderableController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** @internal Form state context binding, can be reused to avoid creating new bindings */
-export let formContextBinding = bind("formContext");
+export let formContextBinding = bind("formContext", undefined, true);
 
 /** Renderable wrapper that injects a form context record, to be used by (nested) child input controls. */
 export class UIFormContextController extends Component.with({
