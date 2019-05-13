@@ -3,7 +3,7 @@ import { AppActivationContext } from "./AppActivationContext";
 import { AppComponent } from "./AppComponent";
 import { Application } from "./Application";
 
-/** Represents a component of an application, which can be activated and deactivated independently */
+/** Activity base class. Represents a component of an application, which can be activated and deactivated independently. Can be used for activities that are activated independently of the UI; otherwise refer to any of the `ViewActivity` classes. */
 export class AppActivity extends AppComponent {
     static preset(presets: AppActivity.Presets): Function {
         return super.preset(presets);

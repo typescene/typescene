@@ -2,7 +2,7 @@ import { ManagedChangeEvent, ManagedEvent, ManagedObjectAddedEvent, ManagedObjec
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import * as util from "./util";
 
-/** Represents an unordered list that maps keys (strings) to managed objects */
+/** Represents an _unordered_ list of managed objects that are indexed using unique key strings */
 export class ManagedMap<T extends ManagedObject = ManagedObject> extends ManagedObject {
     /** Creates an empty map */
     constructor() {

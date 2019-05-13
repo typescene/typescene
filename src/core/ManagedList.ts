@@ -11,7 +11,7 @@ if (typeof Symbol !== "function") {
         throw Error("Symbol not supported");
 }
 
-/** Represents an ordered list of (unique) managed objects */
+/** Represents an list of managed objects. The objects in the list are _ordered_ and _unique_, ensuring that there are no gaps or repeated list items. */
 export class ManagedList<T extends ManagedObject = ManagedObject> extends ManagedObject {
     /** Creates a new list of objects */
     constructor(...objects: T[]) {
@@ -69,7 +69,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     }
 
     /**
-     * Insert an object (or managed list or map) in this list.
+     * Insert an object (or managed list or map) into this list.
      * @param target
      *  the object to be added to the list
      * @param before

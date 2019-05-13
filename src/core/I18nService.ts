@@ -2,7 +2,11 @@ import { ManagedList } from './ManagedList';
 import { ManagedObject } from './ManagedObject';
 import { ManagedService, service } from './ManagedService';
 
-/** Abstract base class definition for a `ManagedService` that provides internationalization features */
+/**
+ * Abstract base class definition for a `ManagedService` that provides internationalization features.
+ * To implement i18n in an application, extend this class and register an instance for the current locale before rendering the UI. Alternatively, use `UIRenderContext.emitRenderChange` after registering a new service to update the UI. In the application's implementation of the `I18nService` class, the methods `tt` and and `getNonTranslatable` must be defined.
+ * @note The service name _must_ remain `"Core.I18n"` (default, assigned by this base class) for global functions such as 'tt' to work.
+ */
 export abstract class I18nService extends ManagedService {
     name = "Core.I18n";
 
@@ -12,11 +16,11 @@ export abstract class I18nService extends ManagedService {
     /**
      * Translate and/or format given value, based on given type string (defaults to 'translate' for strings passed to the `tt` function, or 'datetime' for Date values).
      *
-     * @note Use the `tt` function instead where possible, since that also removes `***{...}***` tags which can be used for unique string identifiers or comments to translators.
+     * @note Use the `tt` function instead where possible, which also removes `***{...}***` tags which can be used for unique string identifiers or comments to translators. This method should not need to remove those tags by itself.
      */
     abstract tt(value: any, type: string): string;
 
-    /** Returns an object with property names set to strings that should have been translated, but for which a translation was not available */
+    /** Returns an object with property names set to strings that should have been translated, but for which a translation was not available (abstract) */
     abstract getNonTranslatable(): { [text: string]: any };
 
     /**

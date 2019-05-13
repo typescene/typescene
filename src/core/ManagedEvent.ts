@@ -3,7 +3,7 @@ import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 
 /**
- * Event that can be emitted on a managed object, list/map, or reference, to be received by any object that references it.
+ * Event that can be emitted on a managed object, list/map, or reference, to be handled by objects that reference the emitting object.
  * @note Event instances may be frozen and reused for better performance. See `ManagedEvent.freeze`
  */
 export class ManagedEvent {
@@ -19,7 +19,7 @@ export class ManagedEvent {
     }
 }
 
-/** Core event that is not propagated by default (see `ManagedObject.propagateChildEvents`) */
+/** Core event that is _not propagated_ by default (see `ManagedObject.propagateChildEvents`) */
 export class ManagedCoreEvent extends ManagedEvent {
     /** Event that is emitted for all managed objects after activation */
     static readonly ACTIVE = new ManagedCoreEvent("Active").freeze();
@@ -47,7 +47,7 @@ export const INACTIVE = ManagedCoreEvent.INACTIVE;
 /** Alias of the `ManagedCoreEvent.DESTROYED` event */
 export const DESTROYED = ManagedCoreEvent.DESTROYED;
 
-/** Event that is emitted when a managed object is assigned to a managed child reference (see `@managedChild` decorator) */
+/** Event that is emitted when a managed object is assigned to a managed child reference property (see `@managedChild` decorator); the child object emits this event, with `parent` set to the _new_ parent object */
 export class ManagedParentChangeEvent extends ManagedCoreEvent {
     constructor(parent: ManagedObject) {
         super("ManagedParentChange");

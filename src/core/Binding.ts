@@ -9,8 +9,8 @@ import * as util from "./util";
 let _nextBindingUID = 16;
 
 /**
- * Represents a value to be included in `Component` presets (using the static `Component.with` method), to be updated asynchronously from a property on active composite objects (see `@compose`).
- * Bindings should be created using the `bind` and `bindf` functions, and assigned to a property of a single object passed to `Component.with`.
+ * Component property binding base class.
+ * Bindings should be created using the `bind` and `bindf` functions, and used as a property of the object passed to `Component.with`.
  */
 export class Binding {
     /** Returns true if given value is an instance of `Binding` */
@@ -188,7 +188,7 @@ export class Binding {
 
 /**
  * Represents a set of bindings (see `Binding`) that are compiled into a single string value.
- * String format bindings should be created using the `bindf` function instead of this constructor.
+ * String format bindings should be created using the `bindf` function.
  */
 export class StringFormatBinding extends Binding {
     /** Creates a new binding for given format string (or any object that can be converted to a string). See `bindf`. */
@@ -331,11 +331,9 @@ export namespace Binding {
 }
 
 /**
- * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the composite object.
+ * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the composite parent object, such as the `Activity` for a view, the `Application` for an activity, the `ViewComponent` for nested views, or any other class that has a property decorated with `@compose`.
  *
- * The property name is specified using the first argument. Nested properties are allowed (e.g. `foo.bar`), but _only_ the first property will be observed. Hence, changes to nested properties are not be reflected automatically.
- *
- * To observe changes to nested properties, emit a `ManagedChangeEvent` on the highest level property.
+ * The bound property name is specified using the first argument. Nested properties are allowed (e.g. `foo.bar`), but _only_ the first property will be observed. Hence, changes to nested properties are not reflected automatically. To update bound values for nested properties, emit a `ManagedChangeEvent` on the highest level property.
  *
  * Mapped objects in a `ManagedMap` can be bound using a `#` prefix for keys (e.g. `map.#key`).
  * A `ManagedMap` can be bound as a plain object using a `#` nested property (e.g. `map.#`).
@@ -355,11 +353,11 @@ export function bind(propertyName?: string, defaultValue?: any, ignoreUnbound?: 
 }
 
 /**
- * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with a string that includes property values from the composite object.
+ * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with a string that includes property values from the composite parent object, such as the `Activity` for a view, the `Application` for an activity, the `ViewComponent` for nested views, or any other class that has a property decorated with `@compose`.
  *
  * A format string should be passed as a first argument. The text is bound as-is, with the following types of tags replaced:
  *
- * - `${binding.foo|filter}`: inserts a bound value, as if the tag content was used as a parameter to `bind`.
+ * - `${binding.foo|filter}`: inserts a bound value, as if the tag content was used as a parameter to `bind`. This may include one or more filters (see Binding.addFilter).
  * - `#{one/two}`: inserts one of the given options, based on the value of the previous (or first) binding as an absolute number _or_ length of an array or managed list. The order of given options is 1/other, 0/1/other, 0/1/2/other, etc., unless handled differently by the current language service. Within the options, `#_` is replaced with the value of the relevant binding (clipped to an integer value).
  * - `#{2:one/two}`: as above, but refers to the binding at given index (base 1) instead of the previous binding.
  * - `***{...}***`: removed altogether, this is meant for unique string identifiers or comments to translators.

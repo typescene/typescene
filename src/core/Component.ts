@@ -9,7 +9,7 @@ import { onPropertyChange } from "./observe";
 /** Running ID used by `presetBindingsFrom` */
 let _presetBindingsFromID = 0;
 
-/** Event that is emitted on a particular `Component` instance */
+/** Event that is emitted on a particular `Component` instance, with reference to the source component as `source` */
 export class ComponentEvent extends ManagedEvent {
     constructor(name: string, source: Component, inner?: ManagedEvent) {
         super(name);
@@ -66,10 +66,13 @@ export class CompositeParentChangeEvent extends ComponentEvent {
     composite?: Component;
 }
 
-/** Represents an object that can be initialized from a static structure, optionally containing nested components which may contain bindings to properties on the composite parent object (see `@compose` decorator). */
+/**
+ * Component base class. Represents a managed object (see `ManagedObject`) that can be initialized from a 'preset' structure passed to its static `with` method.
+ * Component property values may be bound (see `bind`) to properties of a 'composite' parent, i.e. the component that references sub components through a property decorated with the `@compose` decorator.
+ */
 export class Component extends ManagedObject {
     /**
-     * Create a new constructor, for which instances are automatically updated with given properties, bindings, event handlers, and other values.
+     * Create a new component _constructor_, for which instances are automatically updated with given properties, bindings, event handlers, and other values.
      * - When an instance is activated, components included as preset properties are instantiated and assigned to properties with the same name as the preset object property.
      * - When an instance becomes a (nested) child component of an active _composite object_ (or upon activation of such an object), bindings are activated to reflect values from the composite object.
      * - Event handlers are added on all instances of the component class, using one of the following patterns:

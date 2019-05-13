@@ -1,7 +1,7 @@
 import { ManagedChangeEvent, ManagedObject } from "../core";
 import { AppActivity } from "./AppActivity";
 
-/** Represents the application state using a single path in URL format. */
+/** Represents the application state using a single path in URL format. Used by `Application` and `AppActivity` classes to implement routing behaviors. */
 export class AppActivationContext extends ManagedObject {
     /** The current full target path, in URL format without leading or trailing slashes (e.g. `foo/bar/123`), defaults to the empty string. Changes to this property automatically result in a change event being emitted on the object itself. */
     get target() { return this._target }

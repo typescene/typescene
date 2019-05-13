@@ -38,7 +38,7 @@ export function service(name: string): PropertyDecorator {
     };
 }
 
-/** Represents a named service that can be referenced by other classes using the `@service` decorator after registering the object with a well known name. */
+/** Managed service base class. Represents a service that can be referenced by other classes using the `@service` decorator after registering the object with a well known name. */
 export abstract class ManagedService extends ManagedObject {
     /**
      * Retrieve the currently active service with given name (case insensitive).

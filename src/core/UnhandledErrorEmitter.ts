@@ -2,7 +2,7 @@ import { ManagedEvent } from "./ManagedEvent";
 import { ManagedObject } from "./ManagedObject";
 import * as util from "./util";
 
-/** Event that is emitted by `UnhandledErrorEmitter` for each unhandled error */
+/** Event that is emitted by `UnhandledErrorEmitter` for each unhandled error (see `UnhandledErrorEmitter`) */
 export class UnhandledErrorEvent extends ManagedEvent {
     constructor(error: any) {
         super("ERROR");

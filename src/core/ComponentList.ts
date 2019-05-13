@@ -3,7 +3,7 @@ import { ManagedEvent } from './ManagedEvent';
 import { ManagedList } from "./ManagedList";
 import { managedChild } from "./ManagedReference";
 
-/** A component that encapsulates a list of child components */
+/** Component that encapsulates a list of child components */
 export class ComponentList<T extends Component = Component> extends Component {
     static preset(presets: unknown,
         ...components: Array<ComponentConstructor & (new () => Component)>): Function {

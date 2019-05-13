@@ -3,7 +3,11 @@ import { UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
 
-/** Represents an independent part of the user interface */
+/**
+ * Represents the application itself, encapsulates activities (`AppActivity` components) and contexts for rendering and activation using URL-like paths.
+ * Use the static `run` method to create and activate an application using a set of activity constructors, or create an application class that includes activities as sub components (properties decorated using the `@compose` decorator). For a manually created class, an instance must be created and activated (see `activate`) for the application to start.
+ * @note Do not use the `Application` class directly, as it will __not__ initialize rendering or activation contexts. Instead, use platform specific application classes such as `BrowserApplication` that is exported by the `@typescene/webapp` package.
+ */
 export class Application extends Component {
     /**
      * Create an application that includes given activities, and start it immediately.

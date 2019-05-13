@@ -3,8 +3,8 @@ import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, U
 import { AppActivity } from "./AppActivity";
 
 /**
- * Represents an application activity with content that can be rendered when activated.
- * @note This class is similar to `ViewComponent`, but has additional functionality to allow it to be used as an application activity (derived from `AppActivity`).
+ * View activity base class. Represents an application activity with content that can be rendered when activated.
+ * @note Nothing is rendered if the `placement` property is undefined (default). Make sure this property is set to a `UIRenderPlacement` value before rendering, or use a specific view activity class such as `PageViewActivity`.
  */
 export class ViewActivity extends AppActivity implements UIRenderable {
     static preset(presets: ViewActivity.Presets,
@@ -191,12 +191,15 @@ ViewActivity.observe(class {
     }
 });
 
-/** Represents an application activity with a view that is rendered as a full page */
+/** Represents an application activity with a view that is rendered as a full page (when active) */
 export class PageViewActivity extends ViewActivity {
     placement = UIRenderPlacement.PAGE;
 }
 
-/** Represents an application activity with a view that is rendered as a modal dialog */
+/**
+ * Represents an application activity with a view that is rendered as a modal dialog (when active).
+ * Use `UIComponent.position` (`UIStyle.Position`, specifically the `gravity` property) to determine the position of the dialog UI.
+ */
 export class DialogViewActivity extends ViewActivity {
     placement = UIRenderPlacement.DIALOG;
     modalShadeOpacity = UITheme.current.modalDialogShadeOpacity;

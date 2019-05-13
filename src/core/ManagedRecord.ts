@@ -27,7 +27,7 @@ export let ManagedRecordValidationError: {
     return result;
 } as any;
 
-/** Represents data that is managed as a single unit, with managed inward and outward references */
+/** Managed record base class. Represents data that is managed (as `ManagedObject`), with additional methods to managed inward references — especially useful for constructing the application model */
 export class ManagedRecord extends Component {
     /**
      * Validate the data represented by this record. To be overridden by specific record classes, which should also always call `super.validate()`. Multiple (nested) errors may be thrown using the `ManagedRecordValidationError` constructor.
