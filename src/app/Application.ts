@@ -1,10 +1,20 @@
-import { Component, ComponentConstructor, ComponentList, managedChild, ManagedList } from "../core";
+import { Component, ComponentConstructor, ComponentList, logUnhandledException, managedChild, ManagedList } from "../core";
 import { UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
 
 /** Represents an independent part of the user interface */
 export class Application extends Component {
+    /**
+     * Create an application that includes given activities, and start it immediately.
+     * @returns the application instance
+     * @note Calling this method directly on `Application` creates an application without any context (i.e. `activationContext` and `renderContext`). Instead, use a constructor that is meant for a specific platform (e.g. `BrowserApplication`).
+     */
+    static run(...activities: Array<ComponentConstructor & (new () => AppActivity)>) {
+        let C = this.with(...activities);
+        return new C().activate();
+    }
+
     /** All `Application` instances that are currently active */
     static active = (() => {
         let result = new ManagedList<Application>();
@@ -40,6 +50,15 @@ export class Application extends Component {
     /** Activity activation context as a managed child object, propagated to all (nested) `AppComponent` instances */
     @managedChild
     activationContext?: AppActivationContext;
+
+    /**
+     * Activate this application asynchronously, immediately creating all primary activities; any errors during activation are handled by logging them to the console (uses `UnhandledErrorEmitter`)
+     * @returns the application itself
+     */
+    activate() {
+        this.activateAsync().catch(logUnhandledException);
+        return this;
+    }
 
     /** Activate this application, immediately creating all primary activities */
     async activateAsync() { await this.activateManagedAsync() }
