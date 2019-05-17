@@ -25,9 +25,12 @@
     "prepublishOnly": "npm run build",
     "prebuild": "rimraf dist && tsc -p src --declaration",
     "build": "tsc -p src --removeComments",
-    "watch": "tsc -p src -w"
+    "postbuild": "node test/run",
+    "watch": "tsc -p src -w",
+    "test": "node test/run"
   },
   "devDependencies": {
+    "esm": "^3.2.22",
     "rimraf": "^2.6.3",
     "typescript": "^3.4.5"
   },
