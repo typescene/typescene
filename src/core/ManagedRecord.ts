@@ -95,21 +95,23 @@ export class ManagedRecord extends Component {
     }
 
     /** Returns the next record in a parent list (i.e. a list that is a child object of another record) */
-    getNextSibling() {
+    getNextSibling<TResult = this>(): TResult | undefined {
         let parent = this.getManagedParent();
         if (parent instanceof ManagedList) {
             let sibling = parent.take(2, this)[1];
-            if (sibling instanceof ManagedRecord) return sibling;
+            if (sibling instanceof ManagedRecord) {
+                return sibling as any;
+            }
         }
     }
 
     /** Returns the previous record in a parent list (i.e. a list that is a child object of another record) */
-    getPreviousSibling() {
+    getPreviousSibling<TResult = this>(): TResult | undefined {
         let parent = this.getManagedParent();
         if (parent instanceof ManagedList) {
             let s = parent.takeLast(2, this);
             if (s.length > 1 && (s[0] instanceof ManagedRecord)) {
-                return s[0];
+                return s[0] as any;
             }
         }
     }
