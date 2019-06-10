@@ -1,12 +1,12 @@
-<p style="text-align: center; margin: 1rem 0 0; padding: 0"><a href="https://typescene.dev"><img src="https://typescene.dev/assets/logo_detail.png" style="width: 8rem; border: 0"></a></p>
+<p align="center"><a href="https://typescene.dev"><img width="160" src="https://typescene.dev/assets/logo_detail.png"></a></p>
 
-<p style="text-align: center">
+<p align="center">
   <a href="https://npmcharts.com/compare/typescene?minimal=true"><img src="https://img.shields.io/npm/dm/typescene.svg"></a>
   <a href="https://www.npmjs.com/package/typescene"><img src="https://img.shields.io/npm/v/typescene.svg"></a>
   <a href="https://www.npmjs.com/package/typescene"><img src="https://img.shields.io/npm/l/typescene.svg"></a>
 </p>
 
-<h1 style="text-align: center">Typescene</h1>
+<h1 align="center">Typescene</h1>
 
 Typescene is a robust front end library written in TypeScript: strongly typed, no dependencies, no nonsense.
 
