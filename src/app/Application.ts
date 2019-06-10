@@ -1,7 +1,8 @@
-import { Component, ComponentConstructor, ComponentList, logUnhandledException, managedChild, ManagedList } from "../core";
+import { Component, ComponentConstructor, logUnhandledException, managedChild, ManagedList } from "../core";
 import { UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
+import { AppActivityList } from './AppActivityList';
 
 /**
  * Represents the application itself, encapsulates activities (`AppActivity` components) and contexts for rendering and activation using URL-like paths.
@@ -34,7 +35,7 @@ export class Application extends Component {
         ...activities: Array<ComponentConstructor & (new () => AppActivity)>): Function {
         if (activities.length) {
             this.presetActiveComponent("activities",
-                ComponentList.with(...activities),
+                AppActivityList.with(...activities),
                 AppActivity);
         }
         return super.preset(presets);
@@ -45,7 +46,7 @@ export class Application extends Component {
 
     /** List of root activities, as child components */
     @managedChild
-    activities?: ComponentList<AppActivity>;
+    activities?: AppActivityList;
 
     /** Application render context as a managed child object, propagated to all (nested) `AppComponent` instances */
     @managedChild
