@@ -11,7 +11,7 @@ if (typeof Symbol !== "function") {
         throw Error("Symbol not supported");
 }
 
-/** Represents an list of managed objects. The objects in the list are _ordered_ and _unique_, ensuring that there are no gaps or repeated list items. */
+/** Represents a list of managed objects. The objects in the list are _ordered_ and _unique_, ensuring that there are no gaps or repeated list items. */
 export class ManagedList<T extends ManagedObject = ManagedObject> extends ManagedObject {
     /** Creates a new list of objects */
     constructor(...objects: T[]) {
