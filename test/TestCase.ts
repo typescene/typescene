@@ -15,14 +15,16 @@ export class TestCase {
         this._promise = new Promise(resolve => {
             this._resolve = () => {
                 this._resolved = true;
+                if (this._timer) {
+                    clearTimeout(this._timer);
+                }
                 resolve();
             };
         });
     }
 
     failOnTimeout(ms = 5000, comment?: string) {
-        this._timed = true;
-        setTimeout(() => {
+        this._timer = setTimeout(() => {
             if (!this._resolved) {
                 let msg = "Timeout" + (comment ? ": " + comment : "");
                 this._error = Error(this._testNameToString(msg));
@@ -62,7 +64,7 @@ export class TestCase {
             this._error = err;
             this._resolve();
         }
-        if (!this._resolved && !this._timed) {
+        if (!this._resolved && !this._timer) {
             this._error = Error("Case is not resolved");
             this._resolve();
         }
@@ -81,7 +83,7 @@ export class TestCase {
     private _promise: Promise<any>;
     private _resolve!: () => void;
     private _resolved?: boolean;
-    private _timed?: boolean;
+    private _timer?: any;
     private _error?: any;
 }
 
