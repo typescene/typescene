@@ -28,8 +28,8 @@ export class UIComponentEvent<TSource extends UIComponent = UIComponent> extends
     readonly event?: any;
 }
 
-/** Event that is emitted on a particular UI component before it is fist rendered, only once. Should not be propagated. */
-export class UIBeforeFirstRenderEvent<TSource extends UIComponent> extends ManagedEvent {
+/** Event that is emitted on a particular UI component before it is fist rendered, __only once__. Should not be propagated. */
+export class UIBeforeRenderEvent<TSource extends UIComponent> extends ManagedEvent {
     /** Create a new event to be emitted before given component is rendered */
     constructor(source: TSource) {
         super("BeforeRender");
@@ -135,7 +135,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
     render(callback: UIRenderContext.RenderCallback) {
         if (!this._firstRendered) {
             this._firstRendered = true;
-            this.emit(UIBeforeFirstRenderEvent, this);
+            this.emit(UIBeforeRenderEvent, this);
         }
         this.emit(UIRenderEvent, this, callback);
     }
