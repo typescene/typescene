@@ -89,6 +89,6 @@ ViewComponent.observe(class {
 });
 
 export namespace ViewComponent {
-    /** Shortcut type for declaring a static `preset` method which accepts an object with presets with the same type as given properties of the view component itself */
-    export type PresetFor<TComponent, K extends keyof TComponent> = (presets: TComponent | Pick<TComponent, K>) => Function;
+    /** Shortcut type for declaring a static `preset` method which accepts an object with presets with the same type as given properties of the view component itself (excluding methods) */
+    export type PresetFor<TComponent extends ViewComponent, K extends keyof TComponent = Exclude<{ [P in keyof TComponent]: TComponent[P] extends Function ? never : P }[keyof TComponent], keyof ViewComponent>> = (presets: Pick<TComponent, K>) => Function;
 }
