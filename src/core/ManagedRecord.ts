@@ -88,7 +88,7 @@ export class ManagedRecord extends Component {
 
     /** Returns the current parent record. See `@managedChild` decorator. */
     getParentRecord(): ManagedRecord | undefined;
-    /** Returns the current parent record. See `@managedChild` decorator. */
+    /** Returns the parent record (or parent's parent, etc.) of given type. See `@managedChild` decorator. */
     getParentRecord<TParent extends ManagedRecord>(ParentClass: ManagedObjectConstructor<TParent>): TParent | undefined;
     getParentRecord(ParentClass: any = ManagedRecord) {
         return this.getManagedParent(ParentClass);
