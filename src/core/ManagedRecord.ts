@@ -9,12 +9,16 @@ import * as util from "./util";
  * @interface _Also usable as a type:_ Type of error that can be thrown by the `ManagedRecord.validate` method, containing one or more validation errors
  */
 export interface ManagedRecordValidationError extends Error {
+    /** Validation error flag, always set to true */
     isValidationError: true;
+
+    /** List of encapsulated errors */
     errors: Array<Error | {}>;
 }
 
 /**
  * Constructor for `ManagedRecordValidationError` errors, may be used by the `ManagedRecord.validate` method to encapsulate multiple errors.
+ * If the arguments list includes another validation error, its encapsulated errors are added to the list instead of the `ManagedRecordValidationError` object itself.
  * @note Use localized error messages where available, to avoid having to parse and translate messages when displaying them.
  */
 export let ManagedRecordValidationError: {
@@ -23,7 +27,18 @@ export let ManagedRecordValidationError: {
 } = function (...errors: any[]) {
     let result: ManagedRecordValidationError = Error("[Validation] Record validation failed") as any;
     result.isValidationError = true;
-    result.errors = errors.map(e => (typeof e !== "object") ? Error(e) : e);
+    result.errors = [];
+    errors.forEach(e => {
+        if (ManagedRecord.isValidationError(e)) {
+            // add all encapsulated errors
+            result.errors.push(...e.errors);
+        }
+        else {
+            // add only this error
+            result.errors.push((typeof e !== "object") ?
+                Error(e) : e);
+        }
+    });
     return result;
 } as any;
 
@@ -127,5 +142,11 @@ export namespace ManagedRecord {
             }
         }
         return result;
+    }
+
+    /** Checks if given error is a `ManagedRecordValidationError` object */
+    export function isValidationError(err: any): err is ManagedRecordValidationError {
+        return (err instanceof Error) &&
+            (err as ManagedRecordValidationError).isValidationError;
     }
 }
