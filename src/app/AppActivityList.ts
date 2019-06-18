@@ -50,6 +50,9 @@ export class AppActivityList extends Component {
     /** Returns the first activity in the list (see `ManagedList.first`) */
     first() { return this._list.first() }
 
+    /** Returns the activity at given position in the list (0 based; see `ManagedList.get`) */
+    get(index: number) { return this._list.get(index) }
+
     /** Returns true if given activity is currently included in this list (see `ManagedList.includes`) */
     includes(activity: AppActivity) { return this._list.includes(activity) }
 

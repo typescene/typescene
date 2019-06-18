@@ -67,7 +67,7 @@ export namespace UIViewRenderer {
     export interface Presets {
         /** Rendered view, if bound directly (not to be used together with `managedList` or `managedMap` properties) */
         view?: Binding;
-        /** List of renderable views (must be bound to either a `ManagedList` or `ComponentList`), one of which can be selected for rendering using the `index` property */
+        /** List of renderable views (must be bound to either a `ManagedList` or `AppActivityList`), one of which can be selected for rendering using the `index` property */
         managedList?: Binding;
         /** Map of renderable views (must be bound to a `ManagedMap`), one of which can be selected for rendering using the `index` property */
         managedMap?: Binding;
