@@ -16,6 +16,16 @@ All documentation for Typescene can be found on the website: [https://typescene.
 
 The online docs include an [overview](https://typescene.dev/docs/introduction/overview) as well as other guides, and [reference documentation](https://typescene.dev/docs/).
 
+## TODO
+
+A few very important tasks are currently still pending:
+
+* Tests, lots of 'em. The core package now comes with a test harness but only very few tests. These need to be added in some kind of structural way. Perhaps this can be organized using a Github project, opinions welcome on Twitter please.
+* More tests for the `@typescene/webapp` package. These probably need an automated browser-based test framework. Opinions welcome on Twitter please.
+* More examples for the reference documentation. These need to be added to the `typescene.github.io` repo on GitHub.
+* More sample projects, along with articles on how they work. Before publishing these we're happy to review your own samples, please DM on Twitter.
+* More prebuilt components (calendars, combo buttons, etc). See `typescene-treegrid` on GitHub for a full featured example.
+
 ## Questions and Issues
 
 Have a question about Typescene? Get in touch with us on [Twitter](https://twitter.com/typescene) or post a question on [Stack Overflow](https://stackoverflow.com/).
