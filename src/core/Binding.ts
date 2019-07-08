@@ -156,6 +156,16 @@ export class Binding {
         return this;
     }
 
+    /** Add a filter to this binding to compare the bound value to given value, the result is always either `true` or `false` */
+    match(value: any) {
+        let oldFilter = this._filter;
+        this._filter = v => {
+            if (oldFilter) v = oldFilter(v);
+            return v === value;
+        }
+        return this;
+    }
+
     /** Chained filter function, if any */
     private _filter?: (v: any) => any;
 
