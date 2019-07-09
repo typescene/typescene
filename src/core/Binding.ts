@@ -156,12 +156,22 @@ export class Binding {
         return this;
     }
 
-    /** Add a filter to this binding to compare the bound value to given value, the result is always either `true` or `false` */
-    match(value: any) {
+    /** Add a filter to this binding to compare the bound value to the given value(s), the result is always either `true` (at least one match) or `false` (none match) */
+    match(...values: any[]) {
         let oldFilter = this._filter;
         this._filter = v => {
             if (oldFilter) v = oldFilter(v);
-            return v === value;
+            return values.some(w => w === v);
+        }
+        return this;
+    }
+
+    /** Add a filter to this binding to compare the bound value to the given value(s), the result is always either `true` (none match) or `false` (at least one match) */
+    nonMatch(...values: any[]) {
+        let oldFilter = this._filter;
+        this._filter = v => {
+            if (oldFilter) v = oldFilter(v);
+            return !values.some(w => w === v);
         }
         return this;
     }
