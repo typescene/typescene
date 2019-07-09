@@ -23,6 +23,7 @@ If you're new to Typescene, make sure to check out these resources:
 * Read up on the [Architecture overview](https://typescene.dev/docs/introduction/overview)
 * Follow along with [Your first project](https://typescene.dev/docs/guides/first)
 * Watch a screencast: [Getting started](https://youtu.be/UjQyl05k42A)
+* For a more complete example, check out [`typescene-realworld-example-app`](https://github.com/typescene/typescene-realworld-example-app)
 
 ## TODO
 
