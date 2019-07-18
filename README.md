@@ -22,7 +22,7 @@ If you're new to Typescene, make sure to check out these resources:
 
 * Read up on the [Architecture overview](https://typescene.dev/docs/introduction/overview)
 * Follow along with [Your first project](https://typescene.dev/docs/guides/first)
-* Watch a screencast: [Getting started](https://youtu.be/UjQyl05k42A)
+* Use [`create-typescene-webapp`](https://github.com/typescene/create-typescene-webapp)
 * For a more complete example, check out [`typescene-realworld-example-app`](https://github.com/typescene/typescene-realworld-example-app)
 
 ## TODO
@@ -33,7 +33,6 @@ A few very important tasks are currently still pending:
 * More tests for the `@typescene/webapp` package. These probably need an automated browser-based test framework. Opinions welcome on Twitter please.
 * More examples for the reference documentation. These need to be added to the `typescene.github.io` repo on GitHub.
 * More sample projects, along with articles on how they work. Before publishing these we're happy to review your own samples, please DM on Twitter.
-* A better way to set up a new project using Typescene. Looking at `npm init`, possibly `degit`, or a plain old CLI.
 * More prebuilt components (calendars, combo buttons, etc). See `typescene-treegrid` on GitHub for a full featured example.
 
 ## Questions and Issues
