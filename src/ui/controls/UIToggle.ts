@@ -1,13 +1,13 @@
-import { managed, ManagedChangeEvent, ManagedRecord } from "../../core";
+import { managed, ManagedChangeEvent } from "../../core";
 import { Stringable } from '../UIComponent';
-import { formContextBinding } from "../UIFormContextController";
+import { UIFormContextController } from "../UIFormContextController";
+import { UIRenderContext } from '../UIRenderContext';
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
 
 /** Represents a toggle component with an optional text label */
 export class UIToggle extends UIControl {
     static preset(presets: UIToggle.Presets): Function {
-        this.presetBinding("formContext", formContextBinding);
         return super.preset(presets);
     }
 
@@ -22,9 +22,16 @@ export class UIToggle extends UIControl {
     isFocusable() { return true }
     isKeyboardFocusable() { return true }
 
-    /** Form state context, propagated from the parent composite object */
+    render(callback: UIRenderContext.RenderCallback) {
+        // update form context controller reference
+        let controller = this.getParentComponent(UIFormContextController);
+        this.formContextController = controller;
+        super.render(callback);
+    }
+
+    /** Form context controller (parent component, if any; updated before rendering) */
     @managed
-    formContext?: ManagedRecord;
+    formContextController?: UIFormContextController;
 
     /** Label text, if any */
     label?: Stringable;
@@ -40,19 +47,22 @@ export class UIToggle extends UIControl {
 }
 UIToggle.observe(class {
     constructor(public component: UIToggle) { }
-    onFormContextChange() {
-        if (this.component.formContext && this.component.name &&
-            this.component.name in this.component.formContext) {
-            let value = (this.component.formContext as any)[this.component.name];
+    onFormContextControllerChange() {
+        let ctx: any = this.component.formContextController &&
+            this.component.formContextController.formContext;
+        if (ctx && this.component.name && this.component.name in ctx) {
+            let value = ctx[this.component.name];
             this.component.state = !!value;
         }
     }
     onInput() { this.onChange() }
     onChange() {
-        if (this.component.formContext && this.component.name &&
-            (this.component.formContext as any)[this.component.name] !== !!this.component.state) {
-            (this.component.formContext as any)[this.component.name] = !!this.component.state;
-            this.component.formContext.emit(ManagedChangeEvent.CHANGE);
+        let ctx: any = this.component.formContextController &&
+            this.component.formContextController.formContext;
+        if (ctx && this.component.name &&
+            ctx[this.component.name] !== !!this.component.state) {
+            ctx[this.component.name] = !!this.component.state;
+            ctx.emit(ManagedChangeEvent.CHANGE);
         }
     }
 });

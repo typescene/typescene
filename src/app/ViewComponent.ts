@@ -1,5 +1,5 @@
-import { logUnhandledException, managed, managedChild, ManagedRecord, ManagedState } from "../core";
-import { formContextBinding, UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
+import { logUnhandledException, managedChild, ManagedState } from "../core";
+import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 
@@ -11,14 +11,9 @@ import { ViewActivity } from "./ViewActivity";
 export class ViewComponent extends AppComponent implements UIRenderable {
     static preset(presets: object,
         View?: UIRenderableConstructor): Function {
-        this.presetBinding("formContext", formContextBinding);
         if (View) this.presetActiveComponent("view", View, ViewActivity);
         return super.preset(presets);
     }
-
-    /** Form state context, propagated from the parent composite object */
-    @managed
-    formContext?: ManagedRecord;
 
     /** The root component that makes up the content for this view, as a child component; only created when the `ViewComponent` is rendered */
     @managedChild
