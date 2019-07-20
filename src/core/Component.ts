@@ -521,8 +521,8 @@ class CompositeBindings {
 }
 
 /** @internal Base component observer, which observes parent references for all components */
-class ComponentObserver<TComponent extends Component = Component> extends ManagedObject {
-    constructor(component: TComponent) {
+class ComponentObserver extends ManagedObject {
+    constructor(component: Component) {
         super();
 
         // propagate composition events from the parent observer
@@ -540,7 +540,7 @@ class ComponentObserver<TComponent extends Component = Component> extends Manage
     }
 
     /** The observed component itself */
-    readonly component: TComponent;
+    readonly component: Component;
 
     /** The parent component observer, if any */
     parent?: ComponentObserver;
