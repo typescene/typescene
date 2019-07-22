@@ -1,13 +1,13 @@
-import { managed, ManagedChangeEvent, ManagedRecord } from "../../core";
+import { CHANGE, managed } from "../../core";
+import { UIForm } from '../containers';
 import { Stringable } from '../UIComponent';
-import { formContextBinding } from "../UIFormContextController";
+import { UIRenderContext } from '../UIRenderContext';
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
 
 /** Represents a text field component */
 export class UITextField extends UIControl {
     static preset(presets: UITextField.Presets): Function {
-        this.presetBinding("formContext", formContextBinding);
         return super.preset(presets);
     }
 
@@ -22,9 +22,11 @@ export class UITextField extends UIControl {
     isFocusable() { return true }
     isKeyboardFocusable() { return true }
 
-    /** Form state context, propagated from the parent composite object */
-    @managed
-    formContext?: ManagedRecord;
+    render(callback: UIRenderContext.RenderCallback) {
+        // update form context controller reference
+        this.form = UIForm.find(this);
+        super.render(callback);
+    }
 
     /** Input type as string, defaults to `text` */
     type: UITextField.InputType | string = "text";
@@ -40,27 +42,34 @@ export class UITextField extends UIControl {
 
     /** Form context property name */
     name?: string;
+
+    /** Form component (updated automatically before rendering) */
+    @managed
+    form?: { formContext: any };
 }
 UITextField.observe(class {
     constructor(public component: UITextField) { }
-    onFormContextChange() {
-        if (this.component.formContext && this.component.name &&
-            this.component.name in this.component.formContext) {
-            let value = (this.component.formContext as any)[this.component.name];
+    onFormChange() {
+        let ctx = this.component.form &&
+            this.component.form.formContext;
+        if (ctx && this.component.name && this.component.name in ctx) {
+            let value = ctx[this.component.name];
             this.component.value = value === undefined ? "" : String(value);
         }
     }
     onInput() { this.onChange() }
     onChange() {
         let value: any = this.component.value;
-        if (this.component.formContext && this.component.name) {
-            let oldValue = (this.component.formContext as any)[this.component.name];
+        let ctx = this.component.form &&
+            this.component.form.formContext;
+        if (ctx && this.component.name) {
+            let oldValue = ctx[this.component.name];
             if (typeof oldValue === "number" && this.component.type === "number") {
                 value = parseFloat(value);
             }
-            if (oldValue !== this.component.value) {
-                (this.component.formContext as any)[this.component.name] = value;
-                this.component.formContext.emit(ManagedChangeEvent.CHANGE);
+            if (oldValue !== value) {
+                ctx[this.component.name] = value;
+                ctx.emit(CHANGE);
             }
         }
     }

@@ -1,7 +1,6 @@
-import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedRecord, ManagedState, shadowObservable } from "../core";
+import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedState, shadowObservable } from "../core";
 import { UICell } from "./containers/UICell";
 import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
-import { formContextBinding } from './UIFormContextController';
 import { UIRenderableController } from "./UIRenderableController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
@@ -24,7 +23,6 @@ export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObjec
 export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     extends Component.with({
         renderContext: renderContextBinding,
-        formContext: formContextBinding
     })
     implements UIRenderable {
     static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
@@ -57,10 +55,6 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     /** Application render context, propagated from the parent composite object */
     @managed
     renderContext?: UIRenderContext;
-
-    /** Form state context, propagated from the parent composite object */
-    @managed
-    formContext?: ManagedRecord;
 
     /** The encapsulated object */
     @managed

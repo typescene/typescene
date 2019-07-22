@@ -193,6 +193,12 @@ export abstract class UIComponent extends Component implements UIRenderable {
     /** Options for the positioning of this component within parent component(s) */
     position!: UIStyle.Position;
 
+    /** WAI-ARIA role for this component, if applicable */
+    accessibleRole?: string;
+
+    /** WAI-ARIA label text for this component (not tooltip), if applicable */
+    accessibleLabel?: string;
+
     /** Animated transition that plays when this component is first rendered */
     revealTransition?: UITransitionType;
 
@@ -214,6 +220,10 @@ export namespace UIComponent {
         dimensions?: Partial<UIStyle.Dimensions | {}>;
         /** Options for the positioning of this component within parent component(s) (overrides) */
         position?: Partial<UIStyle.Position | {}>;
+        /** WAI-ARIA role for this component, if applicable */
+        accessibleRole?: string;
+        /** WAI-ARIA label text for this component (not tooltip), if applicable */
+        accessibleLabel?: string;
         /** Set to true to request focus immediately after rendering for the first time; cannot be used together with `onRendered` */
         requestFocus?: boolean;
         /** Animation that plays when this component is first rendered */

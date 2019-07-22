@@ -1,12 +1,10 @@
-import { Component, managed, managedChild, ManagedRecord } from "../core";
+import { Component, managed, managedChild } from "../core";
 import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
-import { formContextBinding } from "./UIFormContextController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Base class for a controller that wraps around a single renderable component */
 export class UIRenderableController extends Component.with({
     renderContext: renderContextBinding,
-    formContext: formContextBinding
 }) implements UIRenderable {
     static preset(presets: object, content?: UIRenderableConstructor): Function {
         let f = super.preset(presets, content);
@@ -26,10 +24,6 @@ export class UIRenderableController extends Component.with({
     /** Application render context, propagated from the parent composite object */
     @managed
     renderContext?: UIRenderContext;
-
-    /** Form state context, propagated from the parent composite object */
-    @managed
-    formContext?: ManagedRecord;
 
     /** Renderable content, as a managed child reference */
     @managedChild
