@@ -1,11 +1,10 @@
-import { ComponentEventHandler, managed, ManagedChangeEvent, ManagedRecord } from "../core";
+import { ComponentEventHandler, managed, ManagedRecord } from "../core";
 import { UIRenderableController } from "./UIRenderableController";
 
-export class UIFormContextChangeEvent extends ManagedChangeEvent {
-    constructor() { super("FormContextChange") }
-}
-
-/** Renderable wrapper that injects a form context record, to be used by (nested) child input controls. */
+/**
+ * Renderable wrapper that injects a form context record, to be used by (nested) child input controls.
+ * @note This wrapper does not group content in a cell; see also `UIForm`.
+ */
 export class UIFormContextController extends UIRenderableController {
     /** Form state context; defaults to an empty managed record */
     @managed
@@ -16,7 +15,7 @@ export class UIFormContextController extends UIRenderableController {
 UIFormContextController.observe(class {
     constructor(public controller: UIFormContextController) { }
     onFormContextChange() {
-        this.controller.emit(UIFormContextChangeEvent);
+        this.controller.propagateComponentEvent("FormContextChange");
     }
 });
 

@@ -1,6 +1,6 @@
 import { CHANGE, managed } from "../../core";
+import { UIForm } from '../containers';
 import { Stringable } from '../UIComponent';
-import { UIFormContextController } from '../UIFormContextController';
 import { UIRenderContext } from '../UIRenderContext';
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
@@ -24,14 +24,9 @@ export class UITextField extends UIControl {
 
     render(callback: UIRenderContext.RenderCallback) {
         // update form context controller reference
-        let controller = this.getParentComponent(UIFormContextController);
-        this.formContextController = controller;
+        this.form = UIForm.find(this);
         super.render(callback);
     }
-
-    /** Form context controller (parent component, if any; updated before rendering) */
-    @managed
-    formContextController?: UIFormContextController;
 
     /** Input type as string, defaults to `text` */
     type: UITextField.InputType | string = "text";
@@ -47,12 +42,16 @@ export class UITextField extends UIControl {
 
     /** Form context property name */
     name?: string;
+
+    /** Form component (updated automatically before rendering) */
+    @managed
+    form?: { formContext: any };
 }
 UITextField.observe(class {
     constructor(public component: UITextField) { }
-    onFormContextControllerChange() {
-        let ctx: any = this.component.formContextController &&
-            this.component.formContextController.formContext;
+    onFormChange() {
+        let ctx = this.component.form &&
+            this.component.form.formContext;
         if (ctx && this.component.name && this.component.name in ctx) {
             let value = ctx[this.component.name];
             this.component.value = value === undefined ? "" : String(value);
@@ -61,8 +60,8 @@ UITextField.observe(class {
     onInput() { this.onChange() }
     onChange() {
         let value: any = this.component.value;
-        let ctx: any = this.component.formContextController &&
-            this.component.formContextController.formContext;
+        let ctx = this.component.form &&
+            this.component.form.formContext;
         if (ctx && this.component.name) {
             let oldValue = ctx[this.component.name];
             if (typeof oldValue === "number" && this.component.type === "number") {
