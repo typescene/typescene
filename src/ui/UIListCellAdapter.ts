@@ -26,7 +26,9 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     })
     implements UIRenderable {
     static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
-        this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
+        this.presetBindingsFrom(...rest);
+        let p = this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
+        p.limitBindings("object");
         return super.preset({});
     }
 

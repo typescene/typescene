@@ -27,11 +27,14 @@ export enum ManagedState {
     DESTROYING
 };
 
-/** Stack of currently unused managed references, ready for reuse */
-let _freeRefLinks: util.RefLink[] = [];
-
 /** Number of free RefLink instances to keep around */
 const MAX_FREE_REFLINKS = 1000;
+
+/** Stack of currently unused managed references, ready for reuse */
+let _freeRefLinks: util.RefLink[] = [];
+for (let i = 0; i < MAX_FREE_REFLINKS >> 2; i++) {
+    _freeRefLinks[i] = {} as any;
+}
 
 /** Next UID to be assigned to a new managed object */
 let _nextUID = 16;
