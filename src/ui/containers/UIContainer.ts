@@ -14,9 +14,9 @@ export abstract class UIContainer extends UIComponent {
         }
         let f = super.preset(presets, ...rest);
         return function (this: UIContainer) {
+            f.call(this);
             if (layout) this.layout = { ...this.layout, ...layout };
             if (rest.length) this.content.add(...rest.filter(C => !!C).map(C => new C!()));
-            return f.call(this);
         };
     }
 
