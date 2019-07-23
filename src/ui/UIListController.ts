@@ -27,6 +27,7 @@ export class UIListController extends UIRenderableController {
     static preset(presets: UIListController.Presets,
         ListItemAdapter?: UIListItemAdapter | ((instance: UIListController) => UIListItemAdapter),
         container: ComponentConstructor & (new () => UIContainer) = _defaultContainer): Function {
+        this.presetBindingsFrom(ListItemAdapter as any);
         this.observe(class {
             constructor(public controller: UIListController) { }
             readonly contentMap = new ManagedMap<UIRenderable>();

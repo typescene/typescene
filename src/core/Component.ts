@@ -1,13 +1,22 @@
 import { Binding } from "./Binding";
-import { ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
+import { ManagedChangeEvent, ManagedCoreEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
 import { ManagedList } from "./ManagedList";
-import { ManagedMap } from "./ManagedMap";
+import { ManagedMap } from './ManagedMap';
 import { ManagedObject, ManagedState } from "./ManagedObject";
 import { managedChild } from "./ManagedReference";
-import { onPropertyChange } from "./observe";
+import { onPropertyChange } from './observe';
 
-/** Running ID used by `presetBindingsFrom` */
-let _presetBindingsFromID = 0;
+/** Arbitrary name of a hidden property for bindings on the Component prototype */
+const HIDDEN_BINDINGS_PROPERTY = "^preBnd";
+
+/** Arbitrary name of a hidden property for bound-inherit components on the Component prototype */
+const HIDDEN_BIND_INHERIT_PROPERTY = "^preInc";
+
+/** Arbitrary name of a hidden property for components on the Component prototype */
+const HIDDEN_COMPOSE_PROPERTY = "^preCmp";
+
+/** Arbitrary name of a hidden property that references the base Component observer */
+const HIDDEN_OBSERVER_PROPERTY = "^cmpObs";
 
 /** Event that is emitted on a particular `Component` instance, with reference to the source component as `source` */
 export class ComponentEvent extends ManagedEvent {
@@ -46,13 +55,13 @@ export type ComponentPresetRestType<TComponentCtor extends ComponentConstructor>
 
 /** @internal Event that is emitted on (parent) components when a child component is added. The parent component observer responds by setting the `parentObserver` property on the child observer. */
 export class ComponentChildAddedEvent extends ComponentEvent {
-    constructor(observer: ComponentObserver) {
+    constructor(observer: Component.ComponentObserver) {
         super("ChildComponentAdded", observer.component);
         this.observer = observer;
     }
 
     /** The observer for the new child component */
-    readonly observer: ComponentObserver;
+    readonly observer: Component.ComponentObserver;
 }
 
 /** @internal Event that is emitted when the composite parent object reference has been set for a component */
@@ -107,8 +116,9 @@ export class Component extends ManagedObject {
         TComponentCtor {
         // create a new class that extends the current class
         let Self: new (...args: any[]) => Component = this as any;
-        let presetFunc: (this: Component) => void;
+        let presetFunc: Function;
         class PresetComponent extends Self {
+            static preset: typeof Component.preset;
             constructor(...args: any[]) {
                 // call super first, then own preset function
                 super(...args);
@@ -117,22 +127,17 @@ export class Component extends ManagedObject {
             protected isPresetComponent() { return true }
         }
 
-        // combine arguments into single preset and rest arguments
-        let presetArgs: any[] = [{}];
-        for (let v of presets) {
-            if (typeof v === "object" &&
-                Object.getPrototypeOf(v) === Object.prototype) {
-                // plain object: add properties to preset object
-                presetArgs[0] = { ...presetArgs[0], ...(v as {}) };
-            }
-            else {
-                // add as rest argument
-                presetArgs.push(v);
-            }
+        // call preset method and store result for use above
+        let obj: any = presets[0];
+        if (typeof obj !== "object" ||
+            Object.getPrototypeOf(obj) !== Object.prototype) {
+            presetFunc = PresetComponent.preset({}, ...presets);
+        }
+        else {
+            presetFunc = PresetComponent.preset(...presets as [{}]);
         }
 
-        // apply static elements to the new constructor and return it
-        presetFunc = (this.preset as Function).apply(PresetComponent, presetArgs);
+        // return the extended class
         return PresetComponent as any;
     }
 
@@ -158,7 +163,7 @@ export class Component extends ManagedObject {
                 // add event handlers to object
                 if (!eventHandlers) eventHandlers = {};
                 eventHandlers[p.slice(2)] = (typeof v === "function") ? v :
-                    this._makeEventHandler(String(v));
+                    _makeEventHandler(String(v));
                 delete (presets as any)[p];
             }
             else if (typeof v === "function" && (v.prototype instanceof Component)) {
@@ -178,7 +183,7 @@ export class Component extends ManagedObject {
         return function (this: Component) {
             for (let p in presets) {
                 let v = (presets as any)[p];
-                if (v !== undefined) this._applyPropertyValue(p as any, v);
+                if (v !== undefined) _applyPropertyValue(this, p, v);
             }
         }
     }
@@ -191,21 +196,21 @@ export class Component extends ManagedObject {
         this: ComponentConstructor<TComponent>,
         propertyName: string, binding: Binding,
         applyBoundValue?: (this: TComponent, boundValue: any) => any) {
-        // add binding to list
-        let ownBindings = this.prototype.getOwnBindings();
-        ownBindings = { ...ownBindings, [propertyName!]: binding };
-        this.prototype.getOwnBindings = () => ownBindings;
+        // add a reference to the binding itself
+        if (!this.prototype.hasOwnProperty(HIDDEN_BINDINGS_PROPERTY)) {
+            this.prototype[HIDDEN_BINDINGS_PROPERTY] = {
+                ...this.prototype[HIDDEN_BINDINGS_PROPERTY]
+            };
+        }
+        this.prototype[HIDDEN_BINDINGS_PROPERTY][propertyName] = binding;
 
-        // provide a method to update property values
+        // add an update function
         if (!applyBoundValue) {
             applyBoundValue = function (this: Component, v: any) {
-                this._applyPropertyValue(propertyName as any, v);
+                _applyPropertyValue(this, propertyName, v);
             }
         }
-        Object.defineProperty(this.prototype, binding.id, {
-            configurable: true, enumerable: false, writable: false,
-            value: applyBoundValue
-        });
+        this.prototype[binding.id] = applyBoundValue;
     }
 
     /**
@@ -213,12 +218,14 @@ export class Component extends ManagedObject {
      * @note This method must be used by a custom `preset` function if the preset component (may) have managed child objects (see `@managedChild`) of the given type and the constructor is not passed to `super.preset(...)`.
      */
     static presetBindingsFrom(...constructors: Array<ComponentConstructor | undefined>) {
-        let ownBindings = { ...this.prototype.getOwnBindings() };
-        for (let C of constructors) {
-            // add constructor to list
-            if (C) ownBindings["@{bind}__" + _presetBindingsFromID++] = C;
+        if (!this.prototype.hasOwnProperty(HIDDEN_BIND_INHERIT_PROPERTY)) {
+            this.prototype[HIDDEN_BIND_INHERIT_PROPERTY] =
+                this.prototype[HIDDEN_BIND_INHERIT_PROPERTY] ?
+                    this.prototype[HIDDEN_BIND_INHERIT_PROPERTY].slice() : [];
         }
-        this.prototype.getOwnBindings = () => ownBindings;
+        for (const C of constructors) {
+            if (C) this.prototype[HIDDEN_BIND_INHERIT_PROPERTY].push(C);
+        }
     }
 
     /**
@@ -229,86 +236,21 @@ export class Component extends ManagedObject {
     static presetActiveComponent(propertyName: string,
         constructor: ComponentConstructor & (new () => Component),
         ...include: ComponentConstructor[]) {
-        if (!(constructor.prototype instanceof Component)) {
-            throw Error("[Component] Invalid component type for property: " + propertyName);
+        if (!this.prototype.hasOwnProperty(HIDDEN_COMPOSE_PROPERTY)) {
+            this.prototype[HIDDEN_COMPOSE_PROPERTY] = {
+                ...this.prototype[HIDDEN_COMPOSE_PROPERTY]
+            };
         }
-        this._components = this._components ? { ...this._components } : {};
-        if (this._components[propertyName] === constructor) return;
-        this._components[propertyName] = constructor;
-
-        // find all (nested) component bindings recursively
-        let bindings: Binding[] = [];
-        let addBindings = (C: ComponentConstructor, q: string) => {
-            let b = (C.prototype as Component).getOwnBindings.call(undefined);
-            for (let p in b) {
-                if (typeof b[p] === "function") addBindings(b[p] as any, q + ":" + p);
-                else {
-                    let binding = b[p] as Binding;
-                    bindings.push(binding);
-                    if (binding.bindings) bindings.push(...binding.bindings);
-                }
-            }
-        };
-        addBindings(constructor, propertyName);
-        include.forEach(C => addBindings(C, "?"));
-
-        // get a list of all properties that should be observed
-        let propertiesToObserve = bindings
-            .filter(b => (b.propertyName !== undefined))
-            .map(b => b.propertyName!);
-
-        // use a specific observer for these components
-        let self = this;
-        class CompositeObserver {
-            constructor(public component: Component) { }
-
-            /** True if the child components currently exist */
-            active?: boolean;
-
-            /** Create the component when the composite is activated */
-            onActive() {
-                if (!this.active &&
-                    this.component.managedState === ManagedState.ACTIVE &&
-                    self._components[propertyName] === constructor) {
-                    this.active = true;
-                    let allBound = this.component._getCompositeBindings();
-                    allBound.bind(bindings);
-                    let c = new constructor();
-                    c.setCompositeParent(this.component);
-                    (this.component as any)[propertyName] = c;
-                }
-            }
-
-            /** Destroy the component when the composite is deactivated */
-            onInactive() {
-                if (this.active &&
-                    this.component.managedState !== ManagedState.ACTIVE) {
-                    this.active = false;
-                    (this.component as any)[propertyName] = undefined;
-                    this.component._getCompositeBindings().clearBindings();
-                }
-            }
-
-            /** Handle bound property changes (on _instance_) */
-            @onPropertyChange(...propertiesToObserve)
-            updatePropertyAsync(v: any, _e: any, name: string) {
-                if (this.active) {
-                    this.component._getCompositeBindings().update(name, v);
-                }
-            }
-
-            /** Handle overall changes (update all bindings) */
-            onChangeAsync() {
-                if (this.active) {
-                    this.component._getCompositeBindings().update();
-                }
-            }
+        let h = this.prototype[HIDDEN_COMPOSE_PROPERTY];
+        if (h[propertyName]) {
+            // component already preset, check if same constructor
+            if (h[propertyName].ActiveComponent === constructor) h[propertyName];
         }
-        this.observe(CompositeObserver);
+
+        // add new component with observer and enable immediately
+        return h[propertyName] = new Component.Composition(
+            this, propertyName, constructor, ...include);
     }
-
-    /** All component constructors that have been added by the static `presetActiveComponent` method */
-    private static _components: { [name: string]: any };
 
     /** Create a new component */
     constructor() {
@@ -332,93 +274,14 @@ export class Component extends ManagedObject {
      */
     getCompositeParent<TParent extends Component>(
         ParentClass?: ComponentConstructor<TParent>): TParent | undefined {
-        if (!ParentClass) return this._compositeParent as any;
-        let cur = this._compositeParent;
+        let obs = this[HIDDEN_OBSERVER_PROPERTY];
+        if (!ParentClass) return obs && obs.compositeParent as any;
+        let cur = obs && obs.compositeParent;
         while (cur && !(cur instanceof ParentClass)) {
             cur = cur.getCompositeParent();
         }
         return cur as any;
     }
-
-    /** @internal Set the composite parent reference for this component (and all child components, through an event that is propagated on the component observer), and update all bindings. */
-    setCompositeParent(composite?: Component, quiet?: boolean) {
-        if (this._compositeParent === composite) return;
-        Object.defineProperty(this, "_compositeParent", {
-            configurable: true, writable: true, enumerable: false
-        });
-        this._compositeParent = composite;
-        if (!quiet) {
-            this.emit(CompositeParentChangeEvent, this, composite);
-        }
-
-        // clear current bindings, if any
-        if (this._componentBindings) {
-            for (let bound of this._componentBindings) {
-                bound.remove(this);
-            }
-        }
-
-        // preset bindings on new composite component
-        if (composite && composite !== this) {
-            let ownBindings = this.getOwnBindings();
-            Object.defineProperty(this, "_componentBindings", {
-                enumerable: false, writable: false,
-                configurable: true,
-                value: []
-            });
-            for (let p in ownBindings) {
-                // add this component to bound instance
-                let binding = ownBindings[p];
-                if (!Binding.isBinding(binding)) continue;
-                let bound = this._compositeParent &&
-                    this._compositeParent.getBoundBinding(binding);
-                if (!bound) {
-                    if (binding.ignoreUnbound) continue;
-                    throw TypeError("[Component] Binding not found for " + p);
-                }
-                this._componentBindings!.push(bound);
-                bound.add(this);
-
-                // update bound value now
-                if (typeof (this as any)[binding.id] === "function") {
-                    (this as any)[binding.id](bound.value);
-                }
-            }
-        }
-        else {
-            // not bound at all (anymore)
-            delete this._componentBindings;
-        }
-    }
-
-    /** Reference to the current composite parent, set by the base component observer */
-    private _compositeParent?: Component;
-
-    /** List of bindings currently bound to update this component */
-    private _componentBindings?: Binding.Bound[];
-
-    /** @internal Returns a bound binding for given instance, either bound on this component or its composite parent(s) */
-    getBoundBinding(binding: Binding): Binding.Bound | undefined {
-        return this._compositeBindings &&
-            this._compositeBindings.getBoundBinding(binding) ||
-            (this._compositeParent && this._compositeParent.getBoundBinding(binding));
-    }
-
-    /** Returns an encapsulation of the bindings for this component as a composite object, created when this method is first called. */
-    private _getCompositeBindings() {
-        if (!this._compositeBindings) {
-            Object.defineProperty(this, "_compositeBindings", {
-                enumerable: false, writable: false,
-                value: new CompositeBindings(this)
-            });
-        }
-        return this._compositeBindings!;
-    }
-
-    private readonly _compositeBindings?: CompositeBindings;
-
-    /** @internal Returns the list of bindings applied to this component, along with all component constructors whose bindings should be bound to the same parent composite object */
-    getOwnBindings(): Readonly<{ [key: string]: Binding | ComponentConstructor }> { return {} }
 
     /**
      * Create and emit an event with given name, a reference to this component, and an optional inner (propagated) event. The base implementation emits a plain `ComponentEvent`, but this method may be overridden to emit other events.
@@ -428,169 +291,340 @@ export class Component extends ManagedObject {
         this.emit(ComponentEvent, name, this, inner);
     }
 
-    /** @internal Helper function to register a new child component observer */
-    ["*registerChildComponent"](observer: ComponentObserver) {
-        this.emit(ComponentChildAddedEvent, observer);
-    }
-
-    /** Helper method to update a property of this object with given value, with some additional logic for managed lists */
-    private _applyPropertyValue(p: keyof this, v: any) {
-        let c = this[p];
-        if (c && (c instanceof ManagedList) && Array.isArray(v)) {
-            // update managed lists with array items
-            c.replace(v);
-        }
-        else {
-            // set property value
-            this[p] = v;
-        }
-    }
-
-    /** Helper function to make an event handler from a preset string property */
-    private static _makeEventHandler(handler: string) {
-        if (handler.slice(-2) === "()") {
-            let callMethodName = handler.slice(0, -2);
-            return function (this: Component, e: ManagedEvent) {
-                let composite: any = this.getCompositeParent();
-                while (composite) {
-                    let f = composite && composite[callMethodName];
-                    if (typeof f === "function") return f.call(composite, e);
-                    composite = composite.getCompositeParent();
-                }
-                throw TypeError("[Component] " +
-                    "Not an event handler method: " + callMethodName);
-            }
-        }
-        else if (handler[0] === "+") {
-            let emitName = handler.slice(1);
-            return function (this: Component, e: ManagedEvent) {
-                this.propagateComponentEvent(emitName, e);
-            };
-        }
-        else {
-            throw Error("[Component] Invalid event handler preset: "
-                + handler);
-        }
-    }
-}
-
-/** @internal Encapsulation of bindings that are bound to an active composite component object, created for components when first requested. See `Component.getCompositeBindings`. */
-class CompositeBindings {
-    constructor(component: Component) {
-        this.component = component;
-    }
-
-    /** The composite component object itself */
-    readonly component: Component;
-
-    /** Returns the bound instance of given binding, if any */
+    /** @internal Returns a bound binding for given instance, either bound on this component or its composite parent(s) */
     getBoundBinding(binding: Binding) {
-        return this._bound.get(binding.id);
+        return this[HIDDEN_OBSERVER_PROPERTY] &&
+            this[HIDDEN_OBSERVER_PROPERTY]!.getCompositeBound(binding);
     }
 
-    /** Remove all bound bindings */
-    clearBindings() {
-        this._bound.clear();
-    }
+    /** @internal Bindings that occur on this component (ONLY on prototype, do not set directly) */
+    [HIDDEN_BINDINGS_PROPERTY]!: { [propertyName: string]: Binding };
 
-    /** Bind given bindings and add them to this instance */
-    bind(bindings: Binding[]) {
-        for (let binding of bindings) {
-            if (!this._bound.has(binding.id)) {
-                let bound = new Binding.Bound(binding, this.component);
-                this._bound.set(binding.id, bound);
-            }
-        }
-    }
+    /** @internal Component for which bindings should be inherited (ONLY on prototype, do not set directly) */
+    [HIDDEN_BIND_INHERIT_PROPERTY]!: ComponentConstructor[];
 
-    /** Update any and all bound bindings that depend on the composite property with given name (or all properties if no name is given). The value of the composite object property may be specified if it is known. */
-    update(propertyName?: string, v?: any) {
-        // find bindings for given property name and update all bound components
-        for (let bound of this._bound.objects()) {
-            if (propertyName === undefined || bound.propertyName === propertyName) {
-                arguments.length > 1 ?
-                    bound.updateComponents(v) :
-                    bound.updateComponents();
-            }
-        }
-        return this;
-    }
+    /** @internal Active components of this component (ONLY on prototype, do not set directly) */
+    [HIDDEN_COMPOSE_PROPERTY]!: { [propertyName: string]: Component.Composition };
 
-    /** Index of all bound bindings, by binding ID */
-    private _bound = new ManagedMap<Binding.Bound>();
+    /** @internal Base component observer, if the component has a composite parent or has been actived (hidden property) */
+    [HIDDEN_OBSERVER_PROPERTY]?: Component.ComponentObserver;
 }
 
-/** @internal Base component observer, which observes parent references for all components */
-class ComponentObserver extends ManagedObject {
-    constructor(component: Component) {
-        super();
+// set default values for hidden properties
+Component.prototype[HIDDEN_BINDINGS_PROPERTY] = {};
+Component.prototype[HIDDEN_BIND_INHERIT_PROPERTY] = [];
+Component.prototype[HIDDEN_COMPOSE_PROPERTY] = {};
 
-        // propagate composition events from the parent observer
-        ManagedObject.createManagedReferenceProperty(this, "parent",
-            false, false, undefined,
-            event => {
-                if (this.parent && (event instanceof CompositeParentChangeEvent)) {
-                    // propagate only if this is not already the composite parent
-                    if (this.parent.component !== this.component.getCompositeParent()) {
-                        this.emit(event);
+export namespace Component {
+    /** Represents the relationship between a composite parent component class and the active component class */
+    export class Composition {
+        constructor (public readonly Composite: typeof Component,
+            public readonly propertyName: string,
+            public readonly ActiveComponent: ComponentConstructor & (new () => Component),
+            ...include: ComponentConstructor[]) {
+            this._bindings = this._getAllBindings(...include);
+
+            // get a list of all properties that should be observed
+            let propertiesToObserve = this._bindings
+                .filter(b => (b.propertyName !== undefined))
+                .map(b => b.propertyName!);
+
+            // add an observer to the composite parent class
+            // to be able to capture property changes ONLY
+            if (propertiesToObserve.length) {
+                class PropertyChangeObserver {
+                    constructor (public readonly c: Component) { }
+                    @onPropertyChange(...propertiesToObserve)
+                    updatePropertyAsync(v: any, _e: any, name: string) {
+                        let o = this.c[HIDDEN_OBSERVER_PROPERTY];
+                        o && o.updateCompositeBound(name, v);
                     }
                 }
-            });
-        this.component = component;
+                Composite.observe(PropertyChangeObserver);
+            }
+        }
+
+        /** Returns a list of all bindings that should be bound to the composite parent */
+        getBindings() {
+            return this._bindings.slice();
+        }
+
+        /** Remove all bindings that are to be bound to properties that are *not* included in the list of parameters; this causes any of those bindings on instances of the active component and its child component to be bound to the *parent composite* component instead */
+        limitBindings(...propertyNames: string[]) {
+            this._bindings = this._bindings.filter(b =>
+                (b.propertyName === undefined ||
+                    propertyNames.some(p => b.propertyName === p)));
+        }
+
+        /** Returns a list of all bindings on the active component, its children and inherited components */
+        private _getAllBindings(...include: ComponentConstructor[]) {
+            // find all (nested) component bindings recursively
+            let bindings: Binding[] = [];
+            let addBindings = (C: ComponentConstructor, q: string) => {
+                let b = (C.prototype as Component)[HIDDEN_BINDINGS_PROPERTY];
+                for (let p in b) {
+                    bindings.push(b[p]);
+                    if (b[p].bindings) bindings.push(...b[p].bindings);
+                }
+                let i = (C.prototype as Component)[HIDDEN_BIND_INHERIT_PROPERTY];
+                for (let p in i) {
+                    addBindings(i[p], q + ":" + p);
+                }
+            };
+            addBindings(this.ActiveComponent, this.propertyName);
+            include.forEach(C => addBindings(C, "?"));
+            return bindings;
+        }
+
+        private _bindings: Binding[];
     }
 
-    /** The observed component itself */
-    readonly component: Component;
+    /** @internal Base component observer, which observes parent references for all components */
+    export class ComponentObserver extends ManagedObject {
+        constructor(component: Component) {
+            super();
+            this.component = component;
 
-    /** The parent component observer, if any */
-    parent?: ComponentObserver;
+            // set backreference on the component itself
+            Object.defineProperty(component, HIDDEN_OBSERVER_PROPERTY, {
+                enumerable: false, writable: false, value: this
+            });
 
-    /** Respond to events on the component itself */
-    onEvent(e: ManagedEvent) {
-        if (e instanceof ComponentChildAddedEvent) {
-            // Respond to new child components by setting the managed back reference,
-            // so that the CompositeParentChange event can be propagated
-            if (e.observer) e.observer.parent = this;
+            // propagate composition events from the parent observer
+            ManagedObject.createManagedReferenceProperty(this, "parentObserver",
+                false, false, undefined,
+                event => {
+                    if (this.parentObserver && (event instanceof CompositeParentChangeEvent)) {
+                        // propagate only if this is not already the composite parent
+                        if (this.parentObserver.component !== this.compositeParent) {
+                            this.emit(event);
+                        }
+                    }
+                });
         }
-        else if (e instanceof ManagedParentChangeEvent) {
-            // Respond to parent component changes to find the parent observer
-            let parentComponent = this.component.getParentComponent();
-            this.parent = undefined;
-            if (parentComponent) {
-                // let the parent observer attach itself to this observer (sync)
-                parentComponent["*registerChildComponent"](this);
 
-                // check if parent already has a composite and it is different
-                // from the current composite object (unless the parent itself
-                // has already been set as the current composite object)
-                let parentComposite = parentComponent.getCompositeParent();
-                let observedComposite = this.component.getCompositeParent();
-                if (parentComposite !== observedComposite &&
-                    observedComposite !== parentComponent) {
-                    // set reference, and trigger an event on the component
-                    this.component.setCompositeParent(parentComposite);
+        /** The observed component itself */
+        readonly component: Component;
+
+        /** The parent component observer, if any */
+        parentObserver?: ComponentObserver;
+
+        /** Current composite parent, if any */
+        compositeParent?: Component;
+
+        /** Observer for the current composite parent, if any */
+        compositePObs?: ComponentObserver;
+
+        /** List of bound (own) bindings */
+        bound?: Binding.Bound[];
+
+        /** Map of bound composite bindings for all child components, indexed by binding ID, if the component is currently active */
+        compositeBindings?: ManagedMap<Binding.Bound>;
+
+        /** Respond to events on the component itself */
+        onEvent(e: ManagedEvent) {
+            if (e === ManagedCoreEvent.INACTIVE) {
+                this._destroyComponents();
+            }
+            else if (e === ManagedCoreEvent.ACTIVE) {
+                this._createComponents();
+            }
+            else if (e instanceof ManagedChangeEvent) {
+                // TODO: SHOULD BE ASYNC
+                this.updateCompositeBound();
+            }
+            else if (e instanceof ComponentChildAddedEvent) {
+                // Respond to new child components by setting the managed back reference,
+                // so that the CompositeParentChange event can be propagated
+                if (e.observer) e.observer.parentObserver = this;
+            }
+            else if (e instanceof CompositeParentChangeEvent) {
+                // Emit this event on this observer to propagate it to child observers
+                this.emit(e);
+            }
+            else if (e instanceof ManagedParentChangeEvent) {
+                // Respond to parent component changes to find the parent observer
+                let parentComponent = this.component.getParentComponent();
+                if (parentComponent) {
+                    // let the parent observer attach itself to this observer (sync)
+                    parentComponent.emit(ComponentChildAddedEvent, this);
+
+                    // copy the composite parent reference from the new parent
+                    let c = this.parentObserver && this.parentObserver.compositeParent;
+                    if (this.compositeParent !== parentComponent &&
+                        this.compositeParent !== c) {
+                        this.component.emit(CompositeParentChangeEvent, this.component, c);
+                    }
+                }
+                else {
+                    this.parentObserver = undefined;
+                    this.compositeParent = undefined;
+                    this.compositePObs = undefined;
                 }
             }
         }
-        else if (e instanceof CompositeParentChangeEvent) {
-            // Propagate changes to the composite parent
-            // on all child component _observers_
-            this.emit(e);
+
+        /** Change the composite parent reference for the component, and update bindings */
+        setCompositeParent(composite?: Component) {
+            if (this.component === composite) return;
+            this.compositeParent = composite;
+            this.compositePObs = composite &&
+                composite[HIDDEN_OBSERVER_PROPERTY];
+            this.bindOwn();
         }
+
+        /** (Re-)bind all (own) bindings to the current composite parent */
+        bindOwn() {
+            // reset and remove current bindings
+            this.bound && this.bound.forEach(b => b.remove(this.component));
+            if (!this.compositeParent) {
+                this.bound = undefined;
+                return;
+            }
+            if (!this.bound) this.bound = [];
+            else this.bound.length = 0;
+
+            // go through all bindings and register with their bound instance
+            let ownBindings = this.component[HIDDEN_BINDINGS_PROPERTY];
+            for (let p in ownBindings) {
+                let binding = ownBindings[p];
+                let bound = this.compositePObs &&
+                    this.compositePObs.getCompositeBound(binding);
+                if (!bound) {
+                    if (binding.ignoreUnbound) continue;
+                    throw TypeError("[Component] Binding not found for " + p);
+                }
+                this.bound.push(bound);
+                bound.add(this.component);
+
+                // update bound value now
+                if (typeof (this.component as any)[binding.id] === "function") {
+                    (this.component as any)[binding.id](bound.value);
+                }
+            }
+        }
+
+        /** Return the bound instance for given binding, either from the current component or its composite parent */
+        getCompositeBound(binding: Binding): Binding.Bound | undefined {
+            return this.compositeBindings &&
+                this.compositeBindings.get(binding.id) ||
+                (this.compositePObs && this.compositePObs.getCompositeBound(binding));
+        }
+
+        /** Add a composite bound instance for given binding */
+        addCompositeBound(binding: Binding) {
+            if (this.compositeBindings &&
+                !this.compositeBindings.has(binding.id)) {
+                let bound = new Binding.Bound(binding, this.component);
+                this.compositeBindings.set(binding.id, bound);
+            }
+        }
+
+        /** Update values for all bound bindings with given property name (or all), if the component is currently active */
+        updateCompositeBound(propertyName?: string, v?: any) {
+            if (this.component.managedState !== ManagedState.ACTIVE ||
+                !this.compositeBindings) {
+                return;
+            }
+
+            // find bindings for given property name and update all bound components
+            for (let bound of this.compositeBindings.objects()) {
+                if (propertyName === undefined || bound.propertyName === propertyName) {
+                    arguments.length > 1 ?
+                        bound.updateComponents(v) :
+                        bound.updateComponents();
+                }
+            }
+            return this;
+        }
+
+        /** Create all active components (called when component is actived) */
+        private _createComponents() {
+            if (this.component.managedState !== ManagedState.ACTIVE ||
+                this.compositeBindings) {
+                return;
+            }
+
+            for (let p in this.component[HIDDEN_COMPOSE_PROPERTY]) {
+                // add all bindings from component and child components
+                if (!this.compositeBindings) {
+                    this.compositeBindings = new ManagedMap();
+                }
+                let composition = this.component[HIDDEN_COMPOSE_PROPERTY][p];
+                composition.getBindings().forEach(b => this.addCompositeBound(b));
+
+                // create component itself and assign to property
+                let c = new (composition.ActiveComponent)();
+                c.emit(CompositeParentChangeEvent, c, this.component);
+                (this.component as any)[composition.propertyName] = c;
+            }
+        }
+
+        /** Destroy all active components (called when component is deactived) */
+        private _destroyComponents() {
+            if (!this.compositeBindings ||
+                this.component.managedState === ManagedState.ACTIVE) {
+                return;
+            }
+
+            // clear all component properties
+            for (let p in this.component[HIDDEN_COMPOSE_PROPERTY]) {
+                let composition = this.component[HIDDEN_COMPOSE_PROPERTY][p];
+                (this.component as any)[composition.propertyName] = undefined;
+            }
+            this.compositeBindings.clear();
+            this.compositeBindings = undefined;
+        }
+    }
+    ComponentObserver.handle({
+        CompositeParentChange(e: ManagedEvent) {
+            if (e instanceof CompositeParentChangeEvent) {
+                this.setCompositeParent(e.composite);
+            }
+        }
+    });
+    Component.observe(ComponentObserver);
+}
+
+/** Helper function to make an event handler from a preset string property */
+function _makeEventHandler(handler: string) {
+    if (handler.slice(-2) === "()") {
+        let callMethodName = handler.slice(0, -2);
+        return function (this: Component, e: ManagedEvent) {
+            let composite: any = this.getCompositeParent();
+            while (composite) {
+                let f = composite && composite[callMethodName];
+                if (typeof f === "function") return f.call(composite, e);
+                composite = composite.getCompositeParent();
+            }
+            throw TypeError("[Component] " +
+                "Not an event handler method: " + callMethodName);
+        }
+    }
+    else if (handler[0] === "+") {
+        let emitName = handler.slice(1);
+        return function (this: Component, e: ManagedEvent) {
+            this.propagateComponentEvent(emitName, e);
+        };
+    }
+    else {
+        throw Error("[Component] Invalid event handler preset: "
+            + handler);
     }
 }
-ComponentObserver.handle({
-    // propagate composite reference after event on component observer itself
-    CompositeParentChange(e: ManagedEvent) {
-        if ((e instanceof CompositeParentChangeEvent) &&
-            e.source !== this.component) {
-            // set the composite parent reference on the observed component, but
-            // do not emit an event on this component since already propagated
-            this.component.setCompositeParent(e.composite, true);
-        }
+
+/** Helper method to update a component property with given value, with some additional logic for managed lists */
+function _applyPropertyValue(c: Component, p: string, v: any) {
+    let o = (c as any)[p];
+    if (o && (o instanceof ManagedList) && Array.isArray(v)) {
+        // update managed lists with array items
+        o.replace(v);
     }
-});
-Component.observe(ComponentObserver);
+    else {
+        // set property value
+        (c as any)[p] = v;
+    }
+}
 
 /**
  * Property decorator: turn the decorated property into an active sub component reference, with the containing object as its composite parent (i.e. the target object for all bindings on the component and child components). Given constructor is used to create a sub component instance *when the containing component is activated*, and sub components are destroyed immediately when the component is deactivated or destroyed.
