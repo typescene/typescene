@@ -2,13 +2,20 @@ import { AppActivity } from '../../app';
 import { Component, ComponentEventHandler, managed, ManagedRecord } from '../../core';
 import { UIRenderableConstructor } from '../UIComponent';
 import { UIFormContextController } from '../UIFormContextController';
-import { UICell, UIFlowCell } from "./UICell";
+import { UIStyle } from '../UIStyle';
+import { UITheme } from '../UITheme';
+import { UICell } from "./UICell";
+
+/** Style mixin that is automatically applied on each instance */
+const _mixin = UIStyle.create("UIForm", {
+    dimensions: { grow: 0 }
+});
 
 /**
  * Represents a UI component that groups form controls and other content in a cell.
  * @note This component is optional and has the same effect as `UIFormContextController` which does not render its own cell.
  */
-export class UIForm extends UIFlowCell {
+export class UIForm extends UICell {
     static preset(presets: UIForm.Presets,
         ...rest: Array<UIRenderableConstructor | undefined>): Function {
         return super.preset(presets, ...rest);
@@ -27,6 +34,8 @@ export class UIForm extends UIFlowCell {
             if (current instanceof AppActivity) break;
         }
     }
+
+    style = UITheme.current.baseContainerStyle.mixin(_mixin);
 
     accessibleRole = "form";
 
