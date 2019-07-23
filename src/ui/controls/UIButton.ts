@@ -1,22 +1,14 @@
-import { Application } from "../../app";
 import { Binding, tt } from "../../core";
-import { Stringable, UIComponent } from "../UIComponent";
+import { Stringable } from "../UIComponent";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
 
 /** Represents a button component */
 export class UIButton extends UIControl {
     static preset(presets: UIButton.Presets): Function {
-        if (presets.navigateTo) {
-            let path = presets.navigateTo;
-            if (Binding.isBinding(path)) {
-                throw TypeError("[UIButton] Property navigateTo cannot be bound");
-            }
-            delete presets.navigateTo;
-            presets.onClick = function (this: UIComponent) {
-                let app = this.getCompositeParent(Application);
-                app && app.navigate(path);
-            }
+        // use a 'link' role automatically if `navigateTo` is specified
+        if (presets.navigateTo && !presets.accessibleRole) {
+            presets.accessibleRole = "link";
         }
         return super.preset(presets);
     }
@@ -64,6 +56,9 @@ export class UIButton extends UIControl {
 
     /** Set to true to make the icon appear after the text instead of before */
     iconAfter?: boolean;
+
+    /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
+    navigateTo?: string;
 }
 
 /** Shortcut for `UIButton` constructor preset with the `button_primary` style set */
@@ -102,7 +97,7 @@ export namespace UIButton {
         iconColor?: string;
         /** Set to true to make the icon appear after the text instead of before */
         iconAfter?: boolean;
-        /** Path to navigate to when clicked (overrides onClick handler), *or* `:back` to go back in history when clicked */
+        /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
         navigateTo?: string;
         /** Set to true to disable keyboard focus for this button */
         disableKeyboardFocus?: boolean;

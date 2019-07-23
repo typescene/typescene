@@ -106,6 +106,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
         // return preset function
         let f = super.preset(presets, ...rest);
         return function (this: UIContainer) {
+            f.call(this);
             let mixin = style || (styleName && UITheme.current.styles[styleName]);
             if (mixin) {
                 if (this._style === _emptyStyle) this.style = mixin;
@@ -113,7 +114,6 @@ export abstract class UIComponent extends Component implements UIRenderable {
             }
             if (dimensions) this.dimensions = { ...this.dimensions, ...dimensions };
             if (position) this.position = { ...this.position, ...position };
-            return f.call(this);
         };
     }
 
