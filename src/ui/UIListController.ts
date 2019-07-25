@@ -137,7 +137,7 @@ export class UIListController extends UIRenderableController {
     }
 
     /** Set to true to enable selection (focus movement) using up/down arrow keys */
-    enableArrowKeyFocus = true;
+    enableArrowKeyFocus?: boolean;
 
     /** List of objects, each object is used to construct one content component */
     @managed
@@ -201,7 +201,7 @@ export namespace UIListController {
     export interface Presets {
         /** List of items: initial values, or a list binding */
         items?: Iterable<ManagedObject>;
-        /** Set to true to enable selection (focus movement) using up/down arrow keys, defaults to true */
+        /** Set to true to enable selection (focus movement) using up/down arrow keys */
         enableArrowKeyFocus?: boolean;
         /** Index of first item to be shown in the list (for e.g. pagination, or sliding window positioning), defaults to 0 */
         firstIndex?: number;
