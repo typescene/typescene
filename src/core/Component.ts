@@ -42,16 +42,27 @@ export type ComponentEventHandler<TComponent = Component, TEvent = ComponentEven
  * For a constructable type, combine with a specific function type, e.g. `ComponentConstructor & (new () => MyComponent)`.
  */
 export type ComponentConstructor<TComponent extends Component = Component> =
-    (new (...args: any[]) => TComponent) |
-    (new (a: never, b: never, c: never, d: never, e: never, f: never) => TComponent);
+    new (...args: any[]) => TComponent;
 
-/** Inferred type of the argument to `Component.with` for a specific component constructor */
+/** Inferred partial type of the argument to `Component.with` without bindings, for a specific component constructor */
 export type ComponentPresetType<TComponentCtor extends ComponentConstructor> =
     TComponentCtor extends { preset: (presets: infer TPreset) => void } ? TPreset : any;
+
+/** Inferred type of the argument to `Component.with` for a specific component constructor */
+export type ComponentPresetArgType<TComponentCtor extends ComponentConstructor> =
+    {
+        [P in keyof ComponentPresetType<TComponentCtor>]?:
+            ComponentPresetType<TComponentCtor>[P] | Binding.Type
+    } & {
+        [P: string]: any;
+    };
 
 /** Inferred type of the rest arguments to `Component.with` for a specific component constructor */
 export type ComponentPresetRestType<TComponentCtor extends ComponentConstructor> =
     TComponentCtor extends { preset: (presets: ComponentPresetType<TComponentCtor>, ...rest: infer TRest) => void } ? TRest : never;
+
+export type ComponentCtorWithPreset<TComponentCtor extends ComponentConstructor> =
+    TComponentCtor & { preset(presets: ComponentPresetType<TComponentCtor>): Function };
 
 /** @internal Event that is emitted on (parent) components when a child component is added. The parent component observer responds by setting the `parentObserver` property on the child observer. */
 export class ComponentChildAddedEvent extends ComponentEvent {
@@ -89,29 +100,22 @@ export class Component extends ManagedObject {
      *   * `{ ... onEventName: "+OtherEvent" }` to emit another event with given name. The event is created and emitted using the `Component.propagateComponentEvent` method.
      * - Upon initialization of each instance, the `update` method is called with the remaining properties in the intializer argument, and all rest arguments (component classes) of the same type as the arguments to this method.
      */
-    static with<TComponentCtor extends ComponentConstructor,
-        TPreset extends ComponentPresetType<TComponentCtor>,
-        TRest extends ComponentPresetRestType<TComponentCtor>>(
-        this: TComponentCtor & { preset(presets: TPreset): Function },
-        presets:  { [P in keyof TPreset]?: TPreset[P] | { isComponentBinding(): true } } &
-            Exclude<{ [other: string]: any }, { with: any }>,
-        ...rest: TRest):
+    static with<TComponentCtor extends ComponentConstructor>(
+        this: ComponentCtorWithPreset<TComponentCtor>,
+        ...rest: ComponentPresetRestType<TComponentCtor>):
         TComponentCtor;
-    static with<TComponentCtor extends ComponentConstructor,
-        TRest extends ComponentPresetRestType<TComponentCtor>>(
-        this: TComponentCtor & { preset: Function },
-        ...rest: TRest):
+    static with<TComponentCtor extends ComponentConstructor>(
+        this: ComponentCtorWithPreset<TComponentCtor>,
+        presets: new() => any,
+        ...rest: ComponentPresetRestType<TComponentCtor>):
+        "INVALID_PRESET_ARGUMENT";
+    static with<TComponentCtor extends ComponentConstructor>(
+        this: ComponentCtorWithPreset<TComponentCtor>,
+        presets: ComponentPresetArgType<TComponentCtor>,
+        ...rest: ComponentPresetRestType<TComponentCtor>):
         TComponentCtor;
-    static with<TComponentCtor extends ComponentConstructor,
-        TPreset extends ComponentPresetType<TComponentCtor>,
-        TRest extends ComponentPresetRestType<TComponentCtor>>(
-        this: TComponentCtor & { preset(presets: TPreset): Function },
-        presets: Exclude<{ [P in keyof TPreset]?: TPreset[P] | { isComponentBinding(): true } }, { with: any }>,
-        ...rest: TRest):
-        TComponentCtor;
-    static with<TComponentCtor extends ComponentConstructor,
-        TPreset extends ComponentPresetType<TComponentCtor>>(
-        this: TComponentCtor & { preset(presets: TPreset): Function },
+    static with<TComponentCtor extends ComponentConstructor>(
+        this: ComponentCtorWithPreset<TComponentCtor>,
         ...presets: any[]):
         TComponentCtor {
         // create a new class that extends the current class

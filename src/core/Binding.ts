@@ -275,6 +275,11 @@ export class StringFormatBinding extends Binding {
 }
 
 export namespace Binding {
+    /** Binding type (duck typed) */
+    export interface Type {
+        isComponentBinding(): true;
+    }
+
     /**
      * @internal A list of components that are actively bound to a specific binding. Also includes a method to update the value on all components, using the `Component.updateBoundValue` method.
      */
