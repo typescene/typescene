@@ -18,6 +18,9 @@ const HIDDEN_COMPOSE_PROPERTY = "^preCmp";
 /** Arbitrary name of a hidden property that references the base Component observer */
 const HIDDEN_OBSERVER_PROPERTY = "^cmpObs";
 
+/** Event that is reused to be emitted on Components that are already instantiated but a new active component is preset */
+const RECOMPOSE_EVENT = new ManagedCoreEvent("Recompose").freeze();
+
 /** Event that is emitted on a particular `Component` instance, with reference to the source component as `source` */
 export class ComponentEvent extends ManagedEvent {
     constructor(name: string, source: Component, inner?: ManagedEvent) {
@@ -246,14 +249,20 @@ export class Component extends ManagedObject {
             };
         }
         let h = this.prototype[HIDDEN_COMPOSE_PROPERTY];
+        let exists = false;
         if (h[propertyName]) {
             // component already preset, check if same constructor
-            if (h[propertyName].ActiveComponent === constructor) h[propertyName];
+            if (h[propertyName].ActiveComponent === constructor) {
+                return h[propertyName];
+            }
+            exists = true;
         }
 
         // add new component with observer and enable immediately
-        return h[propertyName] = new Component.Composition(
+        let result = h[propertyName] = new Component.Composition(
             this, propertyName, constructor, ...include);
+        if (exists) result.forceRecomposeAll();
+        return result;
     }
 
     /** Create a new component */
@@ -348,6 +357,31 @@ export namespace Component {
             }
         }
 
+        /** @internal Force recomposition for all instances of the parent Component; called automatically if this composition replaces an existing one for the same property. This method is mostly used to support Hot Module Reload where a new view is preset onto existing components. */
+        forceRecomposeAll() {
+            let doRecompose = true;
+            let self = this;
+
+            // add an observer that can be woken up with any Change event,
+            // to check if the component still contains an old component
+            class RecompositionObserver {
+                constructor (public readonly c: Component) { }
+                onChange() {}
+                onActive() {
+                    // check (once) if need to recompose:
+                    if (doRecompose) {
+                        doRecompose = false;
+                        if (!((this.c as any)[self.propertyName] instanceof (self.ActiveComponent))) {
+                            // trigger a recompose using this event
+                            // (picked up by ComponentObserver below)
+                            this.c.emit(RECOMPOSE_EVENT);
+                        }
+                    }
+                }
+            }
+            this.Composite.observe(RecompositionObserver);
+        }
+
         /** Returns a list of all bindings that should be bound to the composite parent */
         getBindings() {
             return this._bindings.slice();
@@ -432,6 +466,9 @@ export namespace Component {
             }
             else if (e === ManagedCoreEvent.ACTIVE) {
                 this._createComponents();
+            }
+            else if (e === RECOMPOSE_EVENT) {
+                this._createComponents(true);
             }
             else if (e instanceof ManagedChangeEvent) {
                 // TODO: SHOULD BE ASYNC
@@ -542,10 +579,10 @@ export namespace Component {
             return this;
         }
 
-        /** Create all active components (called when component is actived) */
-        private _createComponents() {
+        /** Create all active components (called when component is actived); pass `force` parameter to recreate components where needed */
+        private _createComponents(force?: boolean) {
             if (this.component.managedState !== ManagedState.ACTIVE ||
-                this.compositeBindings) {
+                !force && this.compositeBindings) {
                 return;
             }
 
@@ -558,6 +595,11 @@ export namespace Component {
                 composition.getBindings().forEach(b => this.addCompositeBound(b));
 
                 // create component itself and assign to property
+                let existing = (this.component as any)[composition.propertyName];
+                if (existing && existing instanceof (composition.ActiveComponent)) {
+                    // already assigned for same class, do not reassign
+                    continue;
+                }
                 let c = new (composition.ActiveComponent)();
                 c.emit(CompositeParentChangeEvent, c, this.component);
                 (this.component as any)[composition.propertyName] = c;

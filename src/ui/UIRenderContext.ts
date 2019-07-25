@@ -1,3 +1,4 @@
+import { AppComponent } from '../app';
 import { bind, ManagedChangeEvent, ManagedObject } from "../core";
 import { UIComponent, UIRenderable } from "./UIComponent";
 
@@ -14,6 +15,11 @@ export enum UIRenderPlacement {
 export abstract class UIRenderContext extends ManagedObject {
     /** Emit a change event for this context, e.g. when the viewport orientation or current locale changes. This will trigger all views to re-render if needed. */
     emitRenderChange() { this.emit(ManagedChangeEvent.CHANGE) }
+
+    /** Returns a list of all application components (activities, view components) that are associated with this render context */
+    getAppComponents() {
+        return this.getManagedReferrers().filter(c => (c instanceof AppComponent));
+    }
 
     /** Remove all rendered output from the screen */
     abstract clear(): void;
