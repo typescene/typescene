@@ -8,6 +8,9 @@ import { UIControl } from "./UIControl";
 /** Represents a text field component */
 export class UITextField extends UIControl {
     static preset(presets: UITextField.Presets): Function {
+        // quietly change 'text' to placeholder to support JSX tag content
+        if ("text" in (presets as any)) presets.placeholder = (presets as any).text;
+
         return super.preset(presets);
     }
 
