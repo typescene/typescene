@@ -622,7 +622,12 @@ function _applyPropertyValue(c: Component, p: string, v: any) {
     let o = (c as any)[p];
     if (o && (o instanceof ManagedList) && Array.isArray(v)) {
         // update managed lists with array items
-        o.replace(v);
+        o.replace(v.map(it => {
+            if (it instanceof ManagedObject) return it;
+            let r = new ManagedObject();
+            (r as any).value = it;
+            return r;
+        }));
     }
     else {
         // set property value

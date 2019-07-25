@@ -12,7 +12,7 @@ export interface UIListItemAdapter<TObject extends ManagedObject = ManagedObject
 
 /** Default container used in the preset method */
 const _defaultContainer = UICloseColumn.with({
-    allowKeyboardFocus: true,
+    accessibleRole: "list",
     style: UIStyle.create("UIListContainer", {
         dimensions: { grow: 0 },
         containerLayout: { distribution: "start" }
@@ -100,6 +100,11 @@ export class UIListController extends UIRenderableController {
                 // delete components that should no longer be in the list
                 for (let oldKey in created) {
                     map.remove(created[oldKey]);
+                }
+
+                // set focusability if needed
+                if (this.controller.enableArrowKeyFocus) {
+                    container.allowKeyboardFocus = !!components.length;
                 }
 
                 // emit an event specific to this UIListController

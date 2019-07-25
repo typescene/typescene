@@ -28,7 +28,7 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
         this.presetBindingsFrom(...rest);
         let p = this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
-        p.limitBindings("object");
+        p.limitBindings("object", "value");
         return super.preset({});
     }
 
@@ -39,6 +39,9 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     constructor(object: TObject) {
         super();
         this.object = object;
+        this.value = object.valueOf();
+
+        // propagate events as `UIListCellAdapterEvent`, manage states
         this.propagateChildEvents(e => {
             if (this.cell && e instanceof UIComponentEvent) {
                 if (e.source === this.cell) {
@@ -62,6 +65,9 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     @managed
     readonly object: TObject;
 
+    /** The `value` property of the encapsulated object (or the list value itself, if the list was bound to an array with non-managed object values) */
+    readonly value: any;
+
     /** The encapsulated cell, as a child component; only created when the `UIListCellAdapter` is rendered */
     @managedChild
     readonly cell?: UICell;
@@ -71,7 +77,12 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
         if (this._pendingRenderCallback) {
             let callback = this._pendingRenderCallback;
             this._pendingRenderCallback = undefined;
-            this.cell && this.cell.render(callback);
+            if (this.cell) {
+                if (!("accessibleRole" in this.cell)) {
+                    this.cell.accessibleRole = "listitem";
+                }
+                this.cell.render(callback);
+            }
         }
     }
 
