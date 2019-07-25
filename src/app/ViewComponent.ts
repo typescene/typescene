@@ -78,7 +78,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
 // observe view activities to render when needed
 ViewComponent.observe(class {
     constructor (public component: ViewComponent) { }
-    async onRenderContextChange(ctx: UIRenderContext) {
+    onRenderContextChange(ctx: UIRenderContext) {
         if (ctx) this.component.render();
         else this.component.removeViewAsync(true).catch(logUnhandledException);
     }
