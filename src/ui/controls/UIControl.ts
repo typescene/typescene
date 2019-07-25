@@ -19,9 +19,9 @@ export abstract class UIControl extends UIComponent {
         }
         let f = super.preset(presets);
         return function (this: UIControl) {
+            f.call(this);
             if (controlStyle) this.controlStyle = { ...this.controlStyle, ...controlStyle };
             if (textStyle) this.textStyle = { ...this.textStyle, ...textStyle };
-            return f.call(this);
         };
     }
 

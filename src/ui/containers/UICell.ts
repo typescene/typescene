@@ -151,7 +151,7 @@ export let UICoverCell = UICell.with({
 });
 
 export namespace UICell {
-    /** UIRow presets type, for use with `Component.with` */
+    /** UICell presets type, for use with `Component.with` */
     export interface Presets extends UIContainer.Presets {
         /** Padding around contained elements (in dp or CSS string, defaults to 0) */
         padding?: UICellOffsets;

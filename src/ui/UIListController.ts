@@ -12,7 +12,7 @@ export interface UIListItemAdapter<TObject extends ManagedObject = ManagedObject
 
 /** Default container used in the preset method */
 const _defaultContainer = UICloseColumn.with({
-    allowKeyboardFocus: true,
+    accessibleRole: "list",
     style: UIStyle.create("UIListContainer", {
         dimensions: { grow: 0 },
         containerLayout: { distribution: "start" }
@@ -27,6 +27,7 @@ export class UIListController extends UIRenderableController {
     static preset(presets: UIListController.Presets,
         ListItemAdapter?: UIListItemAdapter | ((instance: UIListController) => UIListItemAdapter),
         container: ComponentConstructor & (new () => UIContainer) = _defaultContainer): Function {
+        this.presetBindingsFrom(ListItemAdapter as any);
         this.observe(class {
             constructor(public controller: UIListController) { }
             readonly contentMap = new ManagedMap<UIRenderable>();
@@ -101,6 +102,11 @@ export class UIListController extends UIRenderableController {
                     map.remove(created[oldKey]);
                 }
 
+                // set focusability if needed
+                if (this.controller.enableArrowKeyFocus) {
+                    container.allowKeyboardFocus = !!components.length;
+                }
+
                 // emit an event specific to this UIListController
                 this.controller.propagateComponentEvent("ListItemsChange");
             }
@@ -131,7 +137,7 @@ export class UIListController extends UIRenderableController {
     }
 
     /** Set to true to enable selection (focus movement) using up/down arrow keys */
-    enableArrowKeyFocus = true;
+    enableArrowKeyFocus?: boolean;
 
     /** List of objects, each object is used to construct one content component */
     @managed
@@ -195,7 +201,7 @@ export namespace UIListController {
     export interface Presets {
         /** List of items: initial values, or a list binding */
         items?: Iterable<ManagedObject>;
-        /** Set to true to enable selection (focus movement) using up/down arrow keys, defaults to true */
+        /** Set to true to enable selection (focus movement) using up/down arrow keys */
         enableArrowKeyFocus?: boolean;
         /** Index of first item to be shown in the list (for e.g. pagination, or sliding window positioning), defaults to 0 */
         firstIndex?: number;

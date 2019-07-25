@@ -1,24 +1,20 @@
-import { logUnhandledException, managed, managedChild, ManagedRecord, ManagedState } from "../core";
-import { formContextBinding, UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
+import { logUnhandledException, managedChild, ManagedState } from "../core";
+import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 
 /**
  * Represents an application component that encapsulates a view made up of UI components (or other renderable components, such as nested `ViewComponent` instances).
- * The encapsulated view is created the first time this component is rendered. After that, all UI events are propagated from the encapsulated view to the `ViewComponent` instance.
+ * The encapsulated view (a single renderable component) is created the first time this component is rendered. After that, all UI events are propagated from the encapsulated view to the `ViewComponent` instance.
  * @note This class is similar in functionality to `ViewActivity`, but `ViewComponent` views are created immediately, whereas view activities need to be activated first before their views are created.
  */
 export class ViewComponent extends AppComponent implements UIRenderable {
     static preset(presets: object,
-        View?: UIRenderableConstructor): Function {
-        this.presetBinding("formContext", formContextBinding);
-        if (View) this.presetActiveComponent("view", View, ViewActivity);
+        ...View: UIRenderableConstructor[]): Function {
+        if (View.length > 1) throw Error("Invalid ViewComponent child component");
+        if (View[0]) this.presetActiveComponent("view", View[0], ViewActivity);
         return super.preset(presets);
     }
-
-    /** Form state context, propagated from the parent composite object */
-    @managed
-    formContext?: ManagedRecord;
 
     /** The root component that makes up the content for this view, as a child component; only created when the `ViewComponent` is rendered */
     @managedChild
@@ -82,7 +78,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
 // observe view activities to render when needed
 ViewComponent.observe(class {
     constructor (public component: ViewComponent) { }
-    async onRenderContextChange(ctx: UIRenderContext) {
+    onRenderContextChange(ctx: UIRenderContext) {
         if (ctx) this.component.render();
         else this.component.removeViewAsync(true).catch(logUnhandledException);
     }
@@ -90,5 +86,20 @@ ViewComponent.observe(class {
 
 export namespace ViewComponent {
     /** Shortcut type for declaring a static `preset` method which accepts an object with presets with the same type as given properties of the view component itself (excluding methods) */
-    export type PresetFor<TComponent extends ViewComponent, K extends keyof TComponent = Exclude<{ [P in keyof TComponent]: TComponent[P] extends Function ? never : P }[keyof TComponent], keyof ViewComponent>> = (presets: Pick<TComponent, K>) => Function;
+    export type PresetFor<TComponent extends ViewComponent, K extends keyof TComponent = Exclude<{ [P in keyof TComponent]: TComponent[P] extends Function ? never : P }[keyof TComponent], keyof ViewComponent>> = (presets: Pick<TComponent, K>, ...C: UIRenderableConstructor[]) => Function;
+
+    /**
+     * Returns a `ViewComponent` class that encapsulates the view returned by given function.
+     * The function receives `presets` (object) and rest parameters (i.e. content) and should return a component constructor.
+     * The resulting class contains a typed `preset` function such that a subsequent call to `.with()` expects the corresponding presets and rest parameter types.
+     */
+    export function template<TPreset, TRest extends UIRenderableConstructor[]>
+        (templateProvider: (presets: TPreset, ...C: TRest) => UIRenderableConstructor):
+        typeof ViewComponent & { preset: (presets: TPreset, ...rest: TRest) => Function } {
+        return class ViewComponentWithTemplate extends ViewComponent {
+            static preset(presets: any, ...C: TRest) {
+                return super.preset(presets, templateProvider(presets, ...C));
+            }
+        }
+    }
 }

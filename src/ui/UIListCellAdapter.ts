@@ -1,7 +1,6 @@
-import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedRecord, ManagedState, shadowObservable } from "../core";
+import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedState, shadowObservable } from "../core";
 import { UICell } from "./containers/UICell";
 import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
-import { formContextBinding } from './UIFormContextController';
 import { UIRenderableController } from "./UIRenderableController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
@@ -24,11 +23,12 @@ export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObjec
 export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     extends Component.with({
         renderContext: renderContextBinding,
-        formContext: formContextBinding
     })
     implements UIRenderable {
     static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
-        this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
+        this.presetBindingsFrom(...rest);
+        let p = this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
+        p.limitBindings("object", "value");
         return super.preset({});
     }
 
@@ -39,6 +39,9 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     constructor(object: TObject) {
         super();
         this.object = object;
+        this.value = object.valueOf();
+
+        // propagate events as `UIListCellAdapterEvent`, manage states
         this.propagateChildEvents(e => {
             if (this.cell && e instanceof UIComponentEvent) {
                 if (e.source === this.cell) {
@@ -58,13 +61,12 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     @managed
     renderContext?: UIRenderContext;
 
-    /** Form state context, propagated from the parent composite object */
-    @managed
-    formContext?: ManagedRecord;
-
     /** The encapsulated object */
     @managed
     readonly object: TObject;
+
+    /** The `value` property of the encapsulated object (or the list value itself, if the list was bound to an array with non-managed object values) */
+    readonly value: any;
 
     /** The encapsulated cell, as a child component; only created when the `UIListCellAdapter` is rendered */
     @managedChild
@@ -75,7 +77,12 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
         if (this._pendingRenderCallback) {
             let callback = this._pendingRenderCallback;
             this._pendingRenderCallback = undefined;
-            this.cell && this.cell.render(callback);
+            if (this.cell) {
+                if (!("accessibleRole" in this.cell)) {
+                    this.cell.accessibleRole = "listitem";
+                }
+                this.cell.render(callback);
+            }
         }
     }
 

@@ -15,9 +15,11 @@ export class Application extends Component {
      * @returns the application instance
      * @note Calling this method directly on `Application` creates an application without any context (i.e. `activationContext` and `renderContext`). Instead, use a constructor that is meant for a specific platform (e.g. `BrowserApplication`).
      */
-    static run(...activities: Array<ComponentConstructor & (new () => AppActivity)>) {
-        let C = this.with(...activities);
-        return new C().activate();
+    static run<T extends Application>(
+        this: typeof Application & (new() => T),
+        ...activities: Array<ComponentConstructor & (new () => AppActivity)>): T {
+        let C = this.with(...activities as any);
+        return new C().activate() as any;
     }
 
     /** All `Application` instances that are currently active */

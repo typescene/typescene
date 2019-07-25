@@ -1,9 +1,12 @@
 {
   "name": "typescene",
-  "version": "2.12.9",
+  "version": "2.20.0",
   "description": "Typescene framework",
   "author": "Jelmer Cormont",
   "license": "MIT",
+  "publishConfig": {
+    "tag": "next"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/typescene/typescene.git"
@@ -17,24 +20,25 @@
   "typings": "./index.d.ts",
   "files": [
     "dist",
+    "JSX/dist",
     "index.js",
     "index.d.ts"
   ],
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rimraf JSX/dist",
     "prepublishOnly": "npm run build",
-    "prebuild": "rimraf dist && tsc -p src --declaration",
-    "build": "tsc -p src --removeComments",
+    "prebuild": "npm run clean && tsc -p src --declaration",
+    "build": "tsc -p src --removeComments && tsc -d -p JSX/src",
     "postbuild": "node test/run",
     "watch": "tsc -p src -w",
     "test": "node test/run"
   },
-  "devDependencies": {
-    "esm": "^3.2.22",
-    "rimraf": "^2.6.3",
-    "typescript": "^3.4.5"
-  },
   "dependencies": {
-    "tslib": "^1.9.3"
+    "tslib": "^1.10.0"
+  },
+  "devDependencies": {
+    "esm": "^3.2.25",
+    "rimraf": "^2.6.3",
+    "typescript": "^3.5.3"
   }
 }

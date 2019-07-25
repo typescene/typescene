@@ -1,4 +1,4 @@
-import { Binding, logUnhandledException, managed, ManagedChangeEvent, managedChild, ManagedEvent, tt } from "../core";
+import { Binding, logUnhandledException, managed, managedChild, ManagedEvent, tt } from "../core";
 import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext, UIRenderPlacement, UITheme } from "../ui";
 import { AppActivity } from "./AppActivity";
 
@@ -12,16 +12,9 @@ export class ViewActivity extends AppActivity implements UIRenderable {
         let addViewComponent = (View: UIRenderableConstructor) => {
             this.presetActiveComponent("view", View, AppActivity);
             if (!Object.prototype.hasOwnProperty.call(View, "preset")) {
+                // add a callback to the view class which updates the
+                // view component on this class (recursively)
                 (View as any)["@updateActivity"] = addViewComponent;
-                this.prototype["@resetView"] = function (this: ViewActivity) {
-                    if (this.isActive() &&
-                        !(this.view instanceof View)) {
-                        // clear old view, then emit Change
-                        // to wake up new component observer
-                        this.view = undefined;
-                        this.emit(ManagedChangeEvent.CHANGE);
-                    }
-                }
             }
         }
         let viewClass = View || presets.view;
@@ -47,9 +40,6 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     /** The root component that makes up the content for this view, as a child component */
     @managedChild
     view?: UIRenderable;
-
-    /** @internal Recreate view instance (defined on prototype) */
-    ["@resetView"]() { }
 
     /** View placement mode, determines if and how view is rendered when activated */
     placement = UIRenderPlacement.NONE;
@@ -180,10 +170,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
 // observe view activities to render when needed
 ViewActivity.observe(class {
     constructor (public activity: ViewActivity) { }
-    async onRenderContextChange(_ctx: any, event: any) {
-        if (event) this.activity["@resetView"]();
-        this.checkAndRender()
-    }
+    onRenderContextChange() { this.checkAndRender() }
     onViewChange() { this.checkAndRender() }
     checkAndRender() {
         if (this.activity.renderContext && this.activity.view) this.activity.render();
