@@ -726,6 +726,9 @@ export class ManagedObject {
         });
     }
 
+    /** @internal Value-of conversion method */
+    valueOf() { return (this as any).value }
+
     /** @internal To be overridden, to turn existing references into child objects */
     protected [util.MAKE_REF_MANAGED_PARENT_FN]() { }
 
