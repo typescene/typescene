@@ -7,9 +7,11 @@ export class AppActivationContext extends ManagedObject {
     get target() { return this._target }
     set target(v) {
         let target = String(v || "").replace(/^\/|\/\s*$/g, "");
-        this._target = target;
-        this._split = target ? target.split("/") : [];
-        this.emit(ManagedChangeEvent.CHANGE);
+        if (this._target !== target) {
+            this._target = target;
+            this._split = target ? target.split("/") : [];
+            this.emit(ManagedChangeEvent.CHANGE);
+        }
     }
     private _target = "";
     private _split: string[] = [];
