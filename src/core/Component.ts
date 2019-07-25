@@ -471,7 +471,6 @@ export namespace Component {
                 this._createComponents(true);
             }
             else if (e instanceof ManagedChangeEvent) {
-                // TODO: SHOULD BE ASYNC
                 this.updateCompositeBound();
             }
             else if (e instanceof ComponentChildAddedEvent) {

@@ -53,7 +53,6 @@ UIModalController.observe(class {
 
     /** Render a new modal component when needed */
     onModalChange() {
-        // TODO: check for double rendering??
         if (this._renderCallback) {
             this._renderCallback = this._renderCallback(undefined);
         }
