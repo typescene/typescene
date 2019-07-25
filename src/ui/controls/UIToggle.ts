@@ -8,6 +8,9 @@ import { UIControl } from "./UIControl";
 /** Represents a toggle component with an optional text label */
 export class UIToggle extends UIControl {
     static preset(presets: UIToggle.Presets): Function {
+        // quietly change 'text' to label to support JSX tag content
+        if ("text" in (presets as any)) presets.label = (presets as any).text;
+
         return super.preset(presets);
     }
 

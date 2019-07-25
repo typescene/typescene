@@ -6,6 +6,9 @@ import { UIControl } from "./UIControl";
 /** Represents a button component */
 export class UIButton extends UIControl {
     static preset(presets: UIButton.Presets): Function {
+        // quietly change 'text' to label to support JSX tag content
+        if ("text" in (presets as any)) presets.label = (presets as any).text;
+
         // use a 'link' role automatically if `navigateTo` is specified
         if (presets.navigateTo && !presets.accessibleRole) {
             presets.accessibleRole = "link";
