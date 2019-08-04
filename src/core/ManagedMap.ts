@@ -163,6 +163,24 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         return result;
     }
 
+    /**
+     * Iterates over the keys in this list and invokes given callback for each key and object.
+     * @param callback
+     *  the function to be called, with a key and a single object as the only argument
+     * @note The behavior of this method is undefined if objects are inserted by the callback function.
+     */
+    forEach(callback: (key: string, target: T) => void) {
+        let refs = this[util.HIDDEN_REF_PROPERTY];
+        if (!refs) return;
+        for (let propId in refs) {
+            if (propId[0] === util.MANAGED_MAP_REF_PREFIX && refs[propId]) {
+                let key = propId.slice(1);
+                let target: T = refs[propId] && refs[propId]!.b;
+                if (target) callback(key, target);
+            }
+        }
+    }
+
     /** Returns true if given object is currently contained in this map */
     includes(target: T) {
         // check if map is included as reference source on target
