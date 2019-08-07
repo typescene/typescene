@@ -534,6 +534,7 @@ export namespace Component {
                     if (binding.ignoreUnbound) continue;
                     throw TypeError("[Component] Binding not found for " + p);
                 }
+                if (bound.includes(this.component)) continue;
                 this.bound.push(bound);
                 bound.add(this.component);
 

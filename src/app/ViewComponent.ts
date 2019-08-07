@@ -98,7 +98,10 @@ export namespace ViewComponent {
         typeof ViewComponent & { preset: (presets: TPreset, ...rest: TRest) => Function } {
         return class ViewComponentWithTemplate extends ViewComponent {
             static preset(presets: any, ...C: TRest) {
-                return super.preset(presets, templateProvider(presets, ...C));
+                let t = templateProvider(presets, ...C);
+                this.presetActiveComponent("view", t).limitBindings();
+                this.presetBindingsFrom(t);
+                return super.preset(presets);
             }
         }
     }
