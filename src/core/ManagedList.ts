@@ -16,7 +16,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     /** Creates a new list of objects */
     constructor(...objects: T[]) {
         super();
-        this._managedCount = 0;
+        this["^count"] = 0;
         Object.defineProperty(this, "_managedCount", {
             ...Object.getOwnPropertyDescriptor(this, "_managedCount"),
             enumerable: false
@@ -52,12 +52,12 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     private _managedClassRestriction?: ManagedObjectConstructor<any>;
 
     /** The number of objects in this list */
-    @shadowObservable("_managedCount")
+    @shadowObservable("^count")
     get count() {
         // check .head first since it is deleted first when the list itself is destroyed
-        return this[util.HIDDEN_REF_PROPERTY].head ? this._managedCount : 0;
+        return this[util.HIDDEN_REF_PROPERTY].head ? this["^count"] : 0;
     }
-    private _managedCount = 0;
+    private ["^count"] = 0;
 
     /**
      * Add one or more objects (or managed lists or maps) to the end of this list.
@@ -101,7 +101,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
             }
         }, (target) => {
             // handle target moved/destroyed
-            this._managedCount--;
+            this["^count"]--;
             this.emit(ManagedObjectRemovedEvent, this, target);
         });
 
@@ -123,7 +123,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
             // add first reference
             refs.head = refs.tail = ref;
         }
-        this._managedCount++;
+        this["^count"]++;
 
         // set/move parent-child link if needed, and emit change event
         if (refs.parent && !this._isWeakRef) {
@@ -143,7 +143,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
             this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + target.managedId];
         if (ref && ref.b === target) {
             if (ManagedObject._discardRefLink(ref)) {
-                this._managedCount--;
+                this["^count"]--;
                 this.emit(ManagedObjectRemovedEvent, this, target);
             }
         }
@@ -175,7 +175,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
             if (ref && ref.b === target) {
                 result.push(target);
                 if (ManagedObject._discardRefLink(ref)) {
-                    this._managedCount--;
+                    this["^count"]--;
                     this.emit(ManagedObjectRemovedEvent, this, target);
                 }
             }
