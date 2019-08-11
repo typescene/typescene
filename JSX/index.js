@@ -1,3 +1,4 @@
-export * from "./dist";
-import { JSX } from "./dist";
+export * from "../../dist";
+export * from "./dist/JSX";
+import { JSX } from "./dist/JSX";
 export default JSX;
