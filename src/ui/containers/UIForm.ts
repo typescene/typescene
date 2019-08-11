@@ -1,10 +1,19 @@
 import { AppActivity } from '../../app';
-import { Component, ComponentEventHandler, managed, ManagedRecord } from '../../core';
+import { Component, ComponentEvent, ComponentEventHandler, managed, ManagedObject, ManagedRecord } from '../../core';
 import { UIRenderableConstructor } from '../UIComponent';
 import { UIFormContextController } from '../UIFormContextController';
 import { UIStyle } from '../UIStyle';
 import { UITheme } from '../UITheme';
 import { UICell } from "./UICell";
+
+/**
+ * Event that is emitted when the form context of a `UIForm` or `UIFormContextController` has been changed
+ * @note Despite its name, this event does **not** inherit from `ManagedChangeEvent`.
+ */
+export class FormContextChangeEvent extends ComponentEvent {
+    /** The current form context object */
+    formContext!: ManagedObject;
+}
 
 /** Style mixin that is automatically applied on each instance */
 const _mixin = UIStyle.create("UIForm", {
@@ -41,14 +50,17 @@ export class UIForm extends UICell {
 
     /** Form state context; defaults to an empty managed record */
     @managed
-    formContext = new ManagedRecord();
+    formContext: ManagedObject = new ManagedRecord();
 }
 
 // observe to emit event when form context changes
 UIForm.observe(class {
-    constructor(public controller: UIForm) { }
+    constructor(public form: UIForm) { }
     onFormContextChange() {
-        this.controller.propagateComponentEvent("FormContextChange");
+        if (!this.form.formContext) return;
+        let event = new FormContextChangeEvent("FormContextChange", this.form);
+        event.formContext = this.form.formContext;
+        this.form.emit(event);
     }
 });
 
