@@ -1,4 +1,4 @@
-import { ComponentEventHandler, managed, ManagedRecord } from "../core";
+import { ComponentEventHandler, managed, ManagedObject, ManagedRecord } from "../core";
 import { FormContextChangeEvent } from './containers/UIForm';
 import { UIRenderableController } from "./UIRenderableController";
 
@@ -9,7 +9,7 @@ import { UIRenderableController } from "./UIRenderableController";
 export class UIFormContextController extends UIRenderableController {
     /** Form state context; defaults to an empty managed record */
     @managed
-    formContext = new ManagedRecord();
+    formContext: ManagedObject = new ManagedRecord();
 }
 
 // observe to emit event when form context changes

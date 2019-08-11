@@ -1,5 +1,5 @@
 import { AppActivity } from '../../app';
-import { Component, ComponentEvent, ComponentEventHandler, managed, ManagedRecord } from '../../core';
+import { Component, ComponentEvent, ComponentEventHandler, managed, ManagedObject, ManagedRecord } from '../../core';
 import { UIRenderableConstructor } from '../UIComponent';
 import { UIFormContextController } from '../UIFormContextController';
 import { UIStyle } from '../UIStyle';
@@ -12,7 +12,7 @@ import { UICell } from "./UICell";
  */
 export class FormContextChangeEvent extends ComponentEvent {
     /** The current form context object */
-    formContext!: ManagedRecord;
+    formContext!: ManagedObject;
 }
 
 /** Style mixin that is automatically applied on each instance */
@@ -50,7 +50,7 @@ export class UIForm extends UICell {
 
     /** Form state context; defaults to an empty managed record */
     @managed
-    formContext = new ManagedRecord();
+    formContext: ManagedObject = new ManagedRecord();
 }
 
 // observe to emit event when form context changes
