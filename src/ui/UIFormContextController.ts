@@ -1,4 +1,5 @@
 import { ComponentEventHandler, managed, ManagedRecord } from "../core";
+import { FormContextChangeEvent } from './containers/UIForm';
 import { UIRenderableController } from "./UIRenderableController";
 
 /**
@@ -15,7 +16,10 @@ export class UIFormContextController extends UIRenderableController {
 UIFormContextController.observe(class {
     constructor(public controller: UIFormContextController) { }
     onFormContextChange() {
-        this.controller.propagateComponentEvent("FormContextChange");
+        if (!this.controller.formContext) return;
+        let event = new FormContextChangeEvent("FormContextChange", this.controller);
+        event.formContext = this.controller.formContext;
+        this.controller.emit(event);
     }
 });
 
