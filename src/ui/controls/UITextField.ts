@@ -1,5 +1,5 @@
-import { CHANGE, managed } from "../../core";
-import { UIForm } from '../containers';
+import { CHANGE, managed, ManagedEvent, onPropertyEvent } from "../../core";
+import { FormContextChangeEvent, UIForm } from '../containers';
 import { Stringable } from '../UIComponent';
 import { UIRenderContext } from '../UIRenderContext';
 import { UITheme } from "../UITheme";
@@ -50,14 +50,16 @@ export class UITextField extends UIControl {
     @managed
     form?: { formContext: any };
 }
-UITextField.observe(class {
+class UITextFieldObserver {
     constructor(public component: UITextField) { }
-    onFormChange() {
-        let ctx = this.component.form &&
-            this.component.form.formContext;
-        if (ctx && this.component.name && this.component.name in ctx) {
-            let value = ctx[this.component.name];
-            this.component.value = value === undefined ? "" : String(value);
+    @onPropertyEvent("form")
+    handleFormUpdate(_form: any, e: ManagedEvent) {
+        if (e instanceof FormContextChangeEvent) {
+            let ctx = e.formContext as any;
+            if (ctx && this.component.name && this.component.name in ctx) {
+                let value = ctx[this.component.name];
+                this.component.value = value === undefined ? "" : String(value);
+            }
         }
     }
     onInput() { this.onChange() }
@@ -76,7 +78,8 @@ UITextField.observe(class {
             }
         }
     }
-});
+}
+UITextField.observe(UITextFieldObserver);
 
 /** Shortcut for `UITextField` constructor preset with the `textfield_borderless` style set */
 export let UIBorderlessTextField = UITextField.with({ style: "textfield_borderless" });

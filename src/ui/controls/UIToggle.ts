@@ -1,5 +1,5 @@
-import { managed, ManagedChangeEvent } from "../../core";
-import { UIForm } from '../containers';
+import { CHANGE, managed, ManagedEvent, onPropertyEvent } from "../../core";
+import { FormContextChangeEvent, UIForm } from '../containers';
 import { Stringable } from '../UIComponent';
 import { UIRenderContext } from '../UIRenderContext';
 import { UITheme } from "../UITheme";
@@ -47,14 +47,16 @@ export class UIToggle extends UIControl {
     @managed
     form?: { formContext: any };
 }
-UIToggle.observe(class {
+class UIToggleObserver {
     constructor(public component: UIToggle) { }
-    onFormChange() {
-        let ctx = this.component.form &&
-            this.component.form.formContext;
-        if (ctx && this.component.name && this.component.name in ctx) {
-            let value = ctx[this.component.name];
-            this.component.state = !!value;
+    @onPropertyEvent("form")
+    handleFormUpdate(_form: any, e: ManagedEvent) {
+        if (e instanceof FormContextChangeEvent) {
+            let ctx = e.formContext as any;
+            if (ctx && this.component.name && this.component.name in ctx) {
+                let value = ctx[this.component.name];
+                this.component.state = !!value;
+            }
         }
     }
     onInput() { this.onChange() }
@@ -64,10 +66,11 @@ UIToggle.observe(class {
         if (ctx && this.component.name &&
             ctx[this.component.name] !== !!this.component.state) {
             ctx[this.component.name] = !!this.component.state;
-            ctx.emit(ManagedChangeEvent.CHANGE);
+            ctx.emit(CHANGE);
         }
     }
-});
+}
+UIToggle.observe(UIToggleObserver);
 
 export namespace UIToggle {
     /** UIToggle presets type, for use with `Component.with` */
