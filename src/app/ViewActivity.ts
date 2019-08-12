@@ -55,6 +55,12 @@ export class ViewActivity extends AppActivity implements UIRenderable {
      * This method is called automatically after the root view component is created and/or when an application render context is made available or emits a change event, and should not be called directly.
      */
     render(callback?: UIRenderContext.RenderCallback) {
+        if (this._cbContext !== this.renderContext) {
+            // remember this render context and invalidate
+            // previous callback if context changed
+            this._renderCallback = undefined;
+            this._cbContext = this.renderContext;
+        }
         if (callback && callback !== this._renderCallback) {
             if (this._renderCallback) this._renderCallback(undefined);
             this._renderCallback = callback;
@@ -164,6 +170,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     }
 
     private _renderCallback?: UIRenderContext.RenderCallback;
+    private _cbContext?: UIRenderContext;
     private _renderer = new UIComponent.DynamicRendererWrapper();
 }
 
