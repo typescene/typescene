@@ -51,21 +51,11 @@ export type ManagedObjectConstructor<TObject> = (new (...args: any[]) => TObject
 
 /** Base class for objects that have their own unique ID, life cycle including active/inactive and destroyed states, and managed references to other instances */
 export class ManagedObject {
-    /**
-     * Static method to be used on subclasses of `ManagedObject`: add an observer to _all instances_ of this class and derived classes. This amends properties of this class with dynamic setters to invoke a handler when any change or event occurs. A new observer (instance of the observer class) is created for each instance the first time an observed change occurs.
-     *
-     * This function finds all methods on the observer class (but NOT on base classes, i.e. extending an observer class does not consider any methods on the original observer class) and turns the following methods into handlers for changes and/or events:
-     * - Any method decorated with the `@onPropertyChange` decorator. Methods are invoked with arguments for the current property value, an optional event reference (i.e. change event), and the observed property name.
-     * - Any method decorated with the `@onPropertyEvent` decorator. Methods are invoked with arguments for the current property value, and an event reference (any type of event that occurred on the property/ies with names specified in the call to the decorator).
-     * - Any method that takes the form `on[PropertyName]Change` where _propertyName_ is the name of the observed property (must have a lowercase first character); or `on_[propertyName]Change` where _propertyName_ is the exact name of the observed property. Methods are invoked with arguments for the current property value, and an optional event reference (i.e. change event).
-     * - Any method that takes the form `on[EventName]`, which is invoked with a single `ManagedEvent` argument. The event name (`ManagedEvent.name` property) must match exactly, with the exception of the `onChange` method which is invoked for all events that derive from `ManagedChangeEvent`, and `onEvent` which is invoked for _all_ events. As a special case, the `onActive` method is called _immediately_ after instantiation if the observed object was already active.
-     * - Any method as above with an `...Async` suffix, which is invoked asynchronously and should return a `Promise`. Asynchronous property change handlers are not invoked twice with the same value. If the value has been changed and then changed back before invoking the handler, no handler is called at all. Handlers can be rate limited using the `@rateLimit` decorator.
-     * @note Since instances of classes that derive from the target class are _also_ observed, make sure that the observer does not depend on any functionality that may be overridden or fundamentally changed by any derived class.
-     * @note This function is available as `ManagedObject.observe` (static) on observable classes. See also `ManagedObject.handle` for a simpler way to handle events emitted directly by instances of a managed object class.
-     */
-    static observe<T extends ManagedObject, C extends ManagedObjectConstructor<T>>(
-        this: C, Observer: { new(instance: T): any }) {
-        observe<T>(this, Observer);
+    /** Shortcut to the `observe` function/decorator: add an observer to _all instances_ of this class (i.e. a class that extends `ManagedObject`) and derived classes. */
+    static observe<T extends ManagedObject>(
+        this: ManagedObjectConstructor<T>,
+        Observer: { new(instance: T): any }) {
+        observe(this, Observer as any);
         return this;
     }
 
@@ -177,13 +167,13 @@ export class ManagedObject {
     /**
      * The current lifecycle state of this managed object.
      * @note This property is read-only. To change the state of a managed object (i.e. to move its lifecycle between active/inactive and destroyed states), use the `activateManagedAsync`, `deactivateManagedAsync`, and `destroyManagedAsync` methods. If any additional logic is required when moving between states, override the `onManagedStateActivatingAsync`, `onManagedStateActiveAsync`, `onManagedStateDeactivatingAsync`, `onManagedStateInactiveAsync` and/or `onManagedStateDestroyingAsync` methods in any class that derives from `ManagedObject`.
-     * @note This property _cannot_ be observed directly. Observer classes (see `ManagedObject.observe`) should use methods such as `onActive` to observe lifecycle state.
+     * @note This property _cannot_ be observed directly. Observer classes (see `observe()`) should use methods such as `onActive` to observe lifecycle state.
      */
     get managedState() { return this[util.HIDDEN_STATE_PROPERTY] }
 
     /**
      * Returns the current number of managed references that point to this object
-     * @note Observers (see `ManagedObject.observe`) may use an `onReferenceCountChangeAsync` method to observe this value asynchronously.
+     * @note Observers (see `observe()`) may use an `onReferenceCountChangeAsync` method to observe this value asynchronously.
      */
     protected getReferenceCount() { return this[util.HIDDEN_REFCOUNT_PROPERTY] }
 
@@ -203,7 +193,7 @@ export class ManagedObject {
     /**
      * Returns the managed object that contains a _managed child reference_ that points to this instance (see `@managedChild` and `@compose` decorators).
      * The object itself is never returned, even if it contains a managed child reference that points to itself.
-     * @note The reference to the managed parent (but not its events) can be observed (see `ManagedObject.observe`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
+     * @note The reference to the managed parent (but not its events) can be observed (see `observe()`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
      */
     protected getManagedParent(): ManagedObject | undefined;
     /**
