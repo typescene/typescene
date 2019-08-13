@@ -1,4 +1,4 @@
-import { managed, ManagedEvent, ManagedList, ManagedObject, ManagedRecord, onPropertyEvent } from "../../../dist";
+import { managed, ManagedEvent, ManagedList, ManagedObject, ManagedRecord, observe, onPropertyEvent } from "../../../dist";
 
 consider("ManagedList", () => {
     it("can create an empty list", t => {
@@ -40,10 +40,10 @@ consider("ManagedList", () => {
         let changes = 0;
         class Group extends ManagedObject {
             @managed list = new ManagedList();
+            @observe static GroupObserver = class {
+                onListChange() { changes++ }
+            }
         }
-        Group.observe(class {
-            onListChange() { changes++ }
-        })
         let g = new Group();
         let o1 = new ManagedObject();
         let o2 = new ManagedObject();
