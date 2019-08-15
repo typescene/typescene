@@ -21,8 +21,15 @@ class ServiceContainer extends ManagedObject {
  * Changes and events can be observed by an observer, but _only after_ the property has been read at least once.
  * @decorator
  */
-export function service(name: string): PropertyDecorator {
-    return function (target, propertyKey) {
+export function service(serviceName: string): PropertyDecorator;
+/**
+ * Adds a property to the prototype of given class, to reference the last registered service with given name (case insensitive). See `ManagedService`.
+ *
+ * The value of the property becomes undefined when the service is destroyed, and changes immediately when a new service is registered with the same name.
+ */
+export function service(serviceName: string, TargetClass: Function, propertyName: string): void;
+export function service(name: string, Target?: any, propertyName?: string): PropertyDecorator | undefined {
+    const f: PropertyDecorator = (target, propertyKey) => {
         let ucName = String(name).toUpperCase();
         let ref = ServiceContainer.instance.services.get(ucName);
         if (!ref) {
@@ -36,6 +43,11 @@ export function service(name: string): PropertyDecorator {
             target as any, propertyKey as string, false, false,
             undefined, undefined, ref);
     };
+    if (Target) {
+        if (!propertyName) throw Error("[Service] Missing property name");
+        f(Target.prototype, propertyName);
+    }
+    return f;
 }
 
 /** Managed service base class. Represents a service that can be referenced by other classes using the `@service` decorator after registering the object with a well known name. */
