@@ -26,10 +26,18 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     })
     implements UIRenderable {
     static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
-        this.presetBindingsFrom(...rest);
-        let p = this.presetActiveComponent("cell", UICell.with(presets, ...rest), UIRenderableController);
+        // separate event handlers from other presets
+        let cellPresets: any = {};
+        let handlers: any = {};
+        for (let k in presets) {
+            ((k[0] === "o" && k[1] === "n" &&
+                (k.charCodeAt(2) < 97 || k.charCodeAt(2) > 122)) ?
+                handlers : cellPresets)[k] = (presets as any)[k];
+        }
+        let p = this.presetActiveComponent("cell",
+            UICell.with(cellPresets, ...rest), UIRenderableController);
         p.limitBindings("object", "value");
-        return super.preset({});
+        return super.preset(handlers, ...rest);
     }
 
     /**
