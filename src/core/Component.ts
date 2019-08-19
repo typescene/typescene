@@ -236,9 +236,8 @@ export class Component extends ManagedObject {
     }
 
     /**
-     * Add a sub component to this component that is automatically constructed when this component is activated, using given constructor. This component will serve as the composite parent object of all instances (i.e. the target object for all bindings on the component and child components). Sub components are destroyed immediately when the component is deactivated or destroyed.
-     * In addition, bindings on all other component classes passed as rest parameters are added on this composite component. This may be necessary if further nested components are added dynamically (e.g. as nested children) and the component constructor itself does not include all of the same bindings.
-     * Given properties must *already* be decorated with the `@managedChild` decorator. This method is intended for use by `Component.preset`.
+     * Add a sub component to this component; see `compose`.
+     * Given property must *already* be decorated with the `@managedChild` decorator. This method is intended for use by `Component.preset`.
      */
     static presetActiveComponent(propertyName: string,
         constructor: ComponentConstructor & (new () => Component),
@@ -678,14 +677,42 @@ function _applyPropertyValue(c: Component, p: string, v: any) {
 }
 
 /**
- * Property decorator: turn the decorated property into an active sub component reference, with the containing object as its composite parent (i.e. the target object for all bindings on the component and child components). Given constructor is used to create a sub component instance *when the containing component is activated*, and sub components are destroyed immediately when the component is deactivated or destroyed.
- * In addition, bindings on all other component classes passed as rest parameters are added on this composite component. This may be necessary if further nested components are added dynamically (e.g. as nested children) and the component constructor itself does not include all of the same bindings.
+ * Add a sub component to _all instances_ of this class and derived classes, which is automatically created using given constructor when the instance itself is activated. The sub component is destroyed again when the instance is deactivated or destroyed.
+ * This component will serve as the composite parent object of all sub (sub) components, i.e. the target object for all bindings.
+ * Refer to 'Active composition' in the Typescene documentation for more details.
+ * Bindings on all other component classes passed as rest parameters are added on this composite component as well. This may be necessary if further nested components will be added dynamically _after_ calling this method.
+ */
+export function compose<T extends ManagedObject>(
+    target: T,
+    propertyKey: any,
+    constructor: ComponentConstructor & (new () => Component),
+    ...include: ComponentConstructor[]): Component.Composition;
+/**
+ * Property decorator: Add a sub component to _all instances_ of this class and derived classes, on the decorated property.
  * @decorator
  */
 export function compose(constructor: ComponentConstructor & (new () => Component),
-    ...include: ComponentConstructor[]) {
-    return function<T extends ManagedObject>(target: T, propertyKey: any) {
+    ...include: ComponentConstructor[]): PropertyDecorator;
+export function compose(constructor: any):
+    PropertyDecorator | Component.Composition {
+    let include: any[] = [];
+    function addComposition<T extends Component>(target: T, propertyKey: any) {
         managedChild(target, propertyKey);
-        (target.constructor as typeof Component).presetActiveComponent(propertyKey, constructor, ...include);
+        return (target.constructor as typeof Component).presetActiveComponent(propertyKey, constructor, ...include);
     }
+
+    // add composition right away if called as a function
+    let isFn = typeof arguments[1] === "string" && arguments[2];
+    for (let i = isFn ? 3 : 1; i < arguments.length; i++) {
+        include.push(arguments[i]);
+    }
+    if (isFn) {
+        constructor = arguments[2];
+        return addComposition(arguments[0], arguments[1]);
+    }
+
+    // return decorator if used as such
+    return (target, propertyKey) => {
+        addComposition(target as any, propertyKey);
+    };
 }

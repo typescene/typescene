@@ -74,21 +74,28 @@ function runAllTests() {
         log += ("-").repeat(80) + "\n";
         groups.forEach(group => {
             log += " 🔍 " + group.name + "\n";
+            let n = 0;
             group.cases.forEach(testCase => {
                 if (!testCase.callback) nUndef++;
-                let err = testCase.getError();
+                if (testCase.isOK()) n++;
                 let dots = Math.max(0, 68 - testCase.name.length);
-                log += "    - " + testCase.name +
-                    " " + (".").repeat(dots) +
-                    (!testCase.callback ? " 💤\n" :
-                        err ? " 💥\n" : " ✅\n");
+                log += (testCase.isOK() ? "    - " : "    * ") +
+                    testCase.name + " " +
+                    (".").repeat(dots) +
+                    (!testCase.callback ? " ⏺\n" :
+                        testCase.getError() ? " 💥\n" : " ✅\n");
             });
-            log += ("-").repeat(80) + "\n";
+            if (n > 0) {
+                let msg = n + " test" + (n > 1 ? "s" : "") + " OK";
+                let dots = Math.max(0, 68 - msg.length);
+                log += "    > " + msg + " " + (".").repeat(dots) + " ✅\n";
+            }
         });
         if (nUndef) {
             log += "Note: " + nUndef + " test(s) are undefined\n";
         }
-        console.log(log);
+        log += ("-").repeat(80) + "\n";
+        console.log(log.replace(/    -.*\n/g, ""));
         if (!errors.length) {
             console.log(" 😁 All tests OK!");
             fs.writeFileSync("test.log", log);
