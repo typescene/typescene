@@ -1,4 +1,4 @@
-import { Binding, Component, ComponentConstructor, ComponentPresetArgType, ComponentPresetRestType, ComponentPresetType, tt, UIControl, UIRenderable, UIRenderableConstructor, ViewComponent } from "../../dist";
+import { Binding, Component, ComponentConstructor, ComponentPresetArgType, ComponentPresetRestType, ComponentPresetType, StringFormatBinding, tt, UIControl, UIRenderable, UIRenderableConstructor, ViewComponent } from "../../dist";
 import * as intrinsics from "./intrinsics";
 
 /** JSX support for Typescene UI components */
@@ -6,11 +6,26 @@ export function JSX(f: any, presets: any, ...rest: any[]):
     typeof Component & ComponentConstructor<UIRenderable> {
     if (typeof f === "string") {
         let C = JSX.intrinsicTags[f];
-        if (!C) throw Error("Invalid JSX tag: " + f);
+        if (!C) throw Error("[JSX] Invalid tag: " + f);
         if ((C as any).prototype instanceof UIControl) {
             // use single piece of content as control 'text'
-            if (rest.length > 1) throw Error("Invalid control content (multiple elements)");
             let text = presets && presets.text || rest[0];
+            let bindings: Binding[] = [];
+            if (rest.length > 1) {
+                let fmt = "";
+                for (let r of rest) {
+                    if (typeof r === "string") {
+                        fmt += r;
+                    }
+                    else if (r instanceof Binding) {
+                        fmt += "${%" + (bindings.push(r)) + "}";
+                    }
+                    else {
+                        throw Error("[JSX] Invalid control content");
+                    }
+                }
+                text = new StringFormatBinding(fmt, ...bindings);
+            }
             return C.with(typeof text === "string" ?
                 { ...(presets || {}), text: tt(text) } :
                     text ? { ...(presets || {}), text } :

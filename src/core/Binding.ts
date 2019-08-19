@@ -212,7 +212,7 @@ export class Binding {
  */
 export class StringFormatBinding extends Binding {
     /** Creates a new binding for given format string (or any object that can be converted to a string). See `bindf`. */
-    constructor(text: any) {
+    constructor(text: any, ...rest: Binding[]) {
         super(undefined);
 
         // prepare bindings for all tags in given format string
@@ -222,10 +222,23 @@ export class StringFormatBinding extends Binding {
         let match = String(text).match(/\$\{([^\}]+)\}/g);
         if (match) {
             for (let s of match) {
-                let binding = new Binding(s.slice(2, -1), "");
-                binding.parent = this;
+                let binding: Binding;
+                let inner = s.slice(2, -1).trim();
+                if (inner[0] === "%" && /\%\d+/.test(inner)) {
+                    let i = parseInt(inner.slice(1));
+                    binding = rest[i - 1];
+                    if (!(binding instanceof Binding)) {
+                        throw TypeError("[Binding] Not a binding: " + s);
+                    }
+                    if (!binding.parent) binding.parent = this;
+                }
+                else {
+                    binding = new Binding(inner, "");
+                    binding.parent = this;
+                }
                 indexBySource[s] = bindings.length;
                 bindings.push(binding);
+                if (binding.bindings) bindings.push(...binding.bindings);
                 bindSources.push(s);
             }
         }
@@ -383,14 +396,15 @@ export function bind(propertyName?: string, defaultValue?: any, ignoreUnbound?: 
  * A format string should be passed as a first argument. The text is bound as-is, with the following types of tags replaced:
  *
  * - `${binding.foo|filter}`: inserts a bound value, as if the tag content was used as a parameter to `bind`. This may include one or more filters (see Binding.addFilter).
+ * - `${%1}`: inserts a bound value, using a `Binding` instance that is taken from the 'rest' parameters, starting with 1 for the first argument after the format text.
  * - `#{one/two}`: inserts one of the given options, based on the value of the previous (or first) binding as an absolute number _or_ length of an array or managed list. The order of given options is 1/other, 0/1/other, 0/1/2/other, etc., unless handled differently by the current language service. Within the options, `#_` is replaced with the value of the relevant binding (clipped to an integer value).
  * - `#{2:one/two}`: as above, but refers to the binding at given index (base 1) instead of the previous binding.
  * - `***{...}***`: removed altogether, this is meant for unique string identifiers or comments to translators.
  *
  * @note To use plurals or number forms based on values that should not be included in the output themselves, use the `_` (blank) filter, e.g. `"There ${n|_}#{are no/is one/are #_} item#{/s}"`.
  */
-export function bindf(text: string) {
-    return new StringFormatBinding(text);
+export function bindf(text: string, ...rest: Binding[]) {
+    return new StringFormatBinding(text, ...rest);
 }
 
 // formatting helper functions:
