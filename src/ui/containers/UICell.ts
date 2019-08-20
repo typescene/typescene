@@ -143,11 +143,11 @@ export class UICell extends UIContainer {
   /** True if this cell *itself* may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
   allowKeyboardFocus?: boolean;
 
-  /** Padding around contained elements (in dp or CSS string, or separate offset values, defaults to 0) */
-  padding?: UICellOffsets = 0;
+  /** Padding around contained elements (in dp or CSS string, or separate offset values) */
+  padding?: UICellOffsets;
 
-  /** Margin around the entire cell (in dp or CSS string, or separate offset values, defaults to 0) */
-  margin?: UICellOffsets = 0;
+  /** Margin around the entire cell (in dp or CSS string, or separate offset values) */
+  margin?: UICellOffsets;
 
   /** Cell background (see `UITheme.replaceColor`), defaults to transparent */
   background?: string;
@@ -155,8 +155,8 @@ export class UICell extends UIContainer {
   /** Text color (see `UITheme.replaceColor`), defaults to `inherit` to inherit the text color from a containing cell or background window */
   textColor?: string;
 
-  /** Border thickness (in dp or string with unit, or separate offset values, defaults to 0) */
-  borderThickness?: UICellOffsets = 0;
+  /** Border thickness (in dp or string with unit, or separate offset values) */
+  borderThickness?: UICellOffsets;
 
   /** Border color (see `UITheme.replaceColor`) */
   borderColor?: string;
@@ -164,11 +164,11 @@ export class UICell extends UIContainer {
   /** Border style (CSS), defaults to "solid" */
   borderStyle = "solid";
 
-  /** Border radius (in dp or CSS string, defaults to 0) */
-  borderRadius?: string | number = 0;
+  /** Border radius (in dp or CSS string) */
+  borderRadius?: string | number;
 
-  /** Intensity of drop shadow based on visual 'elevation' level (0-1, defaults to 0) */
-  dropShadow?: number = 0;
+  /** Intensity of drop shadow based on visual 'elevation' level (0-1) */
+  dropShadow?: number;
 
   /**
    * Other CSS attributes that are applied directly to the container, if supported (plain object)
