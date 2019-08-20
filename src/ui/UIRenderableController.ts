@@ -1,5 +1,5 @@
-import { Component, managed, managedChild } from "../core";
-import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { Component, ComponentEvent, managed, managedChild } from "../core";
+import { UIComponent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Base class for a controller that wraps around a single renderable component */
@@ -18,7 +18,7 @@ export class UIRenderableController extends Component.with({
     constructor(content?: UIRenderable) {
         super();
         this.content = content;
-        this.propagateChildEvents(UIComponentEvent);
+        this.propagateChildEvents(ComponentEvent);
     }
 
     /** Application render context, propagated from the parent composite object */

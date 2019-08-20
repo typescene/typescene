@@ -1,4 +1,4 @@
-import { Component, ComponentConstructor, ComponentEventHandler, managed, ManagedEvent, ManagedList, ManagedListChangeEvent, ManagedMap, ManagedObject } from "../core";
+import { Component, ComponentConstructor, ComponentEvent, ComponentEventHandler, managed, ManagedEvent, ManagedList, ManagedListChangeEvent, ManagedMap, ManagedObject } from "../core";
 import { UICloseColumn } from "./containers/UIColumn";
 import { UIContainer } from "./containers/UIContainer";
 import { UIComponentEvent, UIRenderable } from "./UIComponent";
@@ -118,7 +118,7 @@ export class UIListController extends UIRenderableController {
     constructor(container?: UIContainer) {
         super(container);
         this.propagateChildEvents(e => {
-            if (e instanceof UIComponentEvent) {
+            if (e instanceof ComponentEvent) {
                 if (e.name === "ArrowUpKeyPress") {
                     if (this.focusPreviousItem()) return;
                     let parentList = this.getParentComponent(UIListController);

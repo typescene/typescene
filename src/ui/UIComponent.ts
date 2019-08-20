@@ -14,7 +14,7 @@ let _emptyStyle = new UIStyle();
 export type UIComponentEventHandler<TComponent = UIComponent, TEvent = UIComponentEvent> =
     string | ((this: TComponent, e: TEvent) => void);
 
-/** Event that is emitted on a particular UI component, propagated by all parent UI components. */
+/** Event that is emitted on a particular UI component */
 export class UIComponentEvent<TSource extends UIComponent = UIComponent> extends ComponentEvent {
     constructor(name: string, source: TSource, inner?: ManagedEvent, event?: any) {
         super(name, source, inner);
@@ -120,7 +120,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
     /** Create a new UI component */
     constructor() {
         super();
-        this.propagateChildEvents(UIComponentEvent);
+        this.propagateChildEvents(ComponentEvent);
     }
 
     /** Create and emit a UI event with given name and a reference to this component, as well as an optional platform event; see `Component.propagateComponentEvent` */
