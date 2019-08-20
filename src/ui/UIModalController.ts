@@ -50,8 +50,8 @@ export class UIModalController extends UIRenderableController {
   /** Modal view placement, defaults to Dialog */
   placement = UIRenderPlacement.DIALOG;
 
-  /** Modal backdrop opacity (0-1), defaults to 0 */
-  modalShadeOpacity = 0;
+  /** Modal backdrop opacity (0-1) */
+  modalShadeOpacity?: number;
 
   /** True if clicking outside the modal component should close it, defaults to true */
   modalShadeClickToClose = true;

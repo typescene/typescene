@@ -48,7 +48,7 @@ export class UIButton extends UIControl {
   disableKeyboardFocus?: boolean;
 
   /** Label text */
-  label: Stringable = "";
+  label?: Stringable;
 
   /** Icon name (platform and build system dependent) */
   icon?: string;

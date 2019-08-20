@@ -59,7 +59,7 @@ export class UILabel extends UIControl {
   htmlFormat = false;
 
   /** Label text */
-  text: Stringable = "";
+  text?: Stringable;
 
   /** Icon name (platform and build system dependent) */
   icon?: string;

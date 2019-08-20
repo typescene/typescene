@@ -43,10 +43,10 @@ export class UITextField extends UIControl {
   multiline?: boolean;
 
   /** Placeholder text */
-  placeholder: Stringable = "";
+  placeholder?: Stringable;
 
   /** Input value */
-  value = "";
+  value?: string;
 
   /** Form context property name */
   name?: string;
