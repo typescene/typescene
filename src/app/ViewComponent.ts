@@ -9,100 +9,107 @@ import { ViewActivity } from "./ViewActivity";
  * @note This class is similar in functionality to `ViewActivity`, but `ViewComponent` views are created immediately, whereas view activities need to be activated first before their views are created.
  */
 export class ViewComponent extends AppComponent implements UIRenderable {
-    static preset(presets: object,
-        ...View: UIRenderableConstructor[]): Function {
-        if (View.length > 1) throw Error("Invalid ViewComponent child component");
-        if (View[0]) this.presetActiveComponent("view", View[0], ViewActivity);
-        return super.preset(presets);
-    }
+  static preset(presets: object, ...View: UIRenderableConstructor[]): Function {
+    if (View.length > 1) throw Error("Invalid ViewComponent child component");
+    if (View[0]) this.presetActiveComponent("view", View[0], ViewActivity);
+    return super.preset(presets);
+  }
 
-    /** The root component that makes up the content for this view, as a child component; only created when the `ViewComponent` is rendered */
-    @managedChild
-    view?: UIRenderable;
+  /** The root component that makes up the content for this view, as a child component; only created when the `ViewComponent` is rendered */
+  @managedChild
+  view?: UIRenderable;
 
-    async onManagedStateActivatingAsync() {
-        super.onManagedStateActivatingAsync();
-        this.propagateChildEvents(ComponentEvent);
-    }
+  async onManagedStateActivatingAsync() {
+    super.onManagedStateActivatingAsync();
+    this.propagateChildEvents(ComponentEvent);
+  }
 
-    /**
-     * Render the encapsulated view for this component.
-     * This method is called automatically after the root view component is created and/or when an application render context is made available or emits a change event, and should not be called directly.
-     */
-    render(callback?: UIRenderContext.RenderCallback) {
-        if (this.managedState !== ManagedState.ACTIVE && this.renderContext) {
-            // activate this component now to create the view
-            this._renderer.render(undefined, callback);
-            if (this.managedState === ManagedState.CREATED) {
-                this.activateManagedAsync()
-                    .then(() => {
-                        // check if (still) active, and attempt to render again
-                        if (this.managedState === ManagedState.ACTIVE) {
-                            this.render();
-                        }
-                    })
-                    .catch(logUnhandledException);
+  /**
+   * Render the encapsulated view for this component.
+   * This method is called automatically after the root view component is created and/or when an application render context is made available or emits a change event, and should not be called directly.
+   */
+  render(callback?: UIRenderContext.RenderCallback) {
+    if (this.managedState !== ManagedState.ACTIVE && this.renderContext) {
+      // activate this component now to create the view
+      this._renderer.render(undefined, callback);
+      if (this.managedState === ManagedState.CREATED) {
+        this.activateManagedAsync()
+          .then(() => {
+            // check if (still) active, and attempt to render again
+            if (this.managedState === ManagedState.ACTIVE) {
+              this.render();
             }
-        }
-        else if (!this.renderContext) {
-            // something is wrong: not a child component
-            throw Error("[ViewComponent] Render context not found (not a child component?)");
-        }
-        else {
-            // render current view using new or old callback
-            this._renderer.render(this.view, callback);
-        }
+          })
+          .catch(logUnhandledException);
+      }
+    } else if (!this.renderContext) {
+      // something is wrong: not a child component
+      throw Error("[ViewComponent] Render context not found (not a child component?)");
+    } else {
+      // render current view using new or old callback
+      this._renderer.render(this.view, callback);
     }
+  }
 
-    /**
-     * Remove the current view output, if any.
-     * This method is called automatically after the root view component or render context is removed, and should not be called directly.
-     */
-    async removeViewAsync(deactivate?: boolean) {
-        if (deactivate && this.managedState === ManagedState.ACTIVE) {
-            await this.deactivateManagedAsync();
-        }
-        await this._renderer.removeAsync();
+  /**
+   * Remove the current view output, if any.
+   * This method is called automatically after the root view component or render context is removed, and should not be called directly.
+   */
+  async removeViewAsync(deactivate?: boolean) {
+    if (deactivate && this.managedState === ManagedState.ACTIVE) {
+      await this.deactivateManagedAsync();
     }
+    await this._renderer.removeAsync();
+  }
 
-    /** Request input focus on the view component, if any. */
-    requestFocus() {
-        if (typeof (this.view && (this.view as UIComponent).requestFocus) === "function") {
-            (this.view as UIComponent).requestFocus();
-        }
+  /** Request input focus on the view component, if any. */
+  requestFocus() {
+    if (typeof (this.view && (this.view as UIComponent).requestFocus) === "function") {
+      (this.view as UIComponent).requestFocus();
     }
+  }
 
-    private _renderer = new UIComponent.DynamicRendererWrapper();
+  private _renderer = new UIComponent.DynamicRendererWrapper();
 }
 
 // observe view activities to render when needed
-ViewComponent.observe(class {
-    constructor (public component: ViewComponent) { }
+ViewComponent.observe(
+  class {
+    constructor(public component: ViewComponent) {}
     onRenderContextChange(ctx: UIRenderContext) {
-        if (ctx) this.component.render();
-        else this.component.removeViewAsync(true).catch(logUnhandledException);
+      if (ctx) this.component.render();
+      else this.component.removeViewAsync(true).catch(logUnhandledException);
     }
-});
+  }
+);
 
 export namespace ViewComponent {
-    /** Shortcut type for declaring a static `preset` method which accepts an object with presets with the same type as given properties of the view component itself (excluding methods) */
-    export type PresetFor<TComponent extends ViewComponent, K extends keyof TComponent = Exclude<{ [P in keyof TComponent]: TComponent[P] extends Function ? never : P }[keyof TComponent], keyof ViewComponent>> = (presets: Pick<TComponent, K>, ...C: UIRenderableConstructor[]) => Function;
+  /** Shortcut type for declaring a static `preset` method which accepts an object with presets with the same type as given properties of the view component itself (excluding methods) */
+  export type PresetFor<
+    TComponent extends ViewComponent,
+    K extends keyof TComponent = Exclude<
+      {
+        [P in keyof TComponent]: TComponent[P] extends Function ? never : P
+      }[keyof TComponent],
+      keyof ViewComponent
+    >
+  > = (presets: Pick<TComponent, K>, ...C: UIRenderableConstructor[]) => Function;
 
-    /**
-     * Returns a `ViewComponent` class that encapsulates the view returned by given function.
-     * The function receives `presets` (object) and rest parameters (i.e. content) and should return a component constructor.
-     * The resulting class contains a typed `preset` function such that a subsequent call to `.with()` expects the corresponding presets and rest parameter types.
-     */
-    export function template<TPreset, TRest extends UIRenderableConstructor[]>
-        (templateProvider: (presets: TPreset, ...C: TRest) => UIRenderableConstructor):
-        typeof ViewComponent & { preset: (presets: TPreset, ...rest: TRest) => Function } {
-        return class ViewComponentWithTemplate extends ViewComponent {
-            static preset(presets: any, ...C: TRest) {
-                let t = templateProvider(presets, ...C);
-                this.presetActiveComponent("view", t).limitBindings();
-                this.presetBindingsFrom(t);
-                return super.preset(presets);
-            }
-        }
-    }
+  /**
+   * Returns a `ViewComponent` class that encapsulates the view returned by given function.
+   * The function receives `presets` (object) and rest parameters (i.e. content) and should return a component constructor.
+   * The resulting class contains a typed `preset` function such that a subsequent call to `.with()` expects the corresponding presets and rest parameter types.
+   */
+  export function template<TPreset, TRest extends UIRenderableConstructor[]>(
+    templateProvider: (presets: TPreset, ...C: TRest) => UIRenderableConstructor
+  ): typeof ViewComponent & { preset: (presets: TPreset, ...rest: TRest) => Function } {
+    return class ViewComponentWithTemplate extends ViewComponent {
+      static preset(presets: any, ...C: TRest) {
+        let t = templateProvider(presets, ...C);
+        this.presetActiveComponent("view", t).limitBindings();
+        this.presetBindingsFrom(t);
+        return super.preset(presets);
+      }
+    };
+  }
 }

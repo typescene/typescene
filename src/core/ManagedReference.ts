@@ -6,129 +6,145 @@ import * as util from "./util";
 const REF_PROP_ID = util.PROPERTY_ID_PREFIX + "*ref";
 
 /** Independent reference to a managed object, list, map, or other managed reference */
-export class ManagedReference<T extends ManagedObject = ManagedObject> extends ManagedObject {
-    /** Create a new managed reference that refers to given object */
-    constructor(target?: T) {
-        super();
-        if (target) this.set(target);
+export class ManagedReference<
+  T extends ManagedObject = ManagedObject
+> extends ManagedObject {
+  /** Create a new managed reference that refers to given object */
+  constructor(target?: T) {
+    super();
+    if (target) this.set(target);
+  }
+
+  /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
+  propagateEvents(
+    f?: (this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void
+  ): this;
+  /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
+  propagateEvents(
+    ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
+  ): this;
+  propagateEvents(): this {
+    this.propagateChildEvents.apply(this, arguments as any);
+    Object.defineProperty(this, util.HIDDEN_NONCHILD_EVENT_HANDLER, {
+      configurable: true,
+      enumerable: false,
+      value: this[util.HIDDEN_CHILD_EVENT_HANDLER],
+    });
+    return this;
+  }
+
+  /**
+   * Ensure that referenced object is an instance of given class (or a sub class), and restrict new references to instances of given class. Given class must be a sub class of `ManagedObject`.
+   * @exception Throws an error if referenced object is not an instance of given class, or of a sub class.
+   */
+  restrict<T extends ManagedObject>(
+    classType: ManagedObjectConstructor<T>
+  ): ManagedReference<T> {
+    let target = this.target;
+    if (target && !(target instanceof classType)) {
+      throw Error("[Object] Existing reference is not of given type");
+    }
+    this._managedClassRestriction = classType;
+    return this as any;
+  }
+  private _managedClassRestriction?: ManagedObjectConstructor<any>;
+
+  /** Returns the referenced object, or undefined */
+  get(): T | undefined {
+    // return referenced object
+    let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
+    return ref && ref.b;
+  }
+
+  /** The referenced object, or undefined */
+  get target(): T | undefined {
+    // return referenced object
+    let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
+    return ref && ref.b;
+  }
+  set target(target: T | undefined) {
+    this.set(target);
+  }
+
+  /**
+   * Remove the current reference, if any.
+   * @exception Throws an error if the reference itself has been destroyed (see `ManagedObject.managedState`).
+   */
+  clear() {
+    return this.set();
+  }
+
+  /**
+   * Set the current reference to given object, or managed list, map, or another reference. Equivalent to setting the `target` property on this instance.
+   * @exception Throws an error if the reference itself has been destroyed (see `ManagedObject.managedState`).
+   */
+  set(target?: T) {
+    // check given value first
+    ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
+
+    // unlink existing reference, if any
+    let cur = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
+    if (cur) {
+      if (target && cur.b === target) return;
+      ManagedObject._discardRefLink(cur);
     }
 
-    /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
-    propagateEvents(f?: ((this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void)): this;
-    /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
-    propagateEvents(...types: Array<ManagedEvent | { new(...args: any[]): ManagedEvent }>): this;
-    propagateEvents(): this {
-        this.propagateChildEvents.apply(this, arguments as any);
-        Object.defineProperty(this, util.HIDDEN_NONCHILD_EVENT_HANDLER, {
-            configurable: true,
-            enumerable: false,
-            value: this[util.HIDDEN_CHILD_EVENT_HANDLER]
-        });
-        return this;
-    }
-
-    /**
-     * Ensure that referenced object is an instance of given class (or a sub class), and restrict new references to instances of given class. Given class must be a sub class of `ManagedObject`.
-     * @exception Throws an error if referenced object is not an instance of given class, or of a sub class.
-     */
-    restrict<T extends ManagedObject>(classType: ManagedObjectConstructor<T>): ManagedReference<T> {
-        let target = this.target;
-        if (target && !(target instanceof classType)) {
-            throw Error("[Object] Existing reference is not of given type");
+    // create new reference and update target count
+    if (target) {
+      let ref = ManagedObject._createRefLink(
+        this,
+        target,
+        REF_PROP_ID,
+        (_obj, _target, e) => {
+          // propagate the event if needed
+          if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
+            this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
+          } else if (this[util.HIDDEN_CHILD_EVENT_HANDLER]) {
+            this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
+          }
+        },
+        () => {
+          // handle target moved/destroyed
+          this.emit(ManagedChangeEvent);
         }
-        this._managedClassRestriction = classType;
-        return this as any;
+      );
+      if (this[util.HIDDEN_REF_PROPERTY].parent && !this._isWeakRef) {
+        // set/move parent-child link on target object
+        ManagedObject._makeManagedChildRefLink(ref);
+      }
     }
-    private _managedClassRestriction?: ManagedObjectConstructor<any>;
+    this.emit(ManagedChangeEvent.CHANGE);
+    return this;
+  }
 
-    /** Returns the referenced object, or undefined */
-    get(): T | undefined {
-        // return referenced object
-        let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
-        return ref && ref.b;
+  /** Stop newly referenced objects from becoming child objects even if this `ManagedReference` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference objects when the parent object is destroyed */
+  weakRef() {
+    this._isWeakRef = true;
+    return this;
+  }
+
+  /** @internal Helper function that fixes an existing referenced object as a child */
+  [util.MAKE_REF_MANAGED_PARENT_FN]() {
+    if (this._isWeakRef) return;
+    let refs = this[util.HIDDEN_REF_PROPERTY];
+    if (refs[REF_PROP_ID]) {
+      ManagedObject._makeManagedChildRefLink(refs[REF_PROP_ID]!);
     }
+  }
 
-    /** The referenced object, or undefined */
-    get target(): T | undefined {
-        // return referenced object
-        let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
-        return ref && ref.b;
-    }
-    set target(target: T | undefined) {
-        this.set(target);
-    }
+  /** @internal */
+  private [util.HIDDEN_NONCHILD_EVENT_HANDLER]: (
+    e: ManagedEvent,
+    name: string
+  ) => void | undefined;
 
-    /**
-     * Remove the current reference, if any.
-     * @exception Throws an error if the reference itself has been destroyed (see `ManagedObject.managedState`).
-     */
-    clear() {
-        return this.set();
-    }
+  /** Returns the referenced object itself, or undefined (alias of `get()` method) */
+  toJSON() {
+    let target = this.target;
+    return { "$ref": target ? target.managedId : undefined };
+  }
 
-    /**
-     * Set the current reference to given object, or managed list, map, or another reference. Equivalent to setting the `target` property on this instance.
-     * @exception Throws an error if the reference itself has been destroyed (see `ManagedObject.managedState`).
-     */
-    set(target?: T) {
-        // check given value first
-        ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
-
-        // unlink existing reference, if any
-        let cur = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
-        if (cur) {
-            if (target && cur.b === target) return;
-            ManagedObject._discardRefLink(cur);
-        }
-
-        // create new reference and update target count
-        if (target) {
-            let ref = ManagedObject._createRefLink(this, target, REF_PROP_ID, (_obj, _target, e) => {
-                // propagate the event if needed
-                if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
-                    this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
-                }
-                else if (this[util.HIDDEN_CHILD_EVENT_HANDLER]) {
-                    this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
-                }
-            }, () => {
-                // handle target moved/destroyed
-                this.emit(ManagedChangeEvent);
-            });
-            if (this[util.HIDDEN_REF_PROPERTY].parent && !this._isWeakRef) {
-                // set/move parent-child link on target object
-                ManagedObject._makeManagedChildRefLink(ref);
-            }
-        }
-        this.emit(ManagedChangeEvent.CHANGE);
-        return this;
-    }
-
-    /** Stop newly referenced objects from becoming child objects even if this `ManagedReference` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference objects when the parent object is destroyed */
-    weakRef() {
-        this._isWeakRef = true;
-        return this;
-    }
-
-    /** @internal Helper function that fixes an existing referenced object as a child */
-    [util.MAKE_REF_MANAGED_PARENT_FN]() {
-        if (this._isWeakRef) return;
-        let refs = this[util.HIDDEN_REF_PROPERTY];
-        if (refs[REF_PROP_ID]) {
-            ManagedObject._makeManagedChildRefLink(refs[REF_PROP_ID]!);
-        }
-    }
-
-    /** @internal */
-    private [util.HIDDEN_NONCHILD_EVENT_HANDLER]?: (e: ManagedEvent, name: string) => void;
-
-    /** Returns the referenced object itself, or undefined (alias of `get()` method) */
-    toJSON() {
-        let target = this.target;
-        return { "$ref": target ? target.managedId : undefined };
-    }
-
-    private _isWeakRef?: boolean;
+  private _isWeakRef?: boolean;
 }
 
 /**
@@ -139,7 +155,7 @@ export class ManagedReference<T extends ManagedObject = ManagedObject> extends M
  * @decorator
  */
 export function managed<T extends ManagedObject>(target: T, propertyKey: any) {
-    ManagedObject.createManagedReferenceProperty(target, propertyKey);
+  ManagedObject.createManagedReferenceProperty(target, propertyKey);
 }
 
 /**
@@ -153,7 +169,7 @@ export function managed<T extends ManagedObject>(target: T, propertyKey: any) {
  * @decorator
  */
 export function managedDependency<T extends ManagedObject>(target: T, propertyKey: any) {
-    ManagedObject.createManagedReferenceProperty(target, propertyKey, false, true);
+  ManagedObject.createManagedReferenceProperty(target, propertyKey, false, true);
 }
 
 /**
@@ -168,5 +184,5 @@ export function managedDependency<T extends ManagedObject>(target: T, propertyKe
  * @decorator
  */
 export function managedChild<T extends ManagedObject>(target: T, propertyKey: any) {
-    ManagedObject.createManagedReferenceProperty(target, propertyKey, true);
+  ManagedObject.createManagedReferenceProperty(target, propertyKey, true);
 }

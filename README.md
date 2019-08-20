@@ -20,20 +20,20 @@ The online docs include an [overview](https://typescene.dev/docs/introduction/ov
 
 If you're new to Typescene, make sure to check out these resources:
 
-* Read up on the [Architecture overview](https://typescene.dev/docs/introduction/overview)
-* Follow along with [Your first project](https://typescene.dev/docs/guides/first)
-* Use [`create-typescene-webapp`](https://github.com/typescene/create-typescene-webapp)
-* For a more complete example, check out [`typescene-realworld-example-app`](https://github.com/typescene/typescene-realworld-example-app)
+- Read up on the [Architecture overview](https://typescene.dev/docs/introduction/overview)
+- Follow along with [Your first project](https://typescene.dev/docs/guides/first)
+- Use [`create-typescene-webapp`](https://github.com/typescene/create-typescene-webapp)
+- For a more complete example, check out [`typescene-realworld-example-app`](https://github.com/typescene/typescene-realworld-example-app)
 
 ## TODO
 
 A few very important tasks are currently still pending:
 
-* Tests, lots of 'em. The core package now comes with a test harness but only very few tests. These need to be added in some kind of structural way. Perhaps this can be organized using a Github project, opinions welcome on Twitter please.
-* More tests for the `@typescene/webapp` package. These probably need an automated browser-based test framework. Opinions welcome on Twitter please.
-* More examples for the reference documentation. These need to be added to the `typescene.github.io` repo on GitHub.
-* More sample projects, along with articles on how they work. Before publishing these we're happy to review your own samples, please DM on Twitter.
-* More prebuilt components (calendars, combo buttons, etc). See `typescene-treegrid` on GitHub for a full featured example.
+- Tests, lots of 'em. The core package now comes with a test harness but only very few tests. These need to be added in some kind of structural way. Perhaps this can be organized using a Github project, opinions welcome on Twitter please.
+- More tests for the `@typescene/webapp` package. These probably need an automated browser-based test framework. Opinions welcome on Twitter please.
+- More examples for the reference documentation. These need to be added to the `typescene.github.io` repo on GitHub.
+- More sample projects, along with articles on how they work. Before publishing these we're happy to review your own samples, please DM on Twitter.
+- More prebuilt components (calendars, combo buttons, etc). See `typescene-treegrid` on GitHub for a full featured example.
 
 ## Questions and Issues
 
@@ -47,14 +47,14 @@ The main Typescene repository uses tagged [Releases](https://github.com/typescen
 
 ## FAQ
 
-__Q:__ Why another JavaScript framework? \
-__A:__ Typescene is different in a number of ways. Read [this article](https://typescene.dev/docs/introduction/goals) for a detailed overview of Typescene's design goals.
+**Q:** Why another JavaScript framework? \
+**A:** Typescene is different in a number of ways. Read [this article](https://typescene.dev/docs/introduction/goals) for a detailed overview of Typescene's design goals.
 
-__Q:__ Should I use Typescene for my next project? \
-__A:__ Sure! Typescene works best for desktop-style and/or mobile Web apps. As always, read the [docs](https://typescene.dev/docs) first. If you need something for your blog or other online content, then other frameworks might suit your needs better.
+**Q:** Should I use Typescene for my next project? \
+**A:** Sure! Typescene works best for desktop-style and/or mobile Web apps. As always, read the [docs](https://typescene.dev/docs) first. If you need something for your blog or other online content, then other frameworks might suit your needs better.
 
-__Q:__ How do I get started with Typescene? \
-__A:__ Typescene is distributed through NPM. Read through the guides provided on the Typescene [docs website](https://typescene.dev/docs) and follow along to create your first project.
+**Q:** How do I get started with Typescene? \
+**A:** Typescene is distributed through NPM. Read through the guides provided on the Typescene [docs website](https://typescene.dev/docs) and follow along to create your first project.
 
 ## Reach Out!
 

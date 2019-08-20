@@ -1,18 +1,15 @@
 {
-    "compilerOptions": {
-        "target": "esnext",
-        "module": "es2015",
-        "moduleResolution": "node",
-        "lib": [
-            "es2015",
-            "dom"
-        ],
-        "outDir": "../build-temp",
-        "downlevelIteration": true,
-        "strict": true,
-        "experimentalDecorators": true,
-        "noImplicitAny": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true
-    }
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "es2015",
+    "moduleResolution": "node",
+    "lib": ["es2015", "dom"],
+    "outDir": "../build-temp",
+    "downlevelIteration": true,
+    "strict": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  }
 }
