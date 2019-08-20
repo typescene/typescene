@@ -5,63 +5,68 @@ import { UIControl } from "./UIControl";
 
 /** Represents a button component */
 export class UIButton extends UIControl {
-    static preset(presets: UIButton.Presets): Function {
-        // quietly change 'text' to label to support JSX tag content
-        if ("text" in (presets as any)) presets.label = (presets as any).text;
+  static preset(presets: UIButton.Presets): Function {
+    // quietly change 'text' to label to support JSX tag content
+    if ("text" in (presets as any)) presets.label = (presets as any).text;
 
-        // use a 'link' role automatically if `navigateTo` is specified
-        if (presets.navigateTo && !presets.accessibleRole) {
-            presets.accessibleRole = "link";
-        }
-        return super.preset(presets);
+    // use a 'link' role automatically if `navigateTo` is specified
+    if (presets.navigateTo && !presets.accessibleRole) {
+      presets.accessibleRole = "link";
     }
+    return super.preset(presets);
+  }
 
-    /** Creates a preset button class with given label (localized using `tt` if available) and onClick handler, if any */
-    static withLabel(label: Stringable | Binding, onClick?: string) {
-        if (typeof label === "string") label = tt(label);
-        return this.with({ label, onClick });
-    }
+  /** Creates a preset button class with given label (localized using `tt` if available) and onClick handler, if any */
+  static withLabel(label: Stringable | Binding, onClick?: string) {
+    if (typeof label === "string") label = tt(label);
+    return this.with({ label, onClick });
+  }
 
-    /** Creates a preset button class with given icon *only*, and onClick handler, if any */
-    static withIcon(icon: string, onClick?: string, size?: string | number, color?: string) {
-        return this.with({ icon, iconSize: size, iconColor: color, onClick });
-    }
+  /** Creates a preset button class with given icon *only*, and onClick handler, if any */
+  static withIcon(icon: string, onClick?: string, size?: string | number, color?: string) {
+    return this.with({ icon, iconSize: size, iconColor: color, onClick });
+  }
 
-    /** Create a new button with given label */
-    constructor(label?: string) {
-        super();
-        if (label !== undefined) this.label = label;
-    }
+  /** Create a new button with given label */
+  constructor(label?: string) {
+    super();
+    if (label !== undefined) this.label = label;
+  }
 
-    style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["button"]);
-    shrinkwrap = true;
+  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["button"]);
+  shrinkwrap = true;
 
-    isFocusable() { return true }
-    isKeyboardFocusable() { return !this.disableKeyboardFocus }
+  isFocusable() {
+    return true;
+  }
 
-    /** Set to true to disable keyboard focus for this button */
-    disableKeyboardFocus?: boolean;
+  isKeyboardFocusable() {
+    return !this.disableKeyboardFocus;
+  }
 
-    /** Label text */
-    label: Stringable = "";
+  /** Set to true to disable keyboard focus for this button */
+  disableKeyboardFocus?: boolean;
 
-    /** Icon name (platform and build system dependent) */
-    icon?: string;
+  /** Label text */
+  label: Stringable = "";
 
-    /** Icon size (in dp or string with unit) */
-    iconSize?: string | number;
+  /** Icon name (platform and build system dependent) */
+  icon?: string;
 
-    /** Margin between icon and label text (in dp or string with unit) */
-    iconMargin?: string | number;
+  /** Icon size (in dp or string with unit) */
+  iconSize?: string | number;
 
-    /** Icon color */
-    iconColor?: string;
+  /** Margin between icon and label text (in dp or string with unit) */
+  iconMargin?: string | number;
 
-    /** Set to true to make the icon appear after the text instead of before */
-    iconAfter?: boolean;
+  /** Icon color */
+  iconColor?: string;
 
-    /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
-    navigateTo?: string;
+  /** Set to true to make the icon appear after the text instead of before */
+  iconAfter?: boolean;
+
+  /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
+  navigateTo?: string;
 }
 
 /** Shortcut for `UIButton` constructor preset with the `button_primary` style set */
@@ -86,23 +91,23 @@ export let UISmallButton = UIButton.with({ style: "button_small" });
 export let UIIconButton = UIButton.with({ style: "button_icon" });
 
 export namespace UIButton {
-    /** UILabel presets type, for use with `Component.with` */
-    export interface Presets extends UIControl.Presets {
-        /** Label text */
-        label?: Stringable;
-        /** Icon name (platform and build system dependent) */
-        icon?: string;
-        /** Icon size (in dp or string with unit) */
-        iconSize?: string | number;
-        /** Margin between icon and label text (in dp or string with unit) */
-        iconMargin?: string | number;
-        /** Icon color */
-        iconColor?: string;
-        /** Set to true to make the icon appear after the text instead of before */
-        iconAfter?: boolean;
-        /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
-        navigateTo?: string;
-        /** Set to true to disable keyboard focus for this button */
-        disableKeyboardFocus?: boolean;
-    }
+  /** UILabel presets type, for use with `Component.with` */
+  export interface Presets extends UIControl.Presets {
+    /** Label text */
+    label?: Stringable;
+    /** Icon name (platform and build system dependent) */
+    icon?: string;
+    /** Icon size (in dp or string with unit) */
+    iconSize?: string | number;
+    /** Margin between icon and label text (in dp or string with unit) */
+    iconMargin?: string | number;
+    /** Icon color */
+    iconColor?: string;
+    /** Set to true to make the icon appear after the text instead of before */
+    iconAfter?: boolean;
+    /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
+    navigateTo?: string;
+    /** Set to true to disable keyboard focus for this button */
+    disableKeyboardFocus?: boolean;
+  }
 }

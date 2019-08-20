@@ -7,14 +7,14 @@ export let activationContextBinding = bind("activationContext");
 
 /** Specialized `Component` that propagates application properties (abstract) */
 export abstract class AppComponent extends Component.with({
-    renderContext: renderContextBinding,
-    activationContext: activationContextBinding
+  renderContext: renderContextBinding,
+  activationContext: activationContextBinding,
 }) {
-    /** Application render context, propagated from the parent composite object */
-    @managed
-    renderContext?: UIRenderContext;
+  /** Application render context, propagated from the parent composite object */
+  @managed
+  renderContext?: UIRenderContext;
 
-    /** Activation context, propagated from the parent composite object */
-    @managed
-    activationContext?: AppActivationContext;
+  /** Activation context, propagated from the parent composite object */
+  @managed
+  activationContext?: AppActivationContext;
 }
