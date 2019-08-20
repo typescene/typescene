@@ -7,8 +7,8 @@ export let renderContextBinding = bind("renderContext");
 
 /** Global view placement modes */
 export enum UIRenderPlacement {
-  NONE = 0,
-  PAGE = 1,
+  NONE,
+  PAGE,
   DIALOG,
   DRAWER,
   DROPDOWN,
