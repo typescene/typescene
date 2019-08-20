@@ -23,7 +23,12 @@ export class UIButton extends UIControl {
   }
 
   /** Creates a preset button class with given icon *only*, and onClick handler, if any */
-  static withIcon(icon: string, onClick?: string, size?: string | number, color?: string) {
+  static withIcon(
+    icon: string,
+    onClick?: string,
+    size?: string | number,
+    color?: Stringable
+  ) {
     return this.with({ icon, iconSize: size, iconColor: color, onClick });
   }
 
@@ -60,7 +65,7 @@ export class UIButton extends UIControl {
   iconMargin?: string | number;
 
   /** Icon color */
-  iconColor?: string;
+  iconColor?: Stringable;
 
   /** Set to true to make the icon appear after the text instead of before */
   iconAfter?: boolean;
@@ -101,8 +106,8 @@ export namespace UIButton {
     iconSize?: string | number;
     /** Margin between icon and label text (in dp or string with unit) */
     iconMargin?: string | number;
-    /** Icon color */
-    iconColor?: string;
+    /** Icon color (`UIColor` or string) */
+    iconColor?: Stringable;
     /** Set to true to make the icon appear after the text instead of before */
     iconAfter?: boolean;
     /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */

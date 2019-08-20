@@ -40,7 +40,7 @@ export class UIToggle extends UIControl {
   label?: Stringable;
 
   /** Highlight (background) color, if any */
-  highlightColor?: string;
+  highlightColor?: Stringable;
 
   /** Current toggle state, true for 'on' state, false for 'off' */
   state?: boolean;
@@ -83,7 +83,7 @@ export namespace UIToggle {
     /** Label text, if any */
     label?: Stringable;
     /** Highlight (background) color, if any */
-    highlightColor?: string;
+    highlightColor?: Stringable;
     /** Toggle state */
     state?: boolean;
     /** Form state property */

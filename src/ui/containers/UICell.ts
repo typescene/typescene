@@ -1,4 +1,5 @@
 import {
+  Stringable,
   UIComponentEvent,
   UIComponentEventHandler,
   UIRenderableConstructor,
@@ -149,17 +150,17 @@ export class UICell extends UIContainer {
   /** Margin around the entire cell (in dp or CSS string, or separate offset values) */
   margin?: UICellOffsets;
 
-  /** Cell background (see `UITheme.replaceColor`), defaults to transparent */
-  background?: string;
+  /** Cell background (`UIColor` or string), defaults to transparent */
+  background?: Stringable;
 
-  /** Text color (see `UITheme.replaceColor`), defaults to `inherit` to inherit the text color from a containing cell or background window */
-  textColor?: string;
+  /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
+  textColor?: Stringable;
 
   /** Border thickness (in dp or string with unit, or separate offset values) */
   borderThickness?: UICellOffsets;
 
-  /** Border color (see `UITheme.replaceColor`) */
-  borderColor?: string;
+  /** Border color (`UIColor` or string) */
+  borderColor?: Stringable;
 
   /** Border style (CSS), defaults to "solid" */
   borderStyle = "solid";
@@ -202,14 +203,14 @@ export namespace UICell {
     padding?: UICellOffsets;
     /** Margin around the entire cell (in dp or CSS string, defaults to 0) */
     margin?: UICellOffsets;
-    /** Cell background (see `UITheme.replaceColor`) */
-    background?: string;
-    /** Text color (see `UITheme.replaceColor`), defaults to `inherit` to inherit the text color from a containing cell or background window */
-    textColor?: string;
+    /** Cell background (`UIColor` or string) */
+    background?: Stringable;
+    /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
+    textColor?: Stringable;
     /** Border thickness (in dp or string with unit, defaults to 0) */
     borderThickness?: UICellOffsets;
-    /** Border color (see `UITheme.replaceColor`) */
-    borderColor?: string;
+    /** Border color (`UIColor` or string) */
+    borderColor?: Stringable;
     /** Border style (CSS), defaults to "solid" */
     borderStyle?: string;
     /** Corner radius (in dp or CSS string, defaults to 0) */
@@ -238,37 +239,37 @@ export namespace UICell {
   /** `UICell` focus/select properties, for use with `UICell.with` */
   export interface HighlightProperties {
     /** Focused cell background */
-    focusedBackground?: string;
+    focusedBackground?: Stringable;
     /** Focused cell text color */
-    focusedTextColor?: string;
+    focusedTextColor?: Stringable;
     /** Focused cell border thickness (in dp or string with unit, defaults to 0) */
     focusedBorderThickness?: string | number;
-    /** Focused cell border color (see `UITheme.replaceColor`) */
-    focusedBorderColor?: string;
+    /** Focused cell border color (`UIColor` or string) */
+    focusedBorderColor?: Stringable;
     /** Focused cell border style (CSS), defaults to "solid" */
     focusedBorderStyle?: string;
     /** Focused cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
     focusedDropShadow?: number;
     /** Selected cell background */
-    selectedBackground?: string;
+    selectedBackground?: Stringable;
     /** Selected cell text color */
-    selectedTextColor?: string;
+    selectedTextColor?: Stringable;
     /** Selected cell border thickness (in dp or string with unit, defaults to 0) */
     selectedBorderThickness?: string | number;
-    /** Selected cell border color (see `UITheme.replaceColor`) */
-    selectedBorderColor?: string;
+    /** Selected cell border color (`UIColor` or string) */
+    selectedBorderColor?: Stringable;
     /** Selected cell border style (CSS), defaults to "solid" */
     selectedBorderStyle?: string;
     /** Selected cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
     selectedDropShadow?: number;
     /** Focused and selected cell background */
-    focusedSelectedBackground?: string;
+    focusedSelectedBackground?: Stringable;
     /** Focused and selected cell text color */
-    focusedSelectedTextColor?: string;
+    focusedSelectedTextColor?: Stringable;
     /** Focused and selected cell border thickness (in dp or string with unit, defaults to 0) */
     focusedSelectedBorderThickness?: string | number;
-    /** Focused and selected cell border color (see `UITheme.replaceColor`) */
-    focusedSelectedBorderColor?: string;
+    /** Focused and selected cell border color (`UIColor` or string) */
+    focusedSelectedBorderColor?: Stringable;
     /** Focused and selected cell border style (CSS), defaults to "solid" */
     focusedSelectedBorderStyle?: string;
     /** Focused and selected cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */

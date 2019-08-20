@@ -1,5 +1,8 @@
-import { UIRenderableConstructor, UITransitionType } from "./UIComponent";
+import { Stringable, UIRenderableConstructor, UITransitionType } from "./UIComponent";
 import { UIStyle } from "./UIStyle";
+
+const TEXT_COLOR_B = "rgba(0,0,0,.8)";
+const TEXT_COLOR_W = "rgba(255,255,255,.95)";
 
 /** Confirmation/alert dialog builder, platform dependent, used by `ViewActivity.showConfirmationDialogAsync` (abstract) */
 export abstract class ConfirmationDialogBuilder {
@@ -47,44 +50,84 @@ export abstract class UIMenuBuilder {
   abstract build(): UIRenderableConstructor;
 }
 
+/** Represents a single color (read-only) */
+export class UIColor {
+  constructor(colorName?: string) {
+    if (colorName) {
+      this._f = () => (UITheme.current && UITheme.current.colors[colorName]) || colorName;
+    }
+  }
+
+  /** Return a CSS-compatible string representation */
+  toString() {
+    return this._f ? this._f() : "transparent";
+  }
+
+  /** Return a new `UIColor` instance for a contrasting text color */
+  text() {
+    let result = new UIColor();
+    result._f = () => UITheme.getTextColor(String(this));
+    return result;
+  }
+
+  /** Return a new `UIColor` instance with given alpha value (0-1) applied, for higher transparency */
+  alpha(alpha: number) {
+    let result = new UIColor();
+    result._f = () => UITheme.mixColors(String(this), "rgba(,,,0)", 1 - alpha);
+    return result;
+  }
+
+  /** Return a new `UIColor` instance with given luminosity value (between -1 and 1) applied, for darker or lighter colors; set `contrast` parameter to true to invert the scale for dark colors (i.e. move closer to/away from mid-grey instead of strictly lower and higher luminosity) */
+  lum(lum: number, contrast?: boolean) {
+    let result = new UIColor();
+    result._f = () => {
+      let c = String(this);
+      if (contrast && !UITheme.isBrightColor(c)) lum = -lum;
+      return UITheme.mixColors(c, lum > 0 ? "#fff" : "#000", Math.abs(lum));
+    };
+    return result;
+  }
+
+  private _f?: () => string;
+}
+
 /** Represents a set of default styles and component presets */
 export class UITheme {
   /** The current theme. This value may be changed but it is not observed. */
   static current: UITheme;
 
   /** Returns a suitable text color for given background color (mostly black, or mostly white) */
-  static getTextColor(bg: string): string {
-    return this.isBrightColor(bg) ? "rgba(0,0,0,.8)" : "rgba(255,255,255,.95)";
+  static getTextColor(bg: Stringable): string {
+    return this.isBrightColor(String(bg)) ? TEXT_COLOR_B : TEXT_COLOR_W;
   }
 
   /** Returns true if the pseudo-luminance of given color (in hex format `#112233` or `#123` or rgb(a) format `rgb(255, 255, 255)` or hsl format `hsl(255, 0%, 0%)`) is greater than 55%; can be used e.g. to decide on a contrasting text color for a given background color */
-  static isBrightColor(color: string) {
-    color = String(color);
-    if (color[0] === "#") {
-      if (color.length === 4) {
-        color = "#" + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+  static isBrightColor(color: Stringable) {
+    let c = String(color);
+    if (c[0] === "#") {
+      if (c.length === 4) {
+        c = "#" + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
       }
-      let r = parseInt(color.slice(1, 3), 16);
-      let g = parseInt(color.slice(3, 5), 16);
-      let b = parseInt(color.slice(5, 7), 16);
+      let r = parseInt(c.slice(1, 3), 16);
+      let g = parseInt(c.slice(3, 5), 16);
+      let b = parseInt(c.slice(5, 7), 16);
       return 0.3 * r + 0.6 * g + 0.1 * b > 140;
-    } else if (color.slice(0, 4) === "rgb(" || color.slice(0, 5) === "rgba(") {
-      let v = color
+    } else if (c.slice(0, 4) === "rgb(" || c.slice(0, 5) === "rgba(") {
+      let v = c
         .slice(4)
         .split(",")
         .map(parseFloat);
       return 0.3 * v[0] + 0.6 * v[1] + 0.1 * v[2] > 140;
-    } else if (color.slice(0, 4) === "hsl(") {
-      let lum = parseFloat(color.slice(4).split(",")[2]);
+    } else if (c.slice(0, 4) === "hsl(") {
+      let lum = parseFloat(c.slice(4).split(",")[2]);
       return lum > 55;
     } else return true;
   }
 
   /** Returns a color in rgb(a) format (e.g. `rgb(40,60,255)` `rgba(40,60,255,.5)`) that lies between given colors (in hex format `#112233` or `#123` or rgb(a) format `rgb(255, 255, 255)`) at given point (0-1, with 0 being the same as the first color, 1 being the same as the second color, and 0.5 being an equal mix) */
-  static mixColors(color1: string, color2: string, p: number) {
+  static mixColors(color1: Stringable, color2: Stringable, p: number) {
     function parse(color: string) {
       let result = [0, 0, 0, 1];
-      color = String(color);
       if (color[0] === "#") {
         if (color.length === 4) {
           color = "#" + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
@@ -115,8 +158,8 @@ export class UITheme {
     function mix(n1: number, n2: number) {
       return n1 === n2 ? n1 : isNaN(n1) ? n2 : isNaN(n2) ? n1 : Math.floor(q * n1 + p * n2);
     }
-    let c1 = parse(color1);
-    let c2 = parse(color2);
+    let c1 = parse(String(color1));
+    let c2 = parse(String(color2));
     let rgbStr = mix(c1[0], c2[0]) + "," + mix(c1[1], c2[1]) + "," + mix(c1[2], c2[2]);
     let alpha = q * c1[3] + p * c2[3];
     return alpha >= 1 ? "rgb(" + rgbStr + ")" : "rgba(" + rgbStr + "," + alpha + ")";
@@ -132,9 +175,10 @@ export class UITheme {
    * - `@green/80%` takes the color `green` and makes it 20% (more) transparent
    * - `@green:text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
    */
-  static replaceColor(color: string) {
-    if (!color) return color;
-    return color.replace(
+  static replaceColor(color: Stringable) {
+    let c = String(color);
+    if (!c) return c;
+    return c.replace(
       /\@(\w+)(\:text)?((\^)?[\+\-]\d+\%)?(\:text)?(\/\d+\%)?(\:text)?/g,
       (_str, id, txt, lum, contrast, txt2, alpha, txt3) => {
         let result = (this.current.colors as any)[id] || "rgba(1,2,3,0)";
@@ -185,11 +229,11 @@ export class UITheme {
 
   /** Set of predefined colors */
   colors: { [name: string]: string } = {
-    red: "red",
-    green: "green",
-    blue: "blue",
-    black: "black",
-    white: "white",
+    red: "#f00",
+    green: "#0f0",
+    blue: "#00f",
+    black: "#000",
+    white: "#fff",
     primary: "@blue",
     accent: "@red",
     background: "@white",
@@ -199,8 +243,8 @@ export class UITheme {
   };
 
   /** Define a new color with given name; may reference another color, see `UITheme.replaceColor` */
-  addColor(name: string, color: string) {
-    this.colors[name] = color;
+  addColor(name: string, color: Stringable) {
+    this.colors[name] = String(color);
     return this;
   }
 

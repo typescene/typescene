@@ -1,3 +1,5 @@
+import { Stringable } from "./UIComponent";
+
 /** Next UID for a `UIStyle` object */
 let _nextUID = 1;
 
@@ -320,8 +322,8 @@ export namespace UIStyle {
   export interface TextStyle {
     /** Text alignment (CSS) */
     align?: string;
-    /** Text color (see `UITheme.replaceColor`) */
-    color?: string;
+    /** Text color (`UIColor` or string) */
+    color?: Stringable;
     /** Font family (CSS) */
     fontFamily?: string;
     /** Font size (dp or string with unit) */
@@ -358,10 +360,10 @@ export namespace UIStyle {
 
   /** Miscellaneous style options for control components, including all CSS attributes and classes */
   export interface ControlStyle {
-    /** Background style or color (see `UITheme.replaceColor`) */
-    background?: string;
-    /** Border style or color (see `UITheme.replaceColor`) */
-    border?: string;
+    /** Background style or color (`UIColor` or string) */
+    background?: Stringable;
+    /** Border style or color (`UIColor` or string) */
+    border?: Stringable;
     /** Border radius (in dp or CSS string, defaults to 0) */
     borderRadius?: string | number;
     /** Drop shadow distance (0-1) */
@@ -390,8 +392,8 @@ export namespace UIStyle {
   export interface SeparatorOptions {
     /** Separator type, defaults to line */
     type?: "line" | "spacer";
-    /** Separator line color (see `UITheme.replaceColor`), defaults to `@separator` */
-    color?: string;
+    /** Separator line color (`UIColor` or string), defaults to `@separator` */
+    color?: Stringable;
     /** Separator thickness (CSS length or dp) */
     thickness?: string | number;
     /** Separator margin (CSS length or dp) */
