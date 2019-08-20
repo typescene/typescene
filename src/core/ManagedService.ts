@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 import { managedChild, ManagedReference } from "./ManagedReference";
@@ -60,7 +61,7 @@ export function service(
     );
   };
   if (Target) {
-    if (!propertyName) throw Error("[Service] Missing property name");
+    if (!propertyName) throw err(ERROR.Service_NoName);
     f(Target.prototype, propertyName);
   }
   return f;
@@ -90,7 +91,7 @@ export abstract class ManagedService extends ManagedObject {
   /** Register this service, making it available through properties decorated with the `@service` decorator until the service object is destroyed (either directly, or when another service is registered with the same name) */
   register() {
     let ucName = String(this.name || "").toUpperCase();
-    if (!ucName) throw Error("[Service] Service name cannot be blank");
+    if (!ucName) throw err(ERROR.Service_BlankName);
     let ref = ServiceContainer.instance.services.get(ucName);
     if (ref) {
       // set new target on the existing reference (destroying the old service)

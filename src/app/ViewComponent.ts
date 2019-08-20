@@ -2,6 +2,7 @@ import { ComponentEvent, logUnhandledException, managedChild, ManagedState } fro
 import { UIComponent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
+import { err, ERROR } from "../errors";
 
 /**
  * Represents an application component that encapsulates a view made up of UI components (or other renderable components, such as nested `ViewComponent` instances).
@@ -10,7 +11,7 @@ import { ViewActivity } from "./ViewActivity";
  */
 export class ViewComponent extends AppComponent implements UIRenderable {
   static preset(presets: object, ...View: UIRenderableConstructor[]): Function {
-    if (View.length > 1) throw Error("Invalid ViewComponent child component");
+    if (View.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
     if (View[0]) this.presetActiveComponent("view", View[0], ViewActivity);
     return super.preset(presets);
   }
@@ -44,7 +45,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
       }
     } else if (!this.renderContext) {
       // something is wrong: not a child component
-      throw Error("[ViewComponent] Render context not found (not a child component?)");
+      throw err(ERROR.ViewComponent_NoRenderCtx);
     } else {
       // render current view using new or old callback
       this._renderer.render(this.view, callback);

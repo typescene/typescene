@@ -1,4 +1,5 @@
 import { Component, ComponentEvent, ComponentEventHandler, managedChild } from "../core";
+import { err, ERROR } from "../errors";
 import { Stringable, UIComponent, UIComponentEvent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
 import { UIMenuBuilder, UITheme } from "./UITheme";
@@ -23,7 +24,7 @@ export class UIMenu extends Component implements UIRenderable {
   constructor() {
     super();
     if (!UITheme.current.MenuBuilder) {
-      throw Error("[UIMenu] Menu builder not found");
+      throw err(ERROR.UIMenu_NoBuilder);
     }
     this.builder = new UITheme.current.MenuBuilder();
     this.propagateChildEvents(e => {

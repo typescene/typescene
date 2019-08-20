@@ -6,6 +6,7 @@ import {
   ComponentEventHandler,
   managedChild,
 } from "../core";
+import { err, ERROR } from "../errors";
 import { UIComponent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { UIRenderContext, UIRenderPlacement } from "./UIRenderContext";
@@ -20,7 +21,7 @@ export class UIModalController extends UIRenderableController {
     let Modal = modal || presets.modal;
     delete presets.modal;
     if (Binding.isBinding(Modal)) {
-      throw TypeError("[UIModalController] Modal property cannot be bound");
+      throw err(ERROR.UIModalController_Binding);
     }
     if (Modal) this.presetBindingsFrom(Modal);
     let f = super.preset(presets, content);

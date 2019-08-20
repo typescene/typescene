@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import { ManagedChangeEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor, ManagedState } from "./ManagedObject";
 import * as util from "./util";
@@ -145,7 +146,7 @@ export function observe(Target: Function, arg?: any): any {
   if (!Observer) Observer = class extends AnonymousObserver<any> {};
   let proto = Target.prototype;
   if (!(proto instanceof ManagedObject)) {
-    throw Error("[Object] Observed target is not a managed object class");
+    throw err(ERROR.Observe_ObservedType);
   }
   ((Target as any) as typeof ManagedObject).addGlobalClassInitializer(() => {
     /** helper function to add an event handler for the current observer */
@@ -184,7 +185,7 @@ export function observe(Target: Function, arg?: any): any {
               continue;
             }
             if (p === "!managedParent") {
-              throw Error("[Object] Cannot observe events on parent reference");
+              throw err(ERROR.Observe_ObserveParent);
             }
             // special case dynamic AnonymousObserver handlers
             if (p === "+onEvent") {
@@ -300,9 +301,7 @@ export function shadowObservable(
   return function(targetPrototype, propertyKey) {
     let descriptor = Object.getOwnPropertyDescriptor(targetPrototype, propertyKey as any);
     if (!descriptor || !descriptor.get) {
-      throw Error(
-        "[Object] @shadowObservable(...) can only be applied to properties with their own getter method"
-      );
+      throw err(ERROR.Observe_ShadowGetter);
     }
     (descriptor.get as any)[util.GETTER_SHADOW_PROP] = shadowPropertyName;
     (descriptor.get as any)[util.GETTER_SHADOW_FORCE_ASYNC] = !!forceAsync;
@@ -361,7 +360,7 @@ export function rateLimit(n: number): MethodDecorator {
       typeof propertyKey !== "string" ||
       propertyKey.slice(-5) !== "Async"
     ) {
-      throw Error("[Object] @rateLimit(...) can only be applied to async Observer methods");
+      throw err(ERROR.Observe_RateLimitNonAsync);
     }
     (targetPrototype as any)[propertyKey][FN_RATE_LIMIT_PROP] = n;
   };
@@ -540,7 +539,7 @@ function _getObserverInstance(obj: any, observerClass: { new (instance: any): an
       observer.onActive && observer.onActive();
     }
   } else if (observer === true) {
-    throw Error("[Object] Recursion in observer constructor detected");
+    throw err(ERROR.Observe_ObserverRecursion);
   }
   return observer;
 }

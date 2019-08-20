@@ -1,4 +1,5 @@
 import { ManagedChangeEvent, ManagedObject } from "../core";
+import { err, ERROR } from "../errors";
 import { AppActivity } from "./AppActivity";
 
 /** Represents the application state using a single path in URL format. Used by `Application` and `AppActivity` classes to implement routing behaviors. */
@@ -66,7 +67,7 @@ export class AppActivationContext extends ManagedObject {
       if (segments[i][0] === "*") {
         // capture complete remainder
         if (segments.length > i + 1) {
-          throw Error("[ActivationContext] Invalid path: " + path);
+          throw err(ERROR.ActivationContext_InvalidPath, path);
         }
         result[segments[i].slice(1)] = this._split.slice(i).join("/");
         return result;

@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import { ManagedChangeEvent, ManagedEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import * as util from "./util";
@@ -42,7 +43,7 @@ export class ManagedReference<
   ): ManagedReference<T> {
     let target = this.target;
     if (target && !(target instanceof classType)) {
-      throw Error("[Object] Existing reference is not of given type");
+      throw err(ERROR.Ref_Type);
     }
     this._managedClassRestriction = classType;
     return this as any;

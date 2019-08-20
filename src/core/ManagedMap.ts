@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import {
   ManagedChangeEvent,
   ManagedEvent,
@@ -25,7 +26,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
    */
   restrict<T extends ManagedObject>(classType: ManagedObjectConstructor<T>): ManagedMap<T> {
     if (this.objects().some(o => !(o instanceof classType))) {
-      throw Error("[Map] Existing object(s) are not of given type");
+      throw err(ERROR.Map_Type);
     }
     this._managedClassRestriction = classType;
     return this as any;
@@ -69,7 +70,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
    */
   set(key: string, target?: T) {
     if (!this[util.HIDDEN_STATE_PROPERTY]) {
-      throw Error("[Map] Cannot add objects to a destroyed map");
+      throw err(ERROR.Map_Destroyed);
     }
     let refs = this[util.HIDDEN_REF_PROPERTY];
     key = String(key);

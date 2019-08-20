@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import { Binding } from "./Binding";
 import {
   ManagedChangeEvent,
@@ -573,7 +574,7 @@ export namespace Component {
         let bound = this.compositePObs && this.compositePObs.getCompositeBound(binding);
         if (!bound) {
           if (binding.ignoreUnbound) continue;
-          throw TypeError("[Component] Binding not found for " + p);
+          throw err(ERROR.Binding_NotFound, p);
         }
         if (bound.includes(this.component)) continue;
         this.bound.push(bound);
@@ -682,7 +683,7 @@ function _makeEventHandler(handler: string) {
         if (typeof f === "function") return f.call(composite, e);
         composite = composite.getCompositeParent();
       }
-      throw TypeError("[Component] " + "Not an event handler method: " + callMethodName);
+      throw err(ERROR.Component_NotAHandler, callMethodName);
     };
   } else if (handler[0] === "+") {
     let emitName = handler.slice(1);
@@ -690,7 +691,7 @@ function _makeEventHandler(handler: string) {
       this.propagateComponentEvent(emitName, e);
     };
   } else {
-    throw Error("[Component] Invalid event handler preset: " + handler);
+    throw err(ERROR.Component_InvalidEventHandler, handler);
   }
 }
 

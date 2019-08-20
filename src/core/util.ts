@@ -1,3 +1,5 @@
+import { err, ERROR } from "../errors";
+
 /** @internal Arbitrary name of the hidden property containing a managed object's references */
 export const HIDDEN_REF_PROPERTY = "^ref";
 
@@ -147,9 +149,7 @@ export function defineChainableProperty<T>(
         if (g) {
           // check getter for flags
           if (!isAsyncHandler && (g as any)[GETTER_SHADOW_FORCE_ASYNC]) {
-            throw Error(
-              "[Object] Synchronous observers are not allowed for property " + origProperty
-            );
+            throw err(ERROR.Util_NoSync);
           } else if ((g as any)[GETTER_SHADOW_PROP]) {
             // property has a settable shadow property
             propertyKey = (g as any)[GETTER_SHADOW_PROP];
@@ -238,7 +238,7 @@ export function defineChainableProperty<T>(
       (descriptor.set as any)[SETTER_CHAIN] &&
       (descriptor.set as any)[SETTER_CHAIN]();
     if (prev && prev.getter && origGetter) {
-      throw Error("[Object] Property is already managed in a base class: " + propertyKey);
+      throw err(ERROR.Util_AlreadyManaged, propertyKey);
     }
     return {
       getter: getter || (prev && prev.getter),

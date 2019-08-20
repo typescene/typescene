@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import {
   ManagedEvent,
   ManagedListChangeEvent,
@@ -13,7 +14,7 @@ if (typeof Symbol !== "function") {
   if (typeof window === "object") {
     (window as any).Symbol = { iterator: "Symbol.iterator_shim_" + Math.random() };
   } else {
-    throw Error("Symbol not supported");
+    throw err(ERROR.List_Symbol);
   }
 }
 
@@ -58,7 +59,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     classType: ManagedObjectConstructor<T>
   ): ManagedList<T> {
     if (this.toArray().some(o => !(o instanceof classType))) {
-      throw Error("[List] Existing object(s) are not of given type");
+      throw err(ERROR.List_Type);
     }
     this._managedClassRestriction = classType;
     return this as any;
@@ -92,7 +93,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
    */
   insert(target: T, before?: T) {
     if (!this[util.HIDDEN_STATE_PROPERTY]) {
-      throw Error("[List] Cannot add objects to a destroyed list");
+      throw err(ERROR.List_Destroyed);
     }
     let refs = this[util.HIDDEN_REF_PROPERTY];
 
@@ -102,11 +103,11 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
       throw ReferenceError();
     }
     if (this.includes(target)) {
-      throw Error("[List] Cannot insert object that is already in this list");
+      throw err(ERROR.List_Duplicate);
     }
     let beforeRef = before && refs[util.MANAGED_LIST_REF_PREFIX + before.managedId];
     if (before && (!beforeRef || beforeRef.b !== before)) {
-      throw Error("[List] Object not found");
+      throw err(ERROR.List_NotFound);
     }
 
     // create new reference and update target count
@@ -330,7 +331,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
       for (let i = index; ref && i > 0; i--) ref = ref.k;
       if (ref && ref.b) return ref.b as T;
     }
-    throw RangeError("[List] Index out of bounds: " + index);
+    throw err(ERROR.List_OutOfBounds, index);
   }
 
   /**
@@ -340,7 +341,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
   find(managedId: number): T {
     let ref = this[util.HIDDEN_REF_PROPERTY][util.MANAGED_LIST_REF_PREFIX + managedId];
     if (!ref || ref.b.managedId !== managedId) {
-      throw Error("[List] Object not found");
+      throw err(ERROR.List_NotFound);
     }
     return ref.b;
   }

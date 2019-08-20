@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import { ManagedCoreEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
 import { ManagedReference } from "./ManagedReference";
 import { observe } from "./observe";
@@ -77,7 +78,7 @@ export class ManagedObject {
   ): void;
   static handle<T extends ManagedObject>(this: ManagedObjectConstructor<T>, h: any) {
     if ((this as any) === ManagedObject) {
-      throw Error("[Object] Cannot add event handler to base class");
+      throw err(ERROR.Object_Base);
     }
 
     // get the previous prototype and handler on same prototype
@@ -250,7 +251,7 @@ export class ManagedObject {
     if (typeof e === "string") e = new ManagedEvent(e).freeze() as any;
     if (typeof e === "function") e = new e(...constructorArgs).freeze();
     if (!(e instanceof ManagedEvent)) {
-      throw TypeError("[Object] Argument is not a managed event");
+      throw err(ERROR.Object_NotEvent);
     }
     if (this._emitting === undefined) {
       Object.defineProperty(this, "_emitting", {
@@ -259,7 +260,7 @@ export class ManagedObject {
         value: 0,
       });
     } else if (this._emitting! > RECURSE_EMIT_LIMIT) {
-      throw Error("[Object] Event recursion limit reached");
+      throw err(ERROR.Object_Recursion);
     }
     let emitError: any;
     try {
@@ -384,7 +385,7 @@ export class ManagedObject {
       state === ManagedState.ACTIVATING ||
       state === ManagedState.DEACTIVATING
     ) {
-      if (n-- <= 0) throw Error("[Object] Cannot deactivate managed object");
+      if (n-- <= 0) throw err(ERROR.Object_CannotDeactivate);
       await this.deactivateManagedAsync();
     }
     if (!state) return;
@@ -450,7 +451,7 @@ export class ManagedObject {
     let doTransitionAsync = async (t: ManagedStateTransition) => {
       let oldState = this[util.HIDDEN_STATE_PROPERTY];
       if (newState === oldState) return;
-      if (!oldState) throw Error("[Object] Managed object is already destroyed");
+      if (!oldState) throw err(ERROR.Object_Destroyed);
       let changedState: boolean | undefined;
       this._transition = t;
       try {
@@ -485,7 +486,7 @@ export class ManagedObject {
         }),
         reject() {
           rejected = true;
-          rejectResult(Error("[Object] State transition cancelled"));
+          rejectResult(err(ERROR.Object_StateCancelled));
         },
       };
       return result;
@@ -633,15 +634,13 @@ export class ManagedObject {
   ) {
     if (target !== undefined) {
       if (!source[util.HIDDEN_STATE_PROPERTY]) {
-        throw Error(
-          "[Object] Cannot set reference on managed object that is already destroyed"
-        );
+        throw err(ERROR.Object_RefDestroyed);
       }
       if (!(target instanceof ClassRestriction)) {
-        throw Error("[Object] Invalid object reference");
+        throw err(ERROR.Object_InvalidRef);
       }
       if (!target[util.HIDDEN_STATE_PROPERTY]) {
-        throw Error("[Object] Referenced object has been destroyed");
+        throw err(ERROR.Object_RefDestroyed);
       }
     }
   }
@@ -674,14 +673,11 @@ export class ManagedObject {
     readonlyRef?: ManagedReference
   ) {
     if (!(object instanceof ManagedObject)) {
-      throw Error(
-        "[Object] Can only create managed properties on instances of ManagedObject"
-      );
+      throw err(ERROR.Object_PropNotManaged);
     }
     if (Object.getOwnPropertyDescriptor(object, propertyKey)) {
-      throw Error(
-        "[Object] Cannot turn properties with getters and/or setters into managed references"
-      );
+      throw err(ERROR.Object_PropGetSet);
+      1;
     }
 
     // (re)define property on prototype
@@ -704,13 +700,13 @@ export class ManagedObject {
           }
           if (readonlyRef && target !== readonlyRef) {
             // do not assign to read only reference (but used by getter initially)
-            throw Error("[Object] Property is not writable");
+            throw err(ERROR.Object_NotWritable);
           }
           ManagedObject._validateReferenceAssignment(obj, target);
           let cur = obj[util.HIDDEN_REF_PROPERTY][propId];
           if (cur && target && cur.b === target && !readonlyRef) return;
           if (isDependency && !target) {
-            throw Error("[Object] Dependency must point to a managed object: " + name);
+            throw err(ERROR.Object_InvalidDep, name);
           }
           if (target && preAssignHandler) preAssignHandler.call(obj, target);
 

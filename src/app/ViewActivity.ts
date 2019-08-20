@@ -6,6 +6,7 @@ import {
   ManagedEvent,
   tt,
 } from "../core";
+import { err, ERROR } from "../errors";
 import {
   UIComponent,
   UIComponentEvent,
@@ -34,7 +35,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     let viewClass = View || presets.view;
     delete presets.view;
     if (Binding.isBinding(viewClass)) {
-      throw TypeError("[ViewActivity] View property cannot be bound");
+      throw err(ERROR.ViewActivity_ViewBound);
     }
     if (viewClass) addViewComponent(viewClass);
     return super.preset(presets);
@@ -82,7 +83,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     if (!this._renderCallback) {
       if (!this.placement) return;
       if (!this.renderContext) {
-        throw Error("[ViewActivity] Render context not found (not a child component?)");
+        throw err(ERROR.ViewActivity_NoRenderContext);
       }
       let placement = this.placement;
       let rootCallback = this.renderContext.getRenderCallback();
@@ -140,7 +141,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     eventHandler?: (this: DialogViewActivity, e: ManagedEvent) => void
   ) {
     let app = this.getApplication();
-    if (!app) throw Error("[ViewActivity] Application instance not found");
+    if (!app) throw err(ERROR.ViewActivity_NoApplication);
 
     // create a singleton activity constructor with event handler
     class SingletonActivity extends DialogViewActivity.with(
@@ -179,7 +180,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   ) {
     let Builder = UITheme.current.ConfirmationDialogBuilder;
     if (!Builder) {
-      throw Error("[ViewActivity] Dialog builder not found");
+      throw err(ERROR.ViewActivity_NoDialogBuilder);
     }
     let builder = new Builder();
     if (Array.isArray(message)) message.forEach(m => builder.addMessage(String(tt(m))));

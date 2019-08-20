@@ -5,6 +5,7 @@ import {
   managedChild,
   ManagedList,
 } from "../core";
+import { err, ERROR } from "../errors";
 import { UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
@@ -108,7 +109,7 @@ export class Application extends Component {
   /** Add given activities to the application. Activities with matching paths will be activated immediately (see `AppActivity.path`). */
   add(...activities: AppActivity[]) {
     if (!this.activities) {
-      throw Error("[Application] Cannot add activities to inactive application");
+      throw err(ERROR.Application_Inactive);
     }
     this.activities.add(...activities.filter(a => !this.activities!.includes(a)));
     return this;

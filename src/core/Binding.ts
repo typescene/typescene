@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import { Component } from "./Component";
 import { tt } from "./I18nService";
 import { ManagedList } from "./ManagedList";
@@ -145,7 +146,7 @@ export class Binding {
 
     // select a filter by ID
     let filter = Binding.filters[fmt];
-    if (!filter) throw Error("[Binding] Unknown binding filter: " + fmt);
+    if (!filter) throw err(ERROR.Binding_UnknownFilter, fmt);
 
     // store new chained filter
     let oldFilter = this._filter;
@@ -228,7 +229,7 @@ export class StringFormatBinding extends Binding {
           let i = parseInt(inner.slice(1));
           binding = rest[i - 1];
           if (!(binding instanceof Binding)) {
-            throw TypeError("[Binding] Not a binding: " + s);
+            throw err(ERROR.Binding_NotABinding, s);
           }
           if (!binding.parent) binding.parent = this;
         } else {
@@ -253,9 +254,7 @@ export class StringFormatBinding extends Binding {
         // take values for all bindings first
         let values = bindings.map((binding, i) => {
           let bound = this.composite.getBoundBinding(binding);
-          if (!bound) {
-            throw TypeError("[Binding] Binding not found for " + bindSources[i]);
-          }
+          if (!bound) throw err(ERROR.Binding_NotFound, bindSources[i]);
           return bound.value;
         });
 
@@ -300,11 +299,7 @@ export namespace Binding {
       if (binding.parent) {
         // find bound parent first
         let parent = composite.getBoundBinding(binding.parent);
-        if (!parent) {
-          throw TypeError(
-            "[Binding] Bound parent binding not found for: " + binding.propertyName
-          );
-        }
+        if (!parent) throw err(ERROR.Binding_ParentNotFound);
         this.parent = parent;
       }
 
@@ -350,7 +345,7 @@ export namespace Binding {
         this.forEach((component: any) => {
           try {
             if (typeof component[id] !== "function") {
-              throw Error("[Binding] Component not bound");
+              throw err(ERROR.Binding_NoComponent);
             }
             component[id](value);
           } catch (err) {
@@ -425,11 +420,7 @@ function _blankFormatter(d: any) {
 function _stringFormatter(d: any): string {
   if (typeof d === "object") {
     if (d.toString === Object.prototype.toString) {
-      logUnhandledException(
-        TypeError(
-          "[Binding] Cannot convert bound object value to string, replacing with '???'"
-        )
-      );
+      logUnhandledException(err(ERROR.Binding_ObjectType));
       return "???";
     }
     if (d.toString === Array.prototype.toString && d.map === Array.prototype.map) {

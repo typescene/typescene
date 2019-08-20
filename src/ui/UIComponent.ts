@@ -1,4 +1,5 @@
 import { Component, ComponentConstructor, ComponentEvent, ManagedEvent } from "../core";
+import { err, ERROR } from "../errors";
 import { UIContainer } from "./containers";
 import { UIRenderContext } from "./UIRenderContext";
 import { UIStyle } from "./UIStyle";
@@ -199,7 +200,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
   set style(v) {
     if (v === this._style) return;
     if (!(v instanceof UIStyle)) {
-      throw TypeError("[UIComponent] Invalid style set instance");
+      throw err(ERROR.UIStyle_Invalid);
     }
     this.applyStyle((this._style = v));
   }

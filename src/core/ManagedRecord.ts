@@ -1,3 +1,4 @@
+import { err, ERROR } from "../errors";
 import { Component } from "./Component";
 import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
@@ -25,9 +26,7 @@ export let ManagedRecordValidationError: {
   new (...errors: Array<string | Error | {}>): ManagedRecordValidationError;
   (...errors: Array<string | Error | {}>): ManagedRecordValidationError;
 } = function(...errors: any[]) {
-  let result: ManagedRecordValidationError = Error(
-    "[Validation] Record validation failed"
-  ) as any;
+  let result: ManagedRecordValidationError = err(ERROR.Record_Validation) as any;
   result.isValidationError = true;
   result.errors = [];
   errors.forEach(e => {
@@ -50,7 +49,7 @@ export class ManagedRecord extends Component {
    */
   validate() {
     if (!this.managedState) {
-      throw ManagedRecordValidationError("Record has been destroyed");
+      throw err(ERROR.Record_Destroyed);
     }
   }
 
