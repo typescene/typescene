@@ -61,10 +61,10 @@ export class UIRenderEvent<TSource extends UIComponent> extends ManagedEvent {
 }
 
 /** Focus request type, used by `UIComponent.requestFocus` */
-export enum UIFocusRequestType {
-  SELF,
-  FORWARD,
-  REVERSE,
+export const enum UIFocusRequestType {
+  SELF = 0,
+  FORWARD = 1,
+  REVERSE = -1,
 }
 
 /** Simple animated transition type, used for `UIComponent.revealTransition` and `UIComponent.exitTransition` */
