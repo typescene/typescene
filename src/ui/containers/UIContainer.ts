@@ -1,5 +1,5 @@
-import { Binding, Component, managedChild, ManagedList } from "../../core";
-import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
+import { Binding, Component, ComponentEvent, managedChild, ManagedList } from "../../core";
+import { UIComponent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
 
 /** Represents a UI component that contains other components (abstract) */
@@ -36,7 +36,7 @@ export abstract class UIContainer extends UIComponent {
         super();
         this.content = new ManagedList()
             .restrict<UIRenderable>(Component as any)
-            .propagateEvents(UIComponentEvent);
+            .propagateEvents(ComponentEvent);
         if (content.length) this.content.replace(content);
     }
 

@@ -1,6 +1,6 @@
 import { Application } from "../app";
-import { Binding, ComponentConstructor, ComponentEventHandler, managedChild } from "../core";
-import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { Binding, ComponentConstructor, ComponentEvent, ComponentEventHandler, managedChild } from "../core";
+import { UIComponent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { UIRenderContext, UIRenderPlacement } from "./UIRenderContext";
 
@@ -19,7 +19,7 @@ export class UIModalController extends UIRenderableController {
         return function (this: UIModalController) {
             f.call(this);
             this.propagateChildEvents(e => {
-                if (e instanceof UIComponentEvent) {
+                if (e instanceof ComponentEvent) {
                     if (e.name === "ShowModal") {
                         let instance = Modal && new Modal();
                         this.modal = instance || undefined;

@@ -1,5 +1,5 @@
-import { logUnhandledException, managedChild, ManagedState } from "../core";
-import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
+import { ComponentEvent, logUnhandledException, managedChild, ManagedState } from "../core";
+import { UIComponent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 
@@ -22,7 +22,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
 
     async onManagedStateActivatingAsync() {
         super.onManagedStateActivatingAsync();
-        this.propagateChildEvents(UIComponentEvent);
+        this.propagateChildEvents(ComponentEvent);
     }
 
     /**

@@ -1,15 +1,17 @@
-import { Component, logUnhandledException, managed, managedChild, ManagedObject, ManagedState, shadowObservable } from "../core";
+import { Component, ComponentEvent, ComponentEventHandler, logUnhandledException, managed, managedChild, ManagedEvent, ManagedObject, ManagedState, shadowObservable } from "../core";
 import { UICell } from "./containers/UICell";
-import { UIComponent, UIComponentEvent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { UIRenderable, UIRenderableConstructor } from "./UIComponent";
 import { UIRenderableController } from "./UIRenderableController";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Event that is emitted on a particular `UIListCellAdapter`. */
-export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObject> extends UIComponentEvent {
-    constructor(name: string, source: UIComponent, cell: UICell, object?: TObject, event?: any) {
-        super(name, source, undefined, event);
-        this.object = object;
-        this.cell = cell;
+export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObject> extends ComponentEvent {
+    constructor(name: string, source: UIListCellAdapter<TObject>, inner?: ManagedEvent) {
+        super(name, source, inner);
+        if (!source.cell) throw TypeError();
+        this.object = source.object;
+        this.cell = source.cell;
+        this.value = source.value;
     }
 
     /** The cell that contains the component that originally emitted this event */
@@ -17,6 +19,9 @@ export class UIListCellAdapterEvent<TObject extends ManagedObject = ManagedObjec
 
     /** The object encapsulated by the `UIListCellAdapter`, if any */
     readonly object?: TObject;
+
+    /** The value encapsulated by the `UIListCellAdapter`, if any */
+    readonly value?: any;
 }
 
 /** Component that can be used as an adapter to render items in a `UIListController`. Instances are constructed using a single argument (a managed object from `UIListController.items`), and are activated when rendered to create the cell component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object` and `selected` properties. */
@@ -25,7 +30,7 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
         renderContext: renderContextBinding,
     })
     implements UIRenderable {
-    static preset(presets: UICell.Presets, ...rest: Array<UIRenderableConstructor>): Function {
+    static preset(presets: UIListCellAdapter.Presets, ...rest: Array<UIRenderableConstructor>): Function {
         // separate event handlers from other presets
         let cellPresets: any = {};
         let handlers: any = {};
@@ -51,7 +56,7 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
 
         // propagate events as `UIListCellAdapterEvent`, manage states
         this.propagateChildEvents(e => {
-            if (this.cell && e instanceof UIComponentEvent) {
+            if (this.cell && e instanceof ComponentEvent) {
                 if (e.source === this.cell) {
                     switch (e.name) {
                         case "Select": this._selected = true; break;
@@ -60,7 +65,7 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
                         case "MouseLeave": this._hovered = false; break;
                     }
                 }
-                return new UIListCellAdapterEvent(e.name, e.source, this.cell!, this.object, e.event);
+                return new UIListCellAdapterEvent(e.name, this, e);
             }
         });
     }
@@ -97,6 +102,11 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     async onManagedStateInactiveAsync() {
         await super.onManagedStateInactiveAsync();
         this._pendingRenderCallback = undefined;
+    }
+
+    /** Create and emit a `UIListCellAdapterEvent` with given name and a reference to this component and its cell and object; see `Component.propagateComponentEvent` */
+    propagateComponentEvent(name: string, inner?: ManagedEvent) {
+        this.emit(UIListCellAdapterEvent, name, this, inner);
     }
 
     /** True if the cell is currently selected (based on `Select` and `Deselect` events) */
@@ -137,4 +147,15 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     private _pendingRenderCallback?: UIRenderContext.RenderCallback;
     private _selected = false;
     private _hovered = false;
+}
+
+export namespace UIListCellAdapter {
+    /** UICell presets type, for use with `Component.with` */
+    export type Presets = (Omit<UICell.Presets, keyof EventPresets> & EventPresets);
+    export interface EventPresets {
+        onMouseEnter?: ComponentEventHandler<UIListCellAdapter>;
+        onMouseLeave?: ComponentEventHandler<UIListCellAdapter>;
+        onSelect?: ComponentEventHandler<UIListCellAdapter>;
+        onDeselect?: ComponentEventHandler<UIListCellAdapter>;
+    }
 }

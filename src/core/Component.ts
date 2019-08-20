@@ -68,22 +68,30 @@ export type ComponentCtorWithPreset<TComponentCtor extends ComponentConstructor>
     TComponentCtor & { preset(presets: ComponentPresetType<TComponentCtor>): Function };
 
 /** @internal Event that is emitted on (parent) components when a child component is added. The parent component observer responds by setting the `parentObserver` property on the child observer. */
-export class ComponentChildAddedEvent extends ComponentEvent {
+export class ComponentChildAddedEvent extends ManagedEvent {
     constructor(observer: Component.ComponentObserver) {
-        super("ChildComponentAdded", observer.component);
+        super("ChildComponentAdded");
+        this.source = observer.component;
         this.observer = observer;
     }
+
+    /** Source component */
+    source: Component;
 
     /** The observer for the new child component */
     readonly observer: Component.ComponentObserver;
 }
 
 /** @internal Event that is emitted when the composite parent object reference has been set for a component */
-export class CompositeParentChangeEvent extends ComponentEvent {
+export class CompositeParentChangeEvent extends ManagedEvent {
     constructor(component: Component, composite?: Component) {
-        super("CompositeParentChange", component);
+        super("CompositeParentChange");
+        this.source = component;
         this.composite = composite;
     }
+
+    /** Source component */
+    source: Component;
 
     /** The composite parent object reference */
     composite?: Component;

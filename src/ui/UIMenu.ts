@@ -1,4 +1,4 @@
-import { Component, ComponentEventHandler, managedChild } from "../core";
+import { Component, ComponentEvent, ComponentEventHandler, managedChild } from "../core";
 import { Stringable, UIComponent, UIComponentEvent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
 import { UIMenuBuilder, UITheme } from "./UITheme";
@@ -27,7 +27,7 @@ export class UIMenu extends Component implements UIRenderable {
         }
         this.builder = new UITheme.current.MenuBuilder();
         this.propagateChildEvents(e => {
-            if (e instanceof UIComponentEvent) {
+            if (e instanceof ComponentEvent) {
                 if (e instanceof UIMenuItemSelectedEvent) {
                     this.selected = e.key;
                 }
