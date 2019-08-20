@@ -1,14 +1,14 @@
-import { CHANGE, managedChild, ManagedObject } from "../../../dist";
+import { CHANGE, managedChild, ManagedObject, observe } from "../../../dist";
 
 consider("ManagedObject", () => {
     it("can create an instance", t => {
-        t.assert(new ManagedObject());
+        t.test(new ManagedObject());
     })
 
     it("can create a derived class and instance", t => {
         class MyObject extends ManagedObject {}
         let obj = new MyObject;
-        t.assert(obj);
+        t.test(obj);
     })
 
     it("can be activated asynchronously", async t => {
@@ -30,7 +30,7 @@ consider("ManagedObject", () => {
         let p1 = foo1.activateAsync();
         let p2 = foo2.activateAsync();
         await Promise.all([p1, p2]);
-        t.assert(order === "A1A2B1B2");
+        t.test(order === "A1A2B1B2");
     })
 
     it("can emit events and handle them", t => {
@@ -68,15 +68,17 @@ consider("ManagedObject", () => {
         class MyObject extends ManagedObject {
             @managedChild
             child?: MyChildObject;
-        }
-        MyObject.observe(class {
-            constructor(public readonly obj: MyObject) {}
-            ref?: MyChildObject;
-            onChildChange(c: MyChildObject) {
-                if (c) this.ref = c;
-                if (!c && this.ref) t.ok();
+
+            @observe
+            static MyObjectObserver = class {
+                constructor(public readonly obj: MyObject) {}
+                ref?: MyChildObject;
+                onChildChange(c: MyChildObject) {
+                    if (c) this.ref = c;
+                    if (!c && this.ref) t.ok();
+                }
             }
-        })
+        }
         class MyChildObject extends ManagedObject {
             async destroyAsync() {
                 await this.destroyManagedAsync();

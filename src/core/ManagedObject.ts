@@ -46,12 +46,13 @@ let _nextRefId = 16;
 const RECURSE_EMIT_LIMIT = 4
 
 /** Generic constructor type for ManagedObject, matching both parameterless constructors and those with one or more required parameters */
-export type ManagedObjectConstructor<TObject> = (new (...args: any[]) => TObject) |
+export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObject> =
+    (new (...args: any[]) => TObject) |
     (new (a: never, b: never, c: never, d: never, e: never, f: never) => TObject);
 
 /** Base class for objects that have their own unique ID, life cycle including active/inactive and destroyed states, and managed references to other instances */
 export class ManagedObject {
-    /** Shortcut to the `observe` function/decorator: add an observer to _all instances_ of this class (i.e. a class that extends `ManagedObject`) and derived classes. */
+    /** Add an observer to _all instances_ of this class and derived classes. Alias for the `observe` function/decorator. */
     static observe<T extends ManagedObject>(
         this: ManagedObjectConstructor<T>,
         Observer: { new(instance: T): any }) {

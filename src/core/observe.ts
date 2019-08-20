@@ -5,6 +5,9 @@ import * as util from "./util";
 /** Next unique ID for an observable class */
 let _nextUID = 1000;
 
+/** Next unique ID suffix for anonymous observer methods */
+let _nextAnonSuffix = 10;
+
 /** Arbitrary name of property on observer function to contain name of observed property */
 const FN_OBS_NAME_PROP = "^o:prop";
 
@@ -17,34 +20,106 @@ const OBS_UID_PROP = "^o:uid";
 /** Resolved promise used by async handlers below */
 const RESOLVED = Promise.resolve();
 
+/** Anonymous observer class, used by the `observe` function if no predefined observer class is specified. This class provides static methods to add event handlers and property change handlers. */
+export class AnonymousObserver<T extends ManagedObject> {
+    /** @internal */
+    private static _addHandler(
+        obsProp: string,
+        fn: any, async?: boolean, rateLimit?: number) {
+        if (this === AnonymousObserver) throw TypeError();
+        let name = "+anon" + (_nextAnonSuffix++) + (async ? "Async" : "");
+        (this.prototype as any)[name] = fn;
+        (fn as any)[FN_OBS_NAME_PROP] = [obsProp];
+        if (rateLimit) {
+            if (!async) throw TypeError();
+            (fn as any)[FN_RATE_LIMIT_PROP] = rateLimit;
+        }
+    }
+
+    /** @internal */
+    static addEventHandler(
+        handler: (target: any, e: ManagedEvent) => void,
+        async?: boolean, rateLimit?: number) {
+        this._addHandler("+onEvent",
+            function (this: AnonymousObserver<any>, e: any) {
+                handler(this.target, e);
+            }, async, rateLimit);
+        return this;
+    }
+
+    /** @internal */
+    static addPropertyEventHandler(
+        propertyName: string,
+        handler: (target: any, value: any, e: ManagedEvent) => void,
+        async?: boolean, rateLimit?: number) {
+        this._addHandler("!" + propertyName,
+            function (this: AnonymousObserver<any>, v: any, e: any) {
+                handler(this.target, v, e);
+            }, async, rateLimit);
+        return this;
+    }
+
+    /** @internal */
+    static addPropertyChangeHandler(
+        propertyName: string,
+        handler: (target: any, value: any, e?: ManagedEvent) => void,
+        async?: boolean, rateLimit?: number) {
+        this._addHandler("." + propertyName,
+            function (this: AnonymousObserver<any>, v: any, e?: any) {
+                handler(this.target, v, e);
+            }, async, rateLimit);
+        return this;
+    }
+
+    /** Create a new anonymous observer instance; this constructor should never be called directly. The instance does not have any predefined methods, these can be added using the static methods defined as `AnonymousObserver.Custom` */
+    constructor(target: T) { this.target = target }
+
+    /** The observed target instance, set by the constructor. This reference is also passed to callbacks registered using one of the static methods */
+    public readonly target: T;
+}
+
+export namespace AnonymousObserver {
+    /** Static method definitions for `AnonymousObserver` */
+    export interface Custom<T extends ManagedObject> {
+        /** Add an event handler to this anonymous observer; the handler gets invoked for each event that is emitted on the target object, either immediately or asynchronously, optionally rate limited at given interval (in ms; only if asynchronous) */
+        addEventHandler(handler: (target: T, e: ManagedEvent) => void, async?: boolean, rateLimit?: number): this;
+        /** Add an event handler for given property to this anonymous observer; the handler gets invoked for each event that is emitted on the object referenced by given property, either immediately or asynchronously, optionally rate limited at given interval (in ms; only if asynchronous) */
+        addPropertyEventHandler<K extends keyof T>(propertyName: K, handler: (target: T, value: T[K], e: ManagedEvent) => void, async?: boolean, rateLimit?: number): this;
+        /** Add a change handler for given property to this anonymous observer; the handler gets invoked each time the property value is changed OR a change event is emitted on a referenced object, either immediately or asynchronously, optionally rate limited at given interval (in ms; only if asynchronous) */
+        addPropertyChangeHandler<K extends keyof T>(propertyName: K, handler: (target: T, value: T[K], e?: ManagedEvent) => void, async?: boolean, rateLimit?: number): this;
+    }
+}
+
 /**
- * Add an observer to _all instances_ of the Target class and derived classes. A new observer (instance of the given Observer class) is created for each instance the first time an observed change occurs, and observed properties of the target class are amended with dynamic setters to trigger observer methods as described below.
- *
- * If a string is passed instead of an Observer class reference, the Observer class is taken from a static property of the Target class with given name. This allows `@observe` to be used as a decorator on static class properties.
- *
- * This function finds all methods on the Observer class (but NOT on base classes, i.e. extending an observer class does not consider any methods on the original observer class) and turns the following methods into handlers for changes and/or events:
- * - Any method decorated with the `@onPropertyChange` decorator. Methods are invoked with arguments for the current property value, an optional event reference (i.e. change event), and the observed property name.
- * - Any method decorated with the `@onPropertyEvent` decorator. Methods are invoked with arguments for the current property value, and an event reference (any type of event that occurred on the property/ies with names specified in the call to the decorator).
- * - Any method that takes the form `on[PropertyName]Change` where _propertyName_ is the name of the observed property (must have a lowercase first character); or `on_[propertyName]Change` where _propertyName_ is the exact name of the observed property. Methods are invoked with arguments for the current property value, and an optional event reference (i.e. change event).
- * - Any method that takes the form `on[EventName]`, which is invoked with a single `ManagedEvent` argument. The event name (`ManagedEvent.name` property) must match exactly, with the exception of the `onChange` method which is invoked for all events that derive from `ManagedChangeEvent`, and `onEvent` which is invoked for _all_ events. As a special case, the `onActive` method is called _immediately_ after instantiation if the observed object was already active.
- * - Any method as above with an `...Async` suffix, which is invoked asynchronously and should return a `Promise`. Asynchronous property change handlers are not invoked twice with the same value. If the value has been changed and then changed back before invoking the handler, no handler is called at all. Handlers can be rate limited using the `@rateLimit` decorator.
- * @note Since instances of classes that derive from the target class are _also_ observed, make sure that the observer does not depend on any functionality that may be overridden or fundamentally changed by any derived class.
- * @note This function is also available as `ManagedObject.observe` (static) on observable classes. See also `ManagedObject.handle` for a simpler way to handle events emitted directly by instances of a managed object class.
- * @exception Throws an error if the target class does not derive from `ManagedObject`.
+ * Static property decorator: Add an observer to _all instances_ of this class and derived classes. A new observer (instance of the decorated observer class) is created for each instance, and observed properties are amended with dynamic setters to trigger observer methods.
+ * @decorator
  */
-export function observe<
-    C extends ManagedObjectConstructor<T>,
-    T extends ManagedObject>(
-    Target: C, Observer: { new(instance: T): any } | string) {
-    let Class: { new(instance: T): any } = typeof Observer === "string" ?
-        (Target as any)[Observer] : Observer;
+export function observe<C extends ManagedObjectConstructor>(
+    Target: C, propertyKey: string): void;
+/**
+ * Add an observer to _all instances_ of the target class and derived classes, using an anonymous observer class that extends `AnonymousObserver` -- which has static methods for adding event handlers and property change handlers. A new observer instance is created for each target instance, and observed properties are amended with dynamic setters to trigger observer methods.
+ * The observer class is analyzed when the target class is first instantiated. Observer instances are only created the first time an observed change or event occurs.
+ */
+export function observe<C extends ManagedObjectConstructor>(
+    Target: C): AnonymousObserver.Custom<InstanceType<C>>;
+/**
+ * Add given observer to _all instances_ of the target class and derived classes. A new observer (instance of given observer class) is created for each target instance, and observed properties are amended with dynamic setters to trigger observer methods.
+ * Observer instances are only created the first time an observed change or event occurs.
+ * @note See `ManagedObject.handle` for another way to handle events emitted directly by instances of a managed object class.
+ */
+export function observe<C extends ManagedObjectConstructor>(
+    Target: C, Observer: { new(instance: InstanceType<C>): any }): void;
+export function observe(Target: Function, arg?: any): any {
+    let Observer: { new(instance: ManagedObject): any } =
+        typeof arg === "string" ? (Target as any)[arg] : arg;
+    if (!Observer) Observer = class extends AnonymousObserver<any> { };
     let proto = Target.prototype;
     if (!(proto instanceof ManagedObject)) {
         throw Error("[Object] Observed target is not a managed object class");
     }
     (Target as any as typeof ManagedObject).addGlobalClassInitializer(() => {
         let addHandler = (filter: (e: ManagedEvent) => boolean, f: (e: ManagedEvent) => void, isAsync?: boolean) => {
-            _addManagedEventHandler(Class, Target as any, filter, f, isAsync);
+            _addManagedEventHandler(Observer, Target as any, filter, f, isAsync);
         };
         let addManagedParentChangeHandler = (f: (v: any, e: ManagedEvent, name: string) => void, isAsync?: boolean) => {
             let g: any = function (this: any, e: any) {
@@ -53,9 +128,9 @@ export function observe<
             g[FN_RATE_LIMIT_PROP] = (f as any)[FN_RATE_LIMIT_PROP];
             addHandler(e => (e instanceof ManagedParentChangeEvent), g, isAsync);
         };
-        for (let name of Object.getOwnPropertyNames(Class.prototype)) {
-            if (!Object.prototype.hasOwnProperty.call(Class.prototype, name)) continue;
-            let f = (Class.prototype as any)[name];
+        for (let name of Object.getOwnPropertyNames(Observer.prototype)) {
+            if (!Object.prototype.hasOwnProperty.call(Observer.prototype, name)) continue;
+            let f = (Observer.prototype as any)[name];
             if (typeof f === "function") {
                 if (Array.isArray(f[FN_OBS_NAME_PROP])) {
                     // define an observable property using hinted property name
@@ -69,15 +144,20 @@ export function observe<
                         if (p === "!managedParent") {
                             throw Error("[Object] Cannot observe events on parent reference");
                         }
+                        // special case dynamic AnonymousObserver handlers
+                        if (p === "+onEvent") {
+                            addHandler(() => true, f, isAsync); break;
+                            continue;
+                        }
                         // special case reference count (should start at 0)
                         if (p === ".referenceCount") {
-                            _defineObservable(Class, proto, util.HIDDEN_REFCOUNT_PROPERTY,
+                            _defineObservable(Observer, proto, util.HIDDEN_REFCOUNT_PROPERTY,
                                 f, false, isAsync, 0);
                         }
                         else {
                             // add observable for this property
                             let isEventHandler = (p[0] === "!");
-                            _defineObservable(Class, proto, p.slice(1), f, isEventHandler, isAsync);
+                            _defineObservable(Observer, proto, p.slice(1), f, isEventHandler, isAsync);
                         }
                     }
                 }
@@ -103,21 +183,21 @@ export function observe<
                         case "onManagedParentChange":
                             addManagedParentChangeHandler(f); break;
                         case "onReferenceCountChangeAsync":
-                            _defineObservable(Class, proto,
+                            _defineObservable(Observer, proto,
                                 util.HIDDEN_REFCOUNT_PROPERTY, f, false, true, 0);
                             break;
                         case "onReferenceCountChange":
-                            _defineObservable(Class, proto,
+                            _defineObservable(Observer, proto,
                                 util.HIDDEN_REFCOUNT_PROPERTY, f, false, false, 0);
                             break;
 
                         // for other names, check for "*Change", otherwise handle event by name
                         default:
                             if (name.slice(-6) === "Change") {
-                                _defineObservable(Class, proto, sliceName(6), f);
+                                _defineObservable(Observer, proto, sliceName(6), f);
                             }
                             else if (name.slice(-11) === "ChangeAsync") {
-                                _defineObservable(Class, proto, sliceName(11), f, false, true);
+                                _defineObservable(Observer, proto, sliceName(11), f, false, true);
                             }
                             else {
                                 // handle events
@@ -135,6 +215,7 @@ export function observe<
             }
         }
     });
+    if (arg == undefined) return Observer;
 }
 
 /**
@@ -241,7 +322,8 @@ function _addManagedEventHandler(observerClass: any, target: typeof ManagedObjec
                         queued = true;
                         let now = Date.now(), hold = lastT! + limit! - now;
                         if (hold > 0) await new Promise(r => { setTimeout(r, hold) });
-                        lastT = now;
+                        else await RESOLVED;
+                        lastT = Date.now();
                         queued = false;
                         e = nextEvent;
                     }
@@ -276,10 +358,15 @@ function _defineObservable(observerClass: { new(instance: any): any },
                 return (value, event, topHandler) => {
                     next && next(value, event, topHandler);
                     if (shadowed) value = obj[observedProperty];
-                    if (isEventHandler ? event && (value instanceof ManagedObject) :
-                        (event ? (event instanceof ManagedChangeEvent) : (lastValue !== value))) {
-                        handler.call(observer, (lastValue = value), event, observedProperty);
+                    let changed = event ? (event instanceof ManagedChangeEvent) : (lastValue !== value);
+                    if (isEventHandler ?
+                        !(event && (value instanceof ManagedObject)) :
+                        !changed) {
+                        return;
                     }
+                    lastValue = value;
+                    try { handler.call(observer, value, event, observedProperty) }
+                    catch (err) { util.exceptionHandler(err) }
                 };
             });
     }
@@ -299,9 +386,13 @@ function _defineObservable(observerClass: { new(instance: any): any },
                     next && next(value, event, topHandler);
                     if (shadowed) value = obj[observedProperty];
                     let changed = event ? (event instanceof ManagedChangeEvent) : (lastValue !== value);
-                    if (!changed && !isEventHandler) return;
-                    lastValue = value;
+                    if (isEventHandler ?
+                        (!event || !(value instanceof ManagedObject)) :
+                        !changed) {
+                        return;
+                    }
                     try {
+                        lastValue = value;
                         if (limit! >= 0) {
                             // handle rate limiting by waiting a variable amount of time
                             nextValue = value, nextEvent = event;
@@ -309,22 +400,21 @@ function _defineObservable(observerClass: { new(instance: any): any },
                             let current = ++c;
                             queued = true;
                             let now = Date.now(), hold = lastT! + limit! - now;
-                            await new Promise(r => { setTimeout(r, Math.max(hold, 0)) });
+                            if (hold > 0) await new Promise(r => { setTimeout(r, hold) });
+                            else await RESOLVED;
                             if (c !== current) return;
-                            lastT = now;
+                            lastT = Date.now();
                             queued = false;
                             value = nextValue, event = nextEvent;
                         }
                         else {
                             // make this handler async by waiting for a promise first
                             if (queued) return;
-                            queued = true;
+                            queued = event && event.name || true;
                             await RESOLVED;
                             queued = false;
                         }
-                        if (isEventHandler ? event && (value instanceof ManagedObject) : changed) {
-                            await handler.call(observer, lastValue, event, observedProperty);
-                        }
+                        await handler.call(observer, value, event, observedProperty);
                     }
                     catch (err) {
                         util.exceptionHandler(err);
