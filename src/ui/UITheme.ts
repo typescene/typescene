@@ -176,6 +176,7 @@ export class UITheme {
    * - `@green:text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
    */
   static replaceColor(color: Stringable) {
+    if (color instanceof UIColor) return String(color);
     let c = String(color);
     if (!c) return c;
     return c.replace(

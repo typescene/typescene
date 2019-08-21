@@ -94,7 +94,10 @@ class InheritedControlStyle extends InheritedStyleObject<
     Object.defineProperties(o, {
       background: { enumerable: true, get: o._value.bind(o, "background") },
       border: { enumerable: true, get: o._value.bind(o, "border") },
+      borderColor: { enumerable: true, get: o._value.bind(o, "borderColor") },
+      borderStyle: { enumerable: true, get: o._value.bind(o, "borderStyle") },
       borderRadius: { enumerable: true, get: o._value.bind(o, "borderRadius") },
+      padding: { enumerable: true, get: o._value.bind(o, "padding") },
       dropShadow: { enumerable: true, get: o._value.bind(o, "dropShadow") },
       css: {
         enumerable: true,
