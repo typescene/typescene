@@ -5,48 +5,53 @@ import { UIControl } from "./UIControl";
 
 /** Represents a UI component that displays a referenced image */
 export class UIImage extends UIControl {
-    /** Creates a preset image class with given URL, if any */
-    static withUrl(url: string | Binding) {
-        return this.with({ url });
-    }
+  /** Creates a preset image class with given URL, if any */
+  static withUrl(url: string | Binding) {
+    return this.with({ url });
+  }
 
-    static preset(presets: UIImage.Presets): Function {
-        if (presets.allowKeyboardFocus) presets.allowFocus = presets.allowKeyboardFocus;
-        return super.preset(presets);
-    }
+  static preset(presets: UIImage.Presets): Function {
+    if (presets.allowKeyboardFocus) presets.allowFocus = presets.allowKeyboardFocus;
+    return super.preset(presets);
+  }
 
-    /** Create a new label with given URL */
-    constructor(url?: string) {
-        super();
-        if (url !== undefined) this.url = url;
-    }
+  /** Create a new label with given URL */
+  constructor(url?: string) {
+    super();
+    if (url !== undefined) this.url = url;
+  }
 
-    style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["image"]);
-    shrinkwrap = true;
+  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["image"]);
+  shrinkwrap = true;
 
-    isFocusable() { return !!(this.allowFocus || this.allowKeyboardFocus) }
-    isKeyboardFocusable() { return !!this.allowKeyboardFocus }
+  isFocusable() {
+    return !!(this.allowFocus || this.allowKeyboardFocus);
+  }
 
-    /** True if this image may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus` (cannot be changed after rendering this component), defaults to false */
-    allowFocus?: boolean;
+  isKeyboardFocusable() {
+    return !!this.allowKeyboardFocus;
+  }
 
-    /** True if this image may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
-    allowKeyboardFocus?: boolean;
+  /** True if this image may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus` (cannot be changed after rendering this component), defaults to false */
+  allowFocus?: boolean;
 
-    /** Image resource URL */
-    url?: string;
+  /** True if this image may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
+  allowKeyboardFocus?: boolean;
+
+  /** Image resource URL */
+  url?: string;
 }
 
 export namespace UIImage {
-    /** UIImage presets type, for use with `Component.with` */
-    export interface Presets extends UIControl.Presets {
-        /** Image resource URL */
-        url?: string;
-        /** Set to true to allow this image to receive input focus using mouse, touch, or `UIComponent.requestFocus` */
-        allowFocus?: boolean;
-        /** Set to true to allow this image to receive input focus using the keyboard as well as other methods; implies `allowFocus` */
-        allowKeyboardFocus?: boolean;
-        /** Event handler that is invoked when an error occurs while loading the image resource */
-        onLoadError?: UIComponentEventHandler;
-    }
+  /** UIImage presets type, for use with `Component.with` */
+  export interface Presets extends UIControl.Presets {
+    /** Image resource URL */
+    url?: string;
+    /** Set to true to allow this image to receive input focus using mouse, touch, or `UIComponent.requestFocus` */
+    allowFocus?: boolean;
+    /** Set to true to allow this image to receive input focus using the keyboard as well as other methods; implies `allowFocus` */
+    allowKeyboardFocus?: boolean;
+    /** Event handler that is invoked when an error occurs while loading the image resource */
+    onLoadError?: UIComponentEventHandler;
+  }
 }
