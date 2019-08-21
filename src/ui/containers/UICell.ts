@@ -14,19 +14,6 @@ const _mixin = UIStyle.create("UICell", {
   position: { top: 0 },
 });
 
-/** Type definition for padding, margin, or border thickness measurements */
-export type UICellOffsets =
-  | string
-  | number
-  | {
-      x?: string | number;
-      y?: string | number;
-      top?: string | number;
-      bottom?: string | number;
-      left?: string | number;
-      right?: string | number;
-    };
-
 /** Represents a UI component that visually groups other components in a rectangular cell */
 export class UICell extends UIContainer {
   static preset(
@@ -145,10 +132,10 @@ export class UICell extends UIContainer {
   allowKeyboardFocus?: boolean;
 
   /** Padding around contained elements (in dp or CSS string, or separate offset values) */
-  padding?: UICellOffsets;
+  padding?: UIStyle.Offsets;
 
   /** Margin around the entire cell (in dp or CSS string, or separate offset values) */
-  margin?: UICellOffsets;
+  margin?: UIStyle.Offsets;
 
   /** Cell background (`UIColor` or string), defaults to transparent */
   background?: Stringable;
@@ -157,7 +144,7 @@ export class UICell extends UIContainer {
   textColor?: Stringable;
 
   /** Border thickness (in dp or string with unit, or separate offset values) */
-  borderThickness?: UICellOffsets;
+  borderThickness?: UIStyle.Offsets;
 
   /** Border color (`UIColor` or string) */
   borderColor?: Stringable;
@@ -199,23 +186,23 @@ export let UICoverCell = UICell.with({
 export namespace UICell {
   /** UICell presets type, for use with `Component.with` */
   export interface Presets extends UIContainer.Presets {
-    /** Padding around contained elements (in dp or CSS string, defaults to 0) */
-    padding?: UICellOffsets;
-    /** Margin around the entire cell (in dp or CSS string, defaults to 0) */
-    margin?: UICellOffsets;
+    /** Padding around contained elements (in dp or CSS string, or separate offset values) */
+    padding?: UIStyle.Offsets;
+    /** Margin around the entire cell (in dp or CSS string, or separate offset values) */
+    margin?: UIStyle.Offsets;
     /** Cell background (`UIColor` or string) */
     background?: Stringable;
     /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
     textColor?: Stringable;
-    /** Border thickness (in dp or string with unit, defaults to 0) */
-    borderThickness?: UICellOffsets;
+    /** Border thickness (in dp or string with unit) */
+    borderThickness?: UIStyle.Offsets;
     /** Border color (`UIColor` or string) */
     borderColor?: Stringable;
     /** Border style (CSS), defaults to "solid" */
     borderStyle?: string;
     /** Corner radius (in dp or CSS string, defaults to 0) */
     borderRadius?: string | number;
-    /** Size of drop shadow based on visual 'elevation' (0-1, defaults to 0) */
+    /** Size of drop shadow based on visual 'elevation' (0-1) */
     dropShadow?: number;
 
     /** Visual highlights for focused/selected states */
