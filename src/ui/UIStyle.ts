@@ -1,3 +1,5 @@
+import { Stringable } from "./UIComponent";
+
 /** Next UID for a `UIStyle` object */
 let _nextUID = 1;
 
@@ -264,6 +266,19 @@ export class UIStyle {
 }
 
 export namespace UIStyle {
+  /** Type definition for padding, margin, or border measurements */
+  export type Offsets =
+    | string
+    | number
+    | {
+        x?: string | number;
+        y?: string | number;
+        top?: string | number;
+        bottom?: string | number;
+        left?: string | number;
+        right?: string | number;
+      };
+
   /** Type definition for an object with conditional styles */
   export interface ConditionalStyles {
     pressed?: UIStyle;
@@ -320,8 +335,8 @@ export namespace UIStyle {
   export interface TextStyle {
     /** Text alignment (CSS) */
     align?: string;
-    /** Text color (see `UITheme.replaceColor`) */
-    color?: string;
+    /** Text color (`UIColor` or string) */
+    color?: Stringable;
     /** Font family (CSS) */
     fontFamily?: string;
     /** Font size (dp or string with unit) */
@@ -358,12 +373,20 @@ export namespace UIStyle {
 
   /** Miscellaneous style options for control components, including all CSS attributes and classes */
   export interface ControlStyle {
-    /** Background style or color (see `UITheme.replaceColor`) */
-    background?: string;
-    /** Border style or color (see `UITheme.replaceColor`) */
-    border?: string;
-    /** Border radius (in dp or CSS string, defaults to 0) */
+    /** Background style or color (`UIColor` or string) */
+    background?: Stringable;
+    /** Border properties (CSS string) @deprecated */
+    border?: Stringable;
+    /** Border color (`UIColor` or string) */
+    borderColor?: Stringable;
+    /** Border style (CSS), defaults to "solid" */
+    borderStyle?: string;
+    /** Border thickness (in dp or CSS string, or separate offset values) */
+    borderThickness?: Offsets;
+    /** Border radius (in dp or CSS string) */
     borderRadius?: string | number;
+    /** Padding within control element (in dp or CSS string, or separate offset values) */
+    padding?: Offsets;
     /** Drop shadow distance (0-1) */
     dropShadow?: number;
     /** Miscellaneous CSS attributes */
@@ -390,8 +413,8 @@ export namespace UIStyle {
   export interface SeparatorOptions {
     /** Separator type, defaults to line */
     type?: "line" | "spacer";
-    /** Separator line color (see `UITheme.replaceColor`), defaults to `@separator` */
-    color?: string;
+    /** Separator line color (`UIColor` or string), defaults to `@separator` */
+    color?: Stringable;
     /** Separator thickness (CSS length or dp) */
     thickness?: string | number;
     /** Separator margin (CSS length or dp) */

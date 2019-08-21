@@ -1,4 +1,5 @@
 import {
+  Stringable,
   UIComponentEvent,
   UIComponentEventHandler,
   UIRenderableConstructor,
@@ -12,19 +13,6 @@ const _mixin = UIStyle.create("UICell", {
   containerLayout: { distribution: "space-around", gravity: "center" },
   position: { top: 0 },
 });
-
-/** Type definition for padding, margin, or border thickness measurements */
-export type UICellOffsets =
-  | string
-  | number
-  | {
-      x?: string | number;
-      y?: string | number;
-      top?: string | number;
-      bottom?: string | number;
-      left?: string | number;
-      right?: string | number;
-    };
 
 /** Represents a UI component that visually groups other components in a rectangular cell */
 export class UICell extends UIContainer {
@@ -144,22 +132,22 @@ export class UICell extends UIContainer {
   allowKeyboardFocus?: boolean;
 
   /** Padding around contained elements (in dp or CSS string, or separate offset values) */
-  padding?: UICellOffsets;
+  padding?: UIStyle.Offsets;
 
   /** Margin around the entire cell (in dp or CSS string, or separate offset values) */
-  margin?: UICellOffsets;
+  margin?: UIStyle.Offsets;
 
-  /** Cell background (see `UITheme.replaceColor`), defaults to transparent */
-  background?: string;
+  /** Cell background (`UIColor` or string), defaults to transparent */
+  background?: Stringable;
 
-  /** Text color (see `UITheme.replaceColor`), defaults to `inherit` to inherit the text color from a containing cell or background window */
-  textColor?: string;
+  /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
+  textColor?: Stringable;
 
   /** Border thickness (in dp or string with unit, or separate offset values) */
-  borderThickness?: UICellOffsets;
+  borderThickness?: UIStyle.Offsets;
 
-  /** Border color (see `UITheme.replaceColor`) */
-  borderColor?: string;
+  /** Border color (`UIColor` or string) */
+  borderColor?: Stringable;
 
   /** Border style (CSS), defaults to "solid" */
   borderStyle = "solid";
@@ -198,23 +186,23 @@ export let UICoverCell = UICell.with({
 export namespace UICell {
   /** UICell presets type, for use with `Component.with` */
   export interface Presets extends UIContainer.Presets {
-    /** Padding around contained elements (in dp or CSS string, defaults to 0) */
-    padding?: UICellOffsets;
-    /** Margin around the entire cell (in dp or CSS string, defaults to 0) */
-    margin?: UICellOffsets;
-    /** Cell background (see `UITheme.replaceColor`) */
-    background?: string;
-    /** Text color (see `UITheme.replaceColor`), defaults to `inherit` to inherit the text color from a containing cell or background window */
-    textColor?: string;
-    /** Border thickness (in dp or string with unit, defaults to 0) */
-    borderThickness?: UICellOffsets;
-    /** Border color (see `UITheme.replaceColor`) */
-    borderColor?: string;
+    /** Padding around contained elements (in dp or CSS string, or separate offset values) */
+    padding?: UIStyle.Offsets;
+    /** Margin around the entire cell (in dp or CSS string, or separate offset values) */
+    margin?: UIStyle.Offsets;
+    /** Cell background (`UIColor` or string) */
+    background?: Stringable;
+    /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
+    textColor?: Stringable;
+    /** Border thickness (in dp or string with unit) */
+    borderThickness?: UIStyle.Offsets;
+    /** Border color (`UIColor` or string) */
+    borderColor?: Stringable;
     /** Border style (CSS), defaults to "solid" */
     borderStyle?: string;
     /** Corner radius (in dp or CSS string, defaults to 0) */
     borderRadius?: string | number;
-    /** Size of drop shadow based on visual 'elevation' (0-1, defaults to 0) */
+    /** Size of drop shadow based on visual 'elevation' (0-1) */
     dropShadow?: number;
 
     /** Visual highlights for focused/selected states */
@@ -238,37 +226,37 @@ export namespace UICell {
   /** `UICell` focus/select properties, for use with `UICell.with` */
   export interface HighlightProperties {
     /** Focused cell background */
-    focusedBackground?: string;
+    focusedBackground?: Stringable;
     /** Focused cell text color */
-    focusedTextColor?: string;
+    focusedTextColor?: Stringable;
     /** Focused cell border thickness (in dp or string with unit, defaults to 0) */
     focusedBorderThickness?: string | number;
-    /** Focused cell border color (see `UITheme.replaceColor`) */
-    focusedBorderColor?: string;
+    /** Focused cell border color (`UIColor` or string) */
+    focusedBorderColor?: Stringable;
     /** Focused cell border style (CSS), defaults to "solid" */
     focusedBorderStyle?: string;
     /** Focused cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
     focusedDropShadow?: number;
     /** Selected cell background */
-    selectedBackground?: string;
+    selectedBackground?: Stringable;
     /** Selected cell text color */
-    selectedTextColor?: string;
+    selectedTextColor?: Stringable;
     /** Selected cell border thickness (in dp or string with unit, defaults to 0) */
     selectedBorderThickness?: string | number;
-    /** Selected cell border color (see `UITheme.replaceColor`) */
-    selectedBorderColor?: string;
+    /** Selected cell border color (`UIColor` or string) */
+    selectedBorderColor?: Stringable;
     /** Selected cell border style (CSS), defaults to "solid" */
     selectedBorderStyle?: string;
     /** Selected cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
     selectedDropShadow?: number;
     /** Focused and selected cell background */
-    focusedSelectedBackground?: string;
+    focusedSelectedBackground?: Stringable;
     /** Focused and selected cell text color */
-    focusedSelectedTextColor?: string;
+    focusedSelectedTextColor?: Stringable;
     /** Focused and selected cell border thickness (in dp or string with unit, defaults to 0) */
     focusedSelectedBorderThickness?: string | number;
-    /** Focused and selected cell border color (see `UITheme.replaceColor`) */
-    focusedSelectedBorderColor?: string;
+    /** Focused and selected cell border color (`UIColor` or string) */
+    focusedSelectedBorderColor?: Stringable;
     /** Focused and selected cell border style (CSS), defaults to "solid" */
     focusedSelectedBorderStyle?: string;
     /** Focused and selected cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
