@@ -102,10 +102,10 @@ export abstract class UIComponent extends Component implements UIRenderable {
     // replace `requestFocus` with event handler
     if (presets.requestFocus) {
       delete presets.requestFocus;
-      presets.onRendered = (e: UIComponentEvent) => {
-        if (!e.source._requestedFocusBefore) {
-          e.source._requestedFocusBefore = true;
-          e.source.requestFocus();
+      presets.onRendered = function() {
+        if (!this._requestedFocusBefore) {
+          this._requestedFocusBefore = true;
+          this.requestFocus();
         }
       };
     }
@@ -255,7 +255,7 @@ export namespace UIComponent {
     exitTransition?: UITransitionType;
 
     // general event handlers
-    onRendered?: UIComponentEventHandler;
+    onRendered?: string | ((this: UIComponent) => void);
     onBeforeRender?: UIComponentEventHandler;
     onFocusIn?: UIComponentEventHandler;
     onFocusOut?: UIComponentEventHandler;
