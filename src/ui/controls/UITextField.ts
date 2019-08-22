@@ -1,4 +1,4 @@
-import { CHANGE, managed, ManagedEvent, onPropertyEvent } from "../../core";
+import { CHANGE, managed, ManagedEvent, observe, onPropertyEvent } from "../../core";
 import { FormContextChangeEvent, UIForm } from "../containers";
 import { Stringable } from "../UIComponent";
 import { UIRenderContext } from "../UIRenderContext";
@@ -54,38 +54,56 @@ export class UITextField extends UIControl {
   /** Form component (updated automatically before rendering) */
   @managed
   form?: { formContext: any };
-}
-class UITextFieldObserver {
-  constructor(public component: UITextField) {}
-  @onPropertyEvent("form")
-  handleFormUpdate(_form: any, e: ManagedEvent) {
-    if (e instanceof FormContextChangeEvent) {
-      let ctx = e.formContext as any;
-      if (ctx && this.component.name && this.component.name in ctx) {
-        let value = ctx[this.component.name];
-        this.component.value = value === undefined ? "" : String(value);
-      }
+
+  /** Update the input value from the current form context, if any */
+  private _updateValue() {
+    let ctx = this.form && (this.form.formContext as any);
+    if (ctx && this.name && this.name in ctx) {
+      let value = ctx[this.name];
+      this.value = value === undefined ? "" : String(value);
     }
   }
-  onInput() {
-    this.onChange();
-  }
-  onChange() {
-    let value: any = this.component.value;
-    let ctx = this.component.form && this.component.form.formContext;
-    if (ctx && this.component.name) {
-      let oldValue = ctx[this.component.name];
-      if (typeof oldValue === "number" && this.component.type === "number") {
+
+  /** Update the form context value, if any */
+  private _updateCtx() {
+    let ctx = this.form && this.form.formContext;
+    if (ctx && this.name) {
+      let value: any = this.value;
+      let oldValue = ctx[this.name];
+      if (typeof oldValue === "number" && this.type === "number") {
         value = parseFloat(value);
       }
       if (oldValue !== value) {
-        ctx[this.component.name] = value;
+        ctx[this.name] = value;
         ctx.emit(CHANGE);
       }
     }
   }
+
+  /** @internal */
+  @observe
+  static UITextFieldObserver = (() => {
+    class UITextFieldObserver {
+      constructor(public component: UITextField) {}
+      @onPropertyEvent("form")
+      handleFormUpdate(_form: any, e: ManagedEvent) {
+        if (e instanceof FormContextChangeEvent) {
+          this.component._updateValue();
+        }
+      }
+      onFormChange() {
+        this.component._updateValue();
+      }
+      onInput() {
+        this.component._updateCtx();
+      }
+      onChange() {
+        this.component._updateCtx();
+      }
+    }
+    return UITextFieldObserver;
+  })();
 }
-UITextField.observe(UITextFieldObserver);
 
 /** Shortcut for `UITextField` constructor preset with the `textfield_borderless` style set */
 export let UIBorderlessTextField = UITextField.with({ style: "textfield_borderless" });

@@ -1,4 +1,4 @@
-import { CHANGE, managed, ManagedEvent, onPropertyEvent } from "../../core";
+import { CHANGE, managed, ManagedEvent, observe, onPropertyEvent } from "../../core";
 import { FormContextChangeEvent, UIForm } from "../containers";
 import { Stringable } from "../UIComponent";
 import { UIRenderContext } from "../UIRenderContext";
@@ -51,31 +51,49 @@ export class UIToggle extends UIControl {
   /** Form component (updated automatically before rendering) */
   @managed
   form?: { formContext: any };
-}
-class UIToggleObserver {
-  constructor(public component: UIToggle) {}
-  @onPropertyEvent("form")
-  handleFormUpdate(_form: any, e: ManagedEvent) {
-    if (e instanceof FormContextChangeEvent) {
-      let ctx = e.formContext as any;
-      if (ctx && this.component.name && this.component.name in ctx) {
-        let value = ctx[this.component.name];
-        this.component.state = !!value;
-      }
+
+  /** Update the input value from the current form context, if any */
+  private _updateValue() {
+    let ctx = this.form && (this.form.formContext as any);
+    if (ctx && this.name && this.name in ctx) {
+      let value = ctx[this.name];
+      this.state = !!value;
     }
   }
-  onInput() {
-    this.onChange();
-  }
-  onChange() {
-    let ctx = this.component.form && this.component.form.formContext;
-    if (ctx && this.component.name && ctx[this.component.name] !== !!this.component.state) {
-      ctx[this.component.name] = !!this.component.state;
+
+  /** Update the form context value, if any */
+  private _updateCtx() {
+    let ctx = this.form && this.form.formContext;
+    if (ctx && this.name && ctx[this.name] !== !!this.state) {
+      ctx[this.name] = !!this.state;
       ctx.emit(CHANGE);
     }
   }
+
+  /** @internal */
+  @observe
+  static UIToggleObserver = (() => {
+    class UIToggleObserver {
+      constructor(public component: UIToggle) {}
+      @onPropertyEvent("form")
+      handleFormUpdate(_form: any, e: ManagedEvent) {
+        if (e instanceof FormContextChangeEvent) {
+          this.component._updateValue();
+        }
+      }
+      onFormChange() {
+        this.component._updateValue();
+      }
+      onInput() {
+        this.component._updateCtx();
+      }
+      onChange() {
+        this.component._updateCtx();
+      }
+    }
+    return UIToggleObserver;
+  })();
 }
-UIToggle.observe(UIToggleObserver);
 
 export namespace UIToggle {
   /** UIToggle presets type, for use with `Component.with` */
