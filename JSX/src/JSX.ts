@@ -7,7 +7,6 @@ import {
   ComponentPresetType,
   StringFormatBinding,
   tt,
-  UIControl,
   UIRenderable,
   UIRenderableConstructor,
   ViewComponent,
@@ -20,39 +19,47 @@ export function JSX(
   presets: any,
   ...rest: any[]
 ): typeof Component & ComponentConstructor<UIRenderable> {
+  rest = flatten(rest);
+
+  // use string content as 'text' property, if any
+  let fmt = "";
+  let bindings: Binding[] | undefined;
+  let components: any[] = [];
+  for (let r of rest) {
+    if (typeof r === "string") {
+      fmt += r;
+    } else if (r instanceof Binding) {
+      if (!bindings) bindings = [];
+      fmt += "${%" + bindings.push(r) + "}";
+    } else {
+      components.push(r);
+    }
+  }
+
+  // merge different types of content
+  let merged = presets ? { ...presets } : {};
+  if (fmt) {
+    if (!bindings) {
+      // content is only text
+      merged.text = tt(fmt);
+    } else {
+      if (bindings.length === 1) {
+        // content is only one binding
+        merged.text = bindings[0];
+      } else {
+        // content is mixed text and bindings
+        merged.text = new StringFormatBinding(fmt, ...bindings).addFilter("tt");
+      }
+    }
+  }
   if (typeof f === "string") {
     let C = JSX.intrinsicTags[f];
     if (!C) throw Error("[JSX] Invalid tag: " + f);
-    if ((C as any).prototype instanceof UIControl) {
-      // use single piece of content as control 'text'
-      let text = (presets && presets.text) || rest[0];
-      let bindings: Binding[] = [];
-      if (rest.length > 1) {
-        let fmt = "";
-        for (let r of rest) {
-          if (typeof r === "string") {
-            fmt += r;
-          } else if (r instanceof Binding) {
-            fmt += "${%" + bindings.push(r) + "}";
-          } else {
-            throw Error("[JSX] Invalid control content");
-          }
-        }
-        text = new StringFormatBinding(fmt, ...bindings);
-      }
-      return C.with(
-        typeof text === "string"
-          ? { ...(presets || {}), text: tt(text) }
-          : text
-          ? { ...(presets || {}), text }
-          : presets || {}
-      );
-    }
-    return C.with(presets || {}, ...flatten(rest));
+    return C.with(merged, ...components);
   }
   return f.prototype instanceof Component
-    ? (f as typeof Component).with(presets || {}, ...flatten(rest))
-    : f(presets || {}, ...flatten(rest));
+    ? (f as typeof Component).with(merged, ...components)
+    : f(merged, ...components);
 }
 
 export namespace JSX {
@@ -106,8 +113,16 @@ export namespace JSX {
   /** Returns JSX-enabled factory function for given component class */
   export function ify<T extends typeof Component & UIRenderableConstructor>(
     C: T
-  ): FactoryType<T, ComponentPresetArgType<T>> {
-    return C.with.bind(C) as any;
+  ): FactoryType<T, ComponentPresetArgType<T>> & {
+    with: FactoryType<T, ComponentPresetArgType<T>>;
+  } {
+    function F(this: any) {
+      if (this instanceof F) return new C();
+      return C.with.apply(C, arguments as any);
+    }
+    F.prototype = C.prototype;
+    F.with = F;
+    return F as any;
   }
 }
 

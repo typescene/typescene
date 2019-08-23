@@ -93,6 +93,7 @@ class InheritedControlStyle extends InheritedStyleObject<
     let o = new this(base, objects, "controlStyle");
     Object.defineProperties(o, {
       background: { enumerable: true, get: o._value.bind(o, "background") },
+      textColor: { enumerable: true, get: o._value.bind(o, "textColor") },
       border: { enumerable: true, get: o._value.bind(o, "border") },
       borderColor: { enumerable: true, get: o._value.bind(o, "borderColor") },
       borderStyle: { enumerable: true, get: o._value.bind(o, "borderStyle") },
@@ -379,6 +380,8 @@ export namespace UIStyle {
   export interface ControlStyle {
     /** Background style or color (`UIColor` or string) */
     background?: Stringable;
+    /** Text color (`UIColor` or string); this may be overridden by `UIStyle.TextStyle.color` if specified on the same component or a child component */
+    textColor?: Stringable;
     /** Border properties (CSS string) @deprecated */
     border?: Stringable;
     /** Border color (`UIColor` or string) */
@@ -395,7 +398,7 @@ export namespace UIStyle {
     dropShadow?: number;
     /** Miscellaneous CSS attributes */
     css?: Partial<CSSStyleDeclaration>;
-    /** Miscellaneous CSS class names */
+    /** Miscellaneous CSS class names (array) */
     cssClassNames?: string[];
   }
 
@@ -417,11 +420,13 @@ export namespace UIStyle {
   export interface SeparatorOptions {
     /** Separator type, defaults to line */
     type?: "line" | "spacer";
-    /** Separator line color (`UIColor` or string), defaults to `@separator` */
-    color?: Stringable;
-    /** Separator thickness (CSS length or dp) */
+    /** True for vertical line, or width-only spacer */
+    vertical?: boolean;
+    /** Separator line thickness or space width/height (CSS length or dp) */
     thickness?: string | number;
-    /** Separator margin (CSS length or dp) */
+    /** Line separator margin (CSS length or dp) */
     margin?: string | number;
+    /** Line separator color (`UIColor` or string), defaults to `@separator` */
+    color?: Stringable;
   }
 }
