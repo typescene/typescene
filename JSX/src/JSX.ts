@@ -23,11 +23,13 @@ export function JSX(
 
   // use string content as 'text' property, if any
   let fmt = "";
+  let hasText: Boolean | undefined;
   let bindings: Binding[] | undefined;
   let components: any[] = [];
   for (let r of rest) {
     if (typeof r === "string") {
       fmt += r;
+      hasText = true;
     } else if (r instanceof Binding) {
       if (!bindings) bindings = [];
       fmt += "${%" + bindings.push(r) + "}";
@@ -43,7 +45,7 @@ export function JSX(
       // content is only text
       merged.text = tt(fmt);
     } else {
-      if (bindings.length === 1) {
+      if (!hasText && bindings.length === 1) {
         // content is only one binding
         merged.text = bindings[0];
       } else {
@@ -104,7 +106,7 @@ export namespace JSX {
       {
         [P in keyof InstanceType<TComponent>]: InstanceType<TComponent>[P] extends Function
           ? never
-          : P
+          : P;
       }[keyof InstanceType<TComponent>],
       keyof ViewComponent
     >
