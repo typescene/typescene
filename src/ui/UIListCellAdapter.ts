@@ -8,6 +8,7 @@ import {
   ManagedEvent,
   ManagedObject,
   ManagedState,
+  observe,
   shadowObservable,
 } from "../core";
 import { UICell } from "./containers/UICell";
@@ -73,25 +74,9 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     this.object = object;
     this.value = object.valueOf();
 
-    // propagate events as `UIListCellAdapterEvent`, manage states
+    // propagate events as `UIListCellAdapterEvent`
     this.propagateChildEvents(e => {
-      if (this.cell && e instanceof ComponentEvent) {
-        if (e.source === this.cell) {
-          switch (e.name) {
-            case "Select":
-              this._selected = true;
-              break;
-            case "Deselect":
-              this._selected = false;
-              break;
-            case "MouseEnter":
-              this._hovered = true;
-              break;
-            case "MouseLeave":
-              this._hovered = false;
-              break;
-          }
-        }
+      if (e instanceof ComponentEvent) {
         return new UIListCellAdapterEvent(e.name, this, e);
       }
     });
@@ -173,6 +158,31 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
       else this._pendingRenderCallback = callback;
     }
   }
+
+  @observe
+  static UIListCellAdapterObserver = class {
+    constructor(public readonly adapter: UIListCellAdapter) {}
+    onSelect(e: ComponentEvent) {
+      if (e.source === this.adapter || e.source === this.adapter.cell) {
+        this.adapter._selected = true;
+      }
+    }
+    onDeselect(e: ComponentEvent) {
+      if (e.source === this.adapter || e.source === this.adapter.cell) {
+        this.adapter._selected = false;
+      }
+    }
+    onMouseEnter(e: ComponentEvent) {
+      if (e.source === this.adapter || e.source === this.adapter.cell) {
+        this.adapter._hovered = true;
+      }
+    }
+    onMouseLeave(e: ComponentEvent) {
+      if (e.source === this.adapter || e.source === this.adapter.cell) {
+        this.adapter._hovered = false;
+      }
+    }
+  };
 
   private _pendingRenderCallback?: UIRenderContext.RenderCallback;
   private _selected = false;
