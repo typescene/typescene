@@ -60,7 +60,7 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
       UICell.with(cellPresets, ...rest),
       UIRenderableController
     );
-    p.limitBindings("object", "value");
+    p.limitBindings("object", "value", "selected", "hovered");
     return super.preset(handlers, ...rest);
   }
 
