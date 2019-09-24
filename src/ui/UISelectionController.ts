@@ -10,11 +10,15 @@ export class UISelectionController extends UIRenderableController {
     this.propagateChildEvents(e => {
       // propagate all UI events, while managing selection state
       if (e instanceof ComponentEvent) {
-        if (e.name === "Select" && e.source !== this.selected) {
+        let ce = e;
+        while (ce.inner instanceof ComponentEvent && ce.inner.name === "Select") {
+          ce = ce.inner;
+        }
+        if (ce.name === "Select" && ce.source !== this.selected) {
           let old = this.selected;
-          this.selected = e.source;
+          this.selected = ce.source;
           if (old) old.propagateComponentEvent("Deselect");
-        } else if (e.name === "Deselect" && e.source === this.selected) {
+        } else if (ce.name === "Deselect" && ce.source === this.selected) {
           this.selected = undefined;
         }
         return e;
