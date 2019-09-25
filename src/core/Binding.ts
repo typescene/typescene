@@ -327,7 +327,11 @@ export namespace Binding {
 
     /** Update all components in the list with a new value. The current value of the source property (i.e. using `Binding.propertyName`) may be passed in if it is already known. */
     updateComponents(_v?: any) {
-      if (!this.count && !this.parent) return;
+      if (!this.count && !this.parent) {
+        // do not update, invalidate stored value
+        this._updatedValue = false;
+        return;
+      }
 
       // get a new value and check if an update is even necessary
       let value = this._reader.getValue(...arguments); // _v if given
@@ -355,8 +359,10 @@ export namespace Binding {
       }
     }
 
-    private _reader: InstanceType<Binding["Reader"]>;
+    /** True if stored value is up to date */
     private _updatedValue?: boolean;
+
+    private _reader: InstanceType<Binding["Reader"]>;
     private _lastValue: any;
   }
 }
