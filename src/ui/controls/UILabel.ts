@@ -32,11 +32,10 @@ export class UILabel extends UIControl {
   /** Create a new label with given text */
   constructor(text?: string) {
     super();
+    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["label"]);
+    this.shrinkwrap = true;
     if (text !== undefined) this.text = text;
   }
-
-  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["label"]);
-  shrinkwrap = true;
 
   isFocusable() {
     return !!(this.allowFocus || this.allowKeyboardFocus);

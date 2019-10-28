@@ -50,10 +50,10 @@ export abstract class UIContainer extends UIComponent {
     return !!this.allowKeyboardFocus;
   }
 
-  /** True if this container may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus` (cannot be changed after rendering this component), defaults to false */
+  /** True if this container *itself* may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus` (cannot be changed after rendering this component), defaults to false */
   allowFocus?: boolean;
 
-  /** True if this list may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
+  /** True if this container *itself* may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
   allowKeyboardFocus?: boolean;
 
   /** Options for layout of child components within this container */

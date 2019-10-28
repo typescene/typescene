@@ -19,8 +19,11 @@ export class UIToggle extends UIControl {
     return this.with({ name, label });
   }
 
-  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["toggle"]);
-  shrinkwrap = true;
+  constructor() {
+    super();
+    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["toggle"]);
+    this.shrinkwrap = true;
+  }
 
   isFocusable() {
     return true;
