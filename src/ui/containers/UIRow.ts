@@ -1,4 +1,4 @@
-import { UIRenderableConstructor } from "../UIComponent";
+import { UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
 import { UIContainer } from "./UIContainer";
@@ -18,7 +18,10 @@ export class UIRow extends UIContainer {
     return super.preset(presets, ...rest);
   }
 
-  style = UITheme.current.baseContainerStyle.mixin(_mixin);
+  constructor(...content: UIRenderable[]) {
+    super(...content);
+    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
+  }
 
   /** Returns true if spacing between components should be non-zero (used by renderer) */
   hasComponentSpacing() {

@@ -18,11 +18,10 @@ export class UIImage extends UIControl {
   /** Create a new label with given URL */
   constructor(url?: string) {
     super();
+    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["image"]);
+    this.shrinkwrap = true;
     if (url !== undefined) this.url = url;
   }
-
-  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["image"]);
-  shrinkwrap = true;
 
   isFocusable() {
     return !!(this.allowFocus || this.allowKeyboardFocus);

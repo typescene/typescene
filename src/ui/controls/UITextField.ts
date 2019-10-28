@@ -19,8 +19,13 @@ export class UITextField extends UIControl {
     return this.with({ name, placeholder });
   }
 
-  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["textfield"]);
-  shrinkwrap = false;
+  constructor() {
+    super();
+    this.style = UITheme.current.baseControlStyle.mixin(
+      UITheme.current.styles["textfield"]
+    );
+    this.shrinkwrap = false;
+  }
 
   isFocusable() {
     return true;

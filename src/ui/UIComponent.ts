@@ -19,14 +19,11 @@ export type UIComponentEventHandler<TComponent = UIComponent, TEvent = UICompone
 /** Event that is emitted on a particular UI component */
 export class UIComponentEvent<
   TSource extends UIComponent = UIComponent
-> extends ComponentEvent {
+> extends ComponentEvent<TSource> {
   constructor(name: string, source: TSource, inner?: ManagedEvent, event?: any) {
     super(name, source, inner);
     this.event = event;
   }
-
-  /** Event source UI component */
-  readonly source!: TSource;
 
   /** Platform event, if any */
   readonly event?: any;

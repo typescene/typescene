@@ -16,6 +16,8 @@ export class UISpacer extends UIControl {
   /** Create a new spacer with given (maximum) width and height */
   constructor(width?: string | number, height?: string | number, shrink?: boolean) {
     super();
+    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["spacer"]);
+    this.shrinkwrap = false;
     if (width !== undefined || height !== undefined) {
       this.dimensions = {
         ...this.dimensions,
@@ -27,7 +29,4 @@ export class UISpacer extends UIControl {
       this.shrinkwrap = true;
     }
   }
-
-  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["spacer"]);
-  shrinkwrap = false;
 }

@@ -2,6 +2,7 @@ import {
   Stringable,
   UIComponentEvent,
   UIComponentEventHandler,
+  UIRenderable,
   UIRenderableConstructor,
 } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
@@ -115,7 +116,10 @@ export class UICell extends UIContainer {
     return super.preset(presets, ...rest);
   }
 
-  style = UITheme.current.baseContainerStyle.mixin(_mixin);
+  constructor(...content: UIRenderable[]) {
+    super(...content);
+    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
+  }
 
   isFocusable() {
     return !!(this.allowFocus || this.allowKeyboardFocus);
@@ -124,12 +128,6 @@ export class UICell extends UIContainer {
   isKeyboardFocusable() {
     return !!this.allowKeyboardFocus;
   }
-
-  /** True if this cell *itself* may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus` (cannot be changed after rendering this component), defaults to false */
-  allowFocus?: boolean;
-
-  /** True if this cell *itself* may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
-  allowKeyboardFocus?: boolean;
 
   /** Padding around contained elements (in dp or CSS string, or separate offset values) */
   padding?: UIStyle.Offsets;

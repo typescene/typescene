@@ -28,15 +28,15 @@ const HIDDEN_OBSERVER_PROPERTY = "^cmpObs";
 const RECOMPOSE_EVENT = new ManagedCoreEvent("Recompose").freeze();
 
 /** Event that is emitted on a particular `Component` instance, with reference to the source component as `source` */
-export class ComponentEvent extends ManagedEvent {
-  constructor(name: string, source: Component, inner?: ManagedEvent) {
+export class ComponentEvent<TComponent extends Component = Component> extends ManagedEvent {
+  constructor(name: string, source: TComponent, inner?: ManagedEvent) {
     super(name);
     this.source = source;
     this.inner = inner;
   }
 
   /** Source component */
-  source: Component;
+  source: TComponent;
 
   /** Encapsulated event (i.e. propagated event if this event was emitted by `Component.propagateComponentEvent`) */
   inner?: ManagedEvent;
@@ -64,7 +64,7 @@ export type ComponentPresetType<
 export type ComponentPresetArgType<TComponentCtor extends ComponentConstructor> = {
   [P in keyof ComponentPresetType<TComponentCtor>]?:
     | ComponentPresetType<TComponentCtor>[P]
-    | Binding.Type
+    | Binding.Type;
 } & {
   [P: string]: any;
 };
@@ -447,7 +447,7 @@ export namespace Component {
         let b = (C.prototype as Component)[HIDDEN_BINDINGS_PROPERTY];
         for (let p in b) {
           bindings.push(b[p]);
-          if (b[p].bindings) bindings.push(...b[p].bindings);
+          if (b[p].bindings) bindings.push(...b[p].bindings!);
         }
         let i = (C.prototype as Component)[HIDDEN_BIND_INHERIT_PROPERTY];
         for (let p in i) {
