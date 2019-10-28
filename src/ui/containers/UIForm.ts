@@ -7,7 +7,7 @@ import {
   ManagedObject,
   ManagedRecord,
 } from "../../core";
-import { UIRenderableConstructor } from "../UIComponent";
+import { UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIFormContextController } from "../UIFormContextController";
 import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
@@ -39,6 +39,11 @@ export class UIForm extends UICell {
     return super.preset(presets, ...rest);
   }
 
+  constructor(...content: UIRenderable[]) {
+    super(...content);
+    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
+  }
+
   /**
    * Returns the closest parent form (or form context controller, see `UIFormContextController`) for given component; can be used by input components to find and observe the form context component before rendering.
    * Does not return components beyond the scope of the current `AppActivity` parent.
@@ -52,8 +57,6 @@ export class UIForm extends UICell {
       if (current instanceof AppActivity) break;
     }
   }
-
-  style = UITheme.current.baseContainerStyle.mixin(_mixin);
 
   accessibleRole = "form";
 

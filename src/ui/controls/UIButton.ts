@@ -35,11 +35,10 @@ export class UIButton extends UIControl {
   /** Create a new button with given label */
   constructor(label?: string) {
     super();
+    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["button"]);
+    this.shrinkwrap = true;
     if (label !== undefined) this.label = label;
   }
-
-  style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["button"]);
-  shrinkwrap = true;
 
   isFocusable() {
     return true;

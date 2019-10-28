@@ -1,6 +1,7 @@
 import {
   UIComponentEvent,
   UIComponentEventHandler,
+  UIRenderable,
   UIRenderableConstructor,
 } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
@@ -16,14 +17,11 @@ const _mixin = UIStyle.create("UIScrollContainer", {
 });
 
 /** Event that is emitted when the user scrolls up or down in a `UIScrollContainer */
-export class UIScrollEvent extends UIComponentEvent {
-  /** The source `UIScrollContainer` instance */
-  source!: UIScrollContainer;
-
-  /** Horizontal scrolling velocity (screens widths per second) */
+export class UIScrollEvent extends UIComponentEvent<UIScrollContainer> {
+  /** Horizontal scrolling velocity (screen widths per second) */
   horizontalVelocity!: number;
 
-  /** Horizontal scrolling velocity (screens heights per second) */
+  /** Horizontal scrolling velocity (screen heights per second) */
   verticalVelocity!: number;
 
   /** True if (last) scrolled down */
@@ -60,7 +58,10 @@ export class UIScrollContainer extends UIContainer {
     return super.preset(presets, ...rest);
   }
 
-  style = UITheme.current.baseContainerStyle.mixin(_mixin);
+  constructor(...content: UIRenderable[]) {
+    super(...content);
+    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
+  }
 
   /** Vertical scroll snap mode: `start` (snap to start of first 'mostly' visible component), `center` (snap container center to center of component closest to the center), or `end` (snap to end of last 'mostly' visible component) */
   verticalSnap?: "start" | "center" | "end";
