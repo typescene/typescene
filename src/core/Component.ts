@@ -435,7 +435,10 @@ export namespace Component {
     /** Remove all bindings that are to be bound to properties that are *not* included in the list of parameters; this causes any of those bindings on instances of the active component and its child component to be bound to the *parent composite* component instead */
     limitBindings(...propertyNames: string[]) {
       this._bindings = this._bindings.filter(
-        b => b.propertyName === undefined || propertyNames.some(p => b.propertyName === p)
+        b =>
+          propertyNames.some(p => b.propertyName === p) ||
+          (b.bindings &&
+            b.bindings.some(bb => propertyNames.some(p => bb.propertyName === p)))
       );
     }
 
