@@ -416,7 +416,7 @@ function _addManagedEventHandler(
           }
           nextEvent = undefined;
           let observer = _getObserverInstance(this, observerClass);
-          await handler.call(observer, e);
+          if (e) await handler.call(observer, e);
         } catch (err) {
           util.exceptionHandler(err);
         }
@@ -472,7 +472,7 @@ function _defineObservable(
         let lastValue = initialValue;
         let shadowed = name !== observedProperty;
         let queued: boolean | undefined;
-        let nextValue: any, nextEvent: ManagedEvent;
+        let nextEvent: ManagedEvent | undefined;
         let lastT: number | undefined;
         let c = 0;
         let observer = _getObserverInstance(obj, observerClass);
@@ -487,7 +487,7 @@ function _defineObservable(
             lastValue = value;
             if (limit! >= 0) {
               // handle rate limiting by waiting a variable amount of time
-              (nextValue = value), (nextEvent = event);
+              nextEvent = event;
               if (queued) return;
               let current = ++c;
               queued = true;
@@ -503,7 +503,7 @@ function _defineObservable(
               if (c !== current) return;
               lastT = Date.now();
               queued = false;
-              (value = nextValue), (event = nextEvent);
+              event = nextEvent;
             } else {
               // make this handler async by waiting for a promise first
               if (queued) return;
@@ -511,7 +511,8 @@ function _defineObservable(
               await RESOLVED;
               queued = false;
             }
-            await handler.call(observer, value, event, observedProperty);
+            nextEvent = undefined;
+            await handler.call(observer, lastValue, event, observedProperty);
           } catch (err) {
             util.exceptionHandler(err);
           }
