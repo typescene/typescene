@@ -130,10 +130,10 @@ export class ManagedObject {
 
     // set function on own prototype, which removes itself when called
     this.prototype._class_init = () => {
+      this.CLASS_INIT = this;
       if (prevF) return prevF(), f();
       delete this.prototype._class_init;
       this.prototype._class_init(); // see-through
-      this.CLASS_INIT = this;
       f();
     };
   }

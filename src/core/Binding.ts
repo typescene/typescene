@@ -83,7 +83,7 @@ export class Binding {
 
         // return filtered result
         if (self._filter) {
-          result = self._filter(result);
+          result = self._filter(result, this.composite);
         }
         return result === undefined && defaultValue !== undefined ? defaultValue : result;
       }
@@ -110,7 +110,12 @@ export class Binding {
   readonly propertyName?: string;
 
   /** Nested bindings, if any (e.g. for string format bindings, see `bindf`) */
-  readonly bindings?: ReadonlyArray<Binding>;
+  get bindings() {
+    return this._bindings as ReadonlyArray<Binding>;
+  }
+
+  /** @internal */
+  protected _bindings?: Binding[];
 
   /** Parent binding, if any (e.g. for nested bindings in string format bindings) */
   parent?: Binding;
@@ -150,8 +155,8 @@ export class Binding {
 
     // store new chained filter
     let oldFilter = this._filter;
-    this._filter = v => {
-      if (oldFilter) v = oldFilter(v);
+    this._filter = (v, composite) => {
+      if (oldFilter) v = oldFilter(v, composite);
       return filter(v, arg);
     };
     return this;
@@ -160,8 +165,8 @@ export class Binding {
   /** Add a filter to this binding to compare the bound value to the given value(s), the result is always either `true` (at least one match) or `false` (none match) */
   match(...values: any[]) {
     let oldFilter = this._filter;
-    this._filter = v => {
-      if (oldFilter) v = oldFilter(v);
+    this._filter = (v, composite) => {
+      if (oldFilter) v = oldFilter(v, composite);
       return values.some(w => w === v);
     };
     return this;
@@ -170,15 +175,55 @@ export class Binding {
   /** Add a filter to this binding to compare the bound value to the given value(s), the result is always either `true` (none match) or `false` (at least one match) */
   nonMatch(...values: any[]) {
     let oldFilter = this._filter;
-    this._filter = v => {
-      if (oldFilter) v = oldFilter(v);
+    this._filter = (v, composite) => {
+      if (oldFilter) v = oldFilter(v, composite);
       return !values.some(w => w === v);
     };
     return this;
   }
 
+  /**
+   * Add an 'and' term to this binding (i.e. logical and, like `&&` operator); the argument(s) are used to construct another binding using the `bind()` function.
+   * @note The combined binding can only be bound to a single component; in particular, within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
+   */
+  and(source: string, defaultValue?: any, ignoreUnbound?: boolean) {
+    let binding = new Binding(source, defaultValue, ignoreUnbound);
+    if (!this._bindings) this._bindings = [];
+    this._bindings.push(binding);
+
+    // add filter to get value from binding and AND together
+    let oldFilter = this._filter;
+    this._filter = (v, composite) => {
+      if (oldFilter) v = oldFilter(v, composite);
+      let bound = composite.getBoundBinding(binding);
+      if (!bound) throw err(ERROR.Binding_NotFound, source);
+      return v && bound.value;
+    };
+    return this;
+  }
+
+  /**
+   * Add an 'or' term to this binding (i.e. logical or, like `||` operator); the argument(s) are used to construct another binding using the `bind()` function.
+   * @note The combined binding can only be bound to a single component; in particular, within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
+   */
+  or(source: string, defaultValue?: any, ignoreUnbound?: boolean) {
+    let binding = new Binding(source, defaultValue, ignoreUnbound);
+    if (!this._bindings) this._bindings = [];
+    this._bindings.push(binding);
+
+    // add filter to get value from binding and AND together
+    let oldFilter = this._filter;
+    this._filter = (v, composite) => {
+      if (oldFilter) v = oldFilter(v, composite);
+      let bound = composite.getBoundBinding(binding);
+      if (!bound) throw err(ERROR.Binding_NotFound, source);
+      return v || bound.value;
+    };
+    return this;
+  }
+
   /** Chained filter function, if any */
-  private _filter?: (v: any) => any;
+  private _filter?: (v: any, composite: Component) => any;
 
   /** List of applicable filters, new filters may be added here */
   static readonly filters: { [id: string]: (v: any, ...args: any[]) => any } = {
@@ -243,6 +288,9 @@ export class StringFormatBinding extends Binding {
       }
     }
 
+    // store bindings for use by component constructor
+    this._bindings = bindings;
+
     // amend reader to get values from bindings and compile text
     this.Reader = class extends this.Reader {
       constructor(composite: Component) {
@@ -274,13 +322,7 @@ export class StringFormatBinding extends Binding {
         return super.getValue(result);
       }
     };
-
-    // store bindings for use by component constructor
-    this.bindings = bindings;
   }
-
-  /** Nested `Binding` instances for all bindings in the format string */
-  readonly bindings: ReadonlyArray<Binding>;
 }
 
 export namespace Binding {
