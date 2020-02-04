@@ -40,6 +40,7 @@ export class UICell extends UIContainer {
               borderColor: presets.borderColor,
               borderStyle: presets.borderStyle || "solid",
               dropShadow: presets.dropShadow || 0,
+              opacity: presets.opacity,
             };
           }
           baseProperties: Partial<UICell>;
@@ -109,6 +110,14 @@ export class UICell extends UIContainer {
               highlight.focusedDropShadow,
               highlight.focusedSelectedDropShadow
             );
+            this.cell.opacity = def(
+              this.baseProperties.opacity,
+              selected,
+              highlight.selectedOpacity,
+              focused,
+              highlight.focusedOpacity,
+              highlight.focusedSelectedOpacity
+            );
           }
         }
       );
@@ -156,6 +165,9 @@ export class UICell extends UIContainer {
   /** Intensity of drop shadow based on visual 'elevation' level (0-1) */
   dropShadow?: number;
 
+  /** Opacity (0-1; defaults to fully opaque if undefined) */
+  opacity?: number;
+
   /**
    * Other CSS attributes that are applied directly to the container, if supported (plain object)
    * @note Changes to individual properties are not observed by the renderer.
@@ -202,6 +214,8 @@ export namespace UICell {
     borderRadius?: string | number;
     /** Size of drop shadow based on visual 'elevation' (0-1) */
     dropShadow?: number;
+    /** Opacity (0-1) */
+    opacity?: number;
 
     /** Visual highlights for focused/selected states */
     highlight?: HighlightProperties;
@@ -235,6 +249,8 @@ export namespace UICell {
     focusedBorderStyle?: string;
     /** Focused cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
     focusedDropShadow?: number;
+    /** Focused cell opacity (0-1) */
+    focusedOpacity?: number;
     /** Selected cell background */
     selectedBackground?: Stringable;
     /** Selected cell text color */
@@ -247,6 +263,8 @@ export namespace UICell {
     selectedBorderStyle?: string;
     /** Selected cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
     selectedDropShadow?: number;
+    /** Selected cell opacity (0-1) */
+    selectedOpacity?: number;
     /** Focused and selected cell background */
     focusedSelectedBackground?: Stringable;
     /** Focused and selected cell text color */
@@ -259,5 +277,7 @@ export namespace UICell {
     focusedSelectedBorderStyle?: string;
     /** Focused and selected cell drop shadow size based on visual 'elevation' (0-1, defaults to 0) */
     focusedSelectedDropShadow?: number;
+    /** Focused and selected cell opacity (0-1) */
+    focusedSelectedOpacity?: number;
   }
 }
