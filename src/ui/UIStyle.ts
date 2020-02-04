@@ -101,6 +101,7 @@ class InheritedControlStyle extends InheritedStyleObject<
       borderRadius: { enumerable: true, get: o._value.bind(o, "borderRadius") },
       padding: { enumerable: true, get: o._value.bind(o, "padding") },
       dropShadow: { enumerable: true, get: o._value.bind(o, "dropShadow") },
+      opacity: { enumerable: true, get: o._value.bind(o, "opacity") },
       css: {
         enumerable: true,
         get: function(this: InheritedControlStyle) {
@@ -396,6 +397,8 @@ export namespace UIStyle {
     padding?: Offsets;
     /** Drop shadow distance (0-1) */
     dropShadow?: number;
+    /** Opacity (0-1) */
+    opacity?: number;
     /** Miscellaneous CSS attributes */
     css?: Partial<CSSStyleDeclaration>;
     /** Miscellaneous CSS class names (array) */
