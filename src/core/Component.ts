@@ -382,24 +382,27 @@ export namespace Component {
     ) {
       this._bindings = this._getAllBindings(...include);
 
-      // get a list of all properties that should be observed
-      let propertiesToObserve = this._bindings
-        .filter(b => b.propertyName !== undefined)
-        .map(b => b.propertyName!);
+      // apply bindings when the composite component is first created
+      Composite.addGlobalClassInitializer(() => {
+        // get a list of all properties that should be observed
+        let propertiesToObserve = this._bindings
+          .filter(b => b.propertyName !== undefined)
+          .map(b => b.propertyName!);
 
-      // add an observer to the composite parent class
-      // to be able to capture property changes ONLY
-      if (propertiesToObserve.length) {
-        class PropertyChangeObserver {
-          constructor(public readonly c: Component) {}
-          @onPropertyChange(...propertiesToObserve)
-          updatePropertyAsync(v: any, _e: any, name: string) {
-            let o = this.c[HIDDEN_OBSERVER_PROPERTY];
-            o && o.updateCompositeBound(name, v);
+        // add an observer to the composite parent class
+        // to be able to capture property changes ONLY
+        if (propertiesToObserve.length) {
+          class PropertyChangeObserver {
+            constructor(public readonly c: Component) {}
+            @onPropertyChange(...propertiesToObserve)
+            updatePropertyAsync(v: any, _e: any, name: string) {
+              let o = this.c[HIDDEN_OBSERVER_PROPERTY];
+              o && o.updateCompositeBound(name, v);
+            }
           }
+          Composite.observe(PropertyChangeObserver);
         }
-        Composite.observe(PropertyChangeObserver);
-      }
+      });
     }
 
     /** @internal Force recomposition for all instances of the parent Component; called automatically if this composition replaces an existing one for the same property. This method is mostly used to support Hot Module Reload where a new view is preset onto existing components. */
