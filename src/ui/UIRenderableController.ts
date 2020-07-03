@@ -10,7 +10,7 @@ export class UIRenderableController
   implements UIRenderable {
   static preset(presets: object, content?: UIRenderableConstructor): Function {
     let f = super.preset(presets, content);
-    return function(this: UIRenderableController) {
+    return function (this: UIRenderableController) {
       f.call(this);
       if (content) this.content = new content();
     };
@@ -39,7 +39,7 @@ export class UIRenderableController
 }
 
 // observe to re-render when content changes
-UIRenderableController.observe(
+UIRenderableController.addObserver(
   class {
     constructor(public readonly component: UIRenderableController) {}
     onContentChange() {

@@ -30,7 +30,7 @@ export class UICell extends UIContainer {
     if (presets.highlight) {
       let highlight = presets.highlight;
       delete presets.highlight;
-      this.observe(
+      this.addObserver(
         class {
           constructor(public readonly cell: UICell) {
             this.baseProperties = {

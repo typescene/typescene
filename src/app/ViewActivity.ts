@@ -150,7 +150,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     ) {
       constructor() {
         super();
-        this.propagateChildEvents(function(e) {
+        this.propagateChildEvents(function (e) {
           if (eventHandler) eventHandler.call(this, e);
           else if (e.name === "CloseModal") this.destroyAsync();
         });
@@ -190,7 +190,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     if (cancelButtonLabel) builder.setCancelButtonLabel(String(tt(cancelButtonLabel)));
     let Dialog = builder.build();
     return new Promise<boolean>(resolve => {
-      this.showDialogAsync(Dialog, !cancelButtonLabel, function(e) {
+      this.showDialogAsync(Dialog, !cancelButtonLabel, function (e) {
         if (e.name === "Confirm") resolve(true), this.destroyAsync();
         if (e.name === "CloseModal") resolve(false), this.destroyAsync();
       });
@@ -203,7 +203,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
 }
 
 // observe view activities to render when needed
-ViewActivity.observe(
+ViewActivity.addObserver(
   class {
     constructor(public activity: ViewActivity) {}
     onRenderContextChange() {

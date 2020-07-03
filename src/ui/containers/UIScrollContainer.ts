@@ -89,7 +89,7 @@ export class UIScrollContainer extends UIContainer {
 }
 
 // Use an observer to watch for scroll events and emit snap events
-UIScrollContainer.observe(
+UIScrollContainer.addObserver(
   class {
     constructor(public container: UIScrollContainer) {}
     onScroll(e: UIScrollEvent) {

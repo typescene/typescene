@@ -74,7 +74,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
 }
 
 // observe view activities to render when needed
-ViewComponent.observe(
+ViewComponent.addObserver(
   class {
     constructor(public component: ViewComponent) {}
     onRenderContextChange(ctx: UIRenderContext) {
@@ -90,7 +90,7 @@ export namespace ViewComponent {
     TComponent extends ViewComponent,
     K extends keyof TComponent = Exclude<
       {
-        [P in keyof TComponent]: TComponent[P] extends Function ? never : P
+        [P in keyof TComponent]: TComponent[P] extends Function ? never : P;
       }[keyof TComponent],
       keyof ViewComponent
     >

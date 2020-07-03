@@ -49,7 +49,6 @@ export type ComponentEventHandler<TComponent = Component, TEvent = ComponentEven
 
 /**
  * Generic constructor type for Component, matching both parameterless constructors and those with one or more required parameters.
- * For a constructable type, combine with a specific function type, e.g. `ComponentConstructor & (new () => MyComponent)`.
  */
 export type ComponentConstructor<TComponent extends Component = Component> = new (
   ...args: never[]
@@ -400,7 +399,7 @@ export namespace Component {
               o && o.updateCompositeBound(name, v);
             }
           }
-          Composite.observe(PropertyChangeObserver);
+          Composite.addObserver(PropertyChangeObserver);
         }
       });
     }
@@ -427,7 +426,7 @@ export namespace Component {
           }
         }
       }
-      this.Composite.observe(RecompositionObserver);
+      this.Composite.addObserver(RecompositionObserver);
     }
 
     /** Returns a list of all bindings that should be bound to the composite parent */
@@ -675,7 +674,7 @@ export namespace Component {
       }
     },
   });
-  Component.observe(ComponentObserver);
+  Component.addObserver(ComponentObserver);
 }
 
 /** Helper function to make an event handler from a preset string property */

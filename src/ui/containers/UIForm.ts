@@ -66,7 +66,7 @@ export class UIForm extends UICell {
 }
 
 // observe to emit event when form context changes
-UIForm.observe(
+UIForm.addObserver(
   class {
     constructor(public form: UIForm) {}
     onFormContextChange() {

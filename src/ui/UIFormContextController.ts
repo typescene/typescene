@@ -13,7 +13,7 @@ export class UIFormContextController extends UIRenderableController {
 }
 
 // observe to emit event when form context changes
-UIFormContextController.observe(
+UIFormContextController.addObserver(
   class {
     constructor(public controller: UIFormContextController) {}
     onFormContextChange() {

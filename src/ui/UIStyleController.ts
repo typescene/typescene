@@ -21,7 +21,7 @@ export class UIStyleController extends UIRenderableController {
   /** Base style (taken from the content component right after it is assigned to the `content` property) */
   baseStyle?: UIStyle;
 }
-UIStyleController.observe(
+UIStyleController.addObserver(
   class {
     constructor(public controller: UIStyleController) {}
     onContentChange() {

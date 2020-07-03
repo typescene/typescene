@@ -43,7 +43,7 @@ export class UIListController extends UIRenderableController {
     container: ComponentConstructor & (new () => UIContainer) = _defaultContainer
   ): Function {
     this.presetBindingsFrom(ListItemAdapter as any);
-    this.observe(
+    this.addObserver(
       class {
         constructor(public controller: UIListController) {}
         readonly contentMap = new ManagedMap<UIRenderable>();

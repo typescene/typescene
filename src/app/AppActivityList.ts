@@ -8,11 +8,11 @@ import { AppActivity } from "./AppActivity";
 export class AppActivityList extends Component {
   static preset(
     presets: unknown,
-    ...activities: Array<ComponentConstructor & (new () => AppActivity)>
+    ...activities: Array<ComponentConstructor<AppActivity>>
   ): Function {
     super.preset(presets as any, ...activities);
-    return function(this: AppActivityList) {
-      this.add(...activities.map(C => new C()));
+    return function (this: AppActivityList) {
+      this.add(...activities.map((C): AppActivity => new C()));
     };
   }
 

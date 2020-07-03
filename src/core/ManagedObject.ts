@@ -54,7 +54,7 @@ export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObje
 /** Base class for objects that have their own unique ID, life cycle including active/inactive and destroyed states, and managed references to other instances */
 export class ManagedObject {
   /** Add an observer to _all instances_ of this class and derived classes. Alias for the `observe` function/decorator. */
-  static observe<T extends ManagedObject>(
+  static addObserver<T extends ManagedObject>(
     this: ManagedObjectConstructor<T>,
     Observer: { new (instance: T): any }
   ) {

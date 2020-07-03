@@ -23,17 +23,17 @@ export class Application extends Component {
    * @note Calling this method directly on `Application` creates an application without any context (i.e. `activationContext` and `renderContext`). Instead, use a constructor that is meant for a specific platform (e.g. `BrowserApplication`).
    */
   static run<T extends Application>(
-    this: typeof Application & (new () => T),
-    ...activities: Array<ComponentConstructor & (new () => AppActivity)>
+    this: typeof Application,
+    ...activities: Array<ComponentConstructor<AppActivity>>
   ): T {
-    let C = this.with(...(activities as any));
+    let C = this.with(...(activities as any[]));
     return new C().activate() as any;
   }
 
   /** All `Application` instances that are currently active */
   static active = (() => {
     let result = new ManagedList<Application>();
-    Application.observe(
+    Application.addObserver(
       class {
         constructor(public instance: Application) {}
         onActive() {
@@ -49,7 +49,7 @@ export class Application extends Component {
 
   static preset(
     presets: Application.Presets,
-    ...activities: Array<ComponentConstructor & (new () => AppActivity)>
+    ...activities: Array<ComponentConstructor<AppActivity>>
   ): Function {
     if (activities.length) {
       this.presetActiveComponent(
@@ -139,3 +139,11 @@ export namespace Application {
     activationContext?: AppActivationContext;
   }
 }
+
+class X extends AppActivity {
+  constructor() {
+    super();
+  }
+}
+
+Application.run(X);

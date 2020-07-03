@@ -9,7 +9,7 @@ export class UIConditional extends UIRenderableController {
   ): Function {
     this.presetBindingsFrom(content);
     let f = super.preset(presets);
-    return function(this: UIConditional) {
+    return function (this: UIConditional) {
       f.call(this);
       (this as any).ContentConstructor = content;
     };
@@ -23,7 +23,7 @@ export class UIConditional extends UIRenderableController {
 }
 
 // observe to set/unset content reference when state changes
-UIConditional.observe(
+UIConditional.addObserver(
   class {
     constructor(public component: UIConditional) {}
     onStateChange() {

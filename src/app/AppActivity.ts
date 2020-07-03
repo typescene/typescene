@@ -94,7 +94,7 @@ class ActivityObserver {
     }
   }
 }
-AppActivity.observe(ActivityObserver);
+AppActivity.addObserver(ActivityObserver);
 
 export namespace AppActivity {
   /** Activity presets type, for use with `Component.with` */

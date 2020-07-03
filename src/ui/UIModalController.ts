@@ -15,7 +15,7 @@ import { UIRenderContext, UIRenderPlacement } from "./UIRenderContext";
 export class UIModalController extends UIRenderableController {
   static preset(
     presets: UIModalController.Presets,
-    content?: ComponentConstructor & (new () => UIComponent),
+    content?: ComponentConstructor<UIComponent>,
     modal?: UIRenderableConstructor
   ): Function {
     let Modal = modal || presets.modal;
@@ -25,7 +25,7 @@ export class UIModalController extends UIRenderableController {
     }
     if (Modal) this.presetBindingsFrom(Modal);
     let f = super.preset(presets, content);
-    return function(this: UIModalController) {
+    return function (this: UIModalController) {
       f.call(this);
       this.propagateChildEvents(e => {
         if (e instanceof ComponentEvent) {
@@ -56,7 +56,7 @@ export class UIModalController extends UIRenderableController {
   /** True if clicking outside the modal component should close it, defaults to true */
   modalShadeClickToClose = true;
 }
-UIModalController.observe(
+UIModalController.addObserver(
   class {
     constructor(public controller: UIModalController) {}
 

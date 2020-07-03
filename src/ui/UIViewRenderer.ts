@@ -39,7 +39,7 @@ export class UIViewRenderer extends Component implements UIRenderable {
 }
 
 // observe to re-render when content changes
-UIViewRenderer.observe(
+UIViewRenderer.addObserver(
   class {
     constructor(public readonly component: UIViewRenderer) {}
     onViewChange() {
