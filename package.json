@@ -35,11 +35,11 @@
     "test": "node test/run"
   },
   "dependencies": {
-    "tslib": "^1.10.0"
+    "tslib": "^2.0.0"
   },
   "devDependencies": {
     "esm": "^3.2.25",
-    "rimraf": "^2.6.3",
-    "typescript": "^3.5.3"
+    "rimraf": "^3.0.2",
+    "typescript": "3.9.5"
   }
 }

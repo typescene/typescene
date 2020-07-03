@@ -120,7 +120,7 @@ export namespace JSX {
   } {
     function F(this: any) {
       if (this instanceof F) return new C();
-      return C.with.apply(C, arguments as any);
+      return (C.with as any).apply(C, arguments);
     }
     F.prototype = C.prototype;
     F.with = F;

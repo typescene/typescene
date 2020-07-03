@@ -52,7 +52,7 @@ export type ComponentEventHandler<TComponent = Component, TEvent = ComponentEven
  * For a constructable type, combine with a specific function type, e.g. `ComponentConstructor & (new () => MyComponent)`.
  */
 export type ComponentConstructor<TComponent extends Component = Component> = new (
-  ...args: any[]
+  ...args: never[]
 ) => TComponent;
 
 /** Inferred partial type of the argument to `Component.with` without bindings, for a specific component constructor */
@@ -214,7 +214,7 @@ export class Component extends ManagedObject {
     }
 
     // return a function that applies remaining properties to new instances
-    return function(this: Component) {
+    return function (this: Component) {
       for (let p in presets) {
         let v = (presets as any)[p];
         if (v !== undefined) _applyPropertyValue(this, p, v);
@@ -242,7 +242,7 @@ export class Component extends ManagedObject {
 
     // add an update function
     if (!applyBoundValue) {
-      applyBoundValue = function(this: Component, v: any) {
+      applyBoundValue = function (this: Component, v: any) {
         _applyPropertyValue(this, propertyName, v);
       };
     }
@@ -682,7 +682,7 @@ export namespace Component {
 function _makeEventHandler(handler: string) {
   if (handler.slice(-2) === "()") {
     let callMethodName = handler.slice(0, -2);
-    return function(this: Component, e: ManagedEvent) {
+    return function (this: Component, e: ManagedEvent) {
       let composite: any = this.getCompositeParent();
       while (composite) {
         let f = composite && composite[callMethodName];
@@ -693,7 +693,7 @@ function _makeEventHandler(handler: string) {
     };
   } else if (handler[0] === "+") {
     let emitName = handler.slice(1);
-    return function(this: Component, e: ManagedEvent) {
+    return function (this: Component, e: ManagedEvent) {
       this.propagateComponentEvent(emitName, e);
     };
   } else {

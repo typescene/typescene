@@ -34,7 +34,7 @@ const MAX_FREE_REFLINKS = 1000;
 /** Stack of currently unused managed references, ready for reuse */
 let _freeRefLinks: util.RefLink[] = [];
 for (let i = 0; i < MAX_FREE_REFLINKS >> 2; i++) {
-  _freeRefLinks[i] = {} as any;
+  _freeRefLinks[i] = { u: 0, a: undefined, b: undefined, p: "" };
 }
 
 /** Next UID to be assigned to a new managed object */
@@ -47,9 +47,9 @@ let _nextRefId = 16;
 const RECURSE_EMIT_LIMIT = 4;
 
 /** Generic constructor type for ManagedObject, matching both parameterless constructors and those with one or more required parameters */
-export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObject> =
-  | (new (...args: any[]) => TObject)
-  | (new (a: never, b: never, c: never, d: never, e: never, f: never) => TObject);
+export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObject> = new (
+  ...args: never[]
+) => TObject;
 
 /** Base class for objects that have their own unique ID, life cycle including active/inactive and destroyed states, and managed references to other instances */
 export class ManagedObject {
@@ -62,13 +62,13 @@ export class ManagedObject {
     return this;
   }
 
-  /** Attach an event handler to be invoked for all events that are emitted on _all instances_ of a class. */
+  /** Attach an event handler to be invoked for all events that are emitted on _all instances_ of this class and derived classes. */
   static handle<T extends ManagedObject>(
     this: ManagedObjectConstructor<T>,
     handler: (this: T, e: ManagedEvent) => void
   ): void;
   /**
-   * Attach event handlers for _all instances_ of a derived class. The event name (`ManagedEvent.name` property) is used to find an event handler in given object.
+   * Attach event handlers for _all instances_ of this class and derived classes. The event name (`ManagedEvent.name` property) is used to find the matching event handler in given object.
    *
    * @note See also `ManagedObject.observe` for a more advanced way to observe events as well as property changes.
    */
@@ -98,7 +98,7 @@ export class ManagedObject {
     }
 
     // add the event handler function
-    this.prototype[util.HIDDEN_EVENT_HANDLER] = function(this: any, e: ManagedEvent) {
+    this.prototype[util.HIDDEN_EVENT_HANDLER] = function (this: any, e: ManagedEvent) {
       prevProto && prevProto[util.HIDDEN_EVENT_HANDLER]
         ? prevProto[util.HIDDEN_EVENT_HANDLER]!.call(this, e)
         : prevHandler && prevHandler.call(this, e);
@@ -132,7 +132,7 @@ export class ManagedObject {
     this.prototype._class_init = () => {
       this.CLASS_INIT = this;
       if (prevF) return prevF(), f();
-      delete this.prototype._class_init;
+      delete (this.prototype as any)._class_init;
       this.prototype._class_init(); // see-through
       f();
     };
@@ -749,7 +749,7 @@ export class ManagedObject {
           next && next(target, event, topHandler);
         };
       },
-      function(this: any) {
+      function (this: any) {
         let ref = this[util.HIDDEN_REF_PROPERTY][propId];
 
         // dereference read-only reference, if any
