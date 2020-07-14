@@ -9,6 +9,12 @@ import * as util from "./util";
 /** Running ID for new `Binding` instances */
 let _nextBindingUID = 16;
 
+/** Definition of a reader instance that provides a bound value */
+interface BoundReader {
+  readonly composite: Component;
+  getValue(hint?: any): any;
+}
+
 /**
  * Component property binding base class.
  * Bindings should be created using the `bind` and `bindf` functions, and used as a property of the object passed to `Component.with`.
@@ -99,12 +105,7 @@ export class Binding {
   readonly id = util.BINDING_ID_PREFIX + _nextBindingUID++;
 
   /** @internal Constructor for a reader, that reads current bound and filtered values */
-  Reader: {
-    new (composite: Component): {
-      readonly composite: Component;
-      getValue(hint?: any): any;
-    };
-  };
+  Reader: new (composite: Component) => BoundReader;
 
   /** Name of the property that should be observed for this binding (highest level only, does not include names of nested properties or keys) */
   readonly propertyName?: string;
@@ -120,8 +121,18 @@ export class Binding {
   /** Parent binding, if any (e.g. for nested bindings in string format bindings) */
   parent?: Binding;
 
-  /** Set to true to ignore this binding when a component is added to a composite parent that has not been preset with this binding (to avoid the 'Binding not found for X' error), which can happen if a component is not added through `@compose` but as a regular child object using `@managedChild`. */
+  /** Set to true to ignore this binding when it cannot be bound (to avoid the 'Binding not found for X' error, which can happen if a component is not added through `@compose` but as a regular child object using `@managedChild`). */
   ignoreUnbound?: boolean;
+
+  /** Apply translation or internationalization formatting to the resulting value. If the parameter is omitted, the (string) value is translated using the current locale (see `I18nService`); otherwise the value is formatted using the `tt(type)` function using the given type name, e.g. `currency`, `date:short`, `datetime:long`, etc. */
+  i18n(type?: string) {
+    let oldFilter = this._filter;
+    this._filter = (v, composite) => {
+      if (oldFilter) v = oldFilter(v, composite);
+      return tt(v, type);
+    };
+    return this;
+  }
 
   /**
    * Add a filter to this binding, which transforms values to a specific type or format. These can be chained by adding multiple filters in order of execution.
@@ -131,7 +142,7 @@ export class Binding {
    * - `n`, `num`, or `number`: convert non-undefined values to a floating-point number using the `parseFloat(...)` function.
    * - `i`, `int`, or `integer`: convert values to whole numbers using the `Math.round(...)` function. Undefined values are converted to `0`.
    * - `dec(1)`, `dec(2)`, `dec(3)` etc.: convert values to decimal numbers as strings, with given number of fixed decimals.
-   * - `tt` or `tt(type)`: translate values using the `tt` function (i18n).
+   * - `tt` or `tt(type)`: translate text and/or other values using the `tt` function (i18n).
    * - `?` or `!!`, `not?` or `!`: convert values to boolean, applying boolean NOT for `!` and `not?`, and NOT-NOT for `?` and `!!`.
    * - `or(...)`: use given string if value is undefined or a blank string; the string cannot contain a `}` character.
    * - `then(...)`: use given string if value is NOT undefined or a blank string, otherwise `undefined`; the string cannot contain a `}` character.
@@ -184,10 +195,11 @@ export class Binding {
 
   /**
    * Add an 'and' term to this binding (i.e. logical and, like `&&` operator); the argument(s) are used to construct another binding using the `bind()` function.
-   * @note The combined binding can only be bound to a single component; in particular, within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
+   * @note The combined binding can only be bound to a single component, e.g. within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
    */
   and(source: string, defaultValue?: any, ignoreUnbound?: boolean) {
     let binding = new Binding(source, defaultValue, ignoreUnbound);
+    binding.parent = this;
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
 
@@ -204,10 +216,11 @@ export class Binding {
 
   /**
    * Add an 'or' term to this binding (i.e. logical or, like `||` operator); the argument(s) are used to construct another binding using the `bind()` function.
-   * @note The combined binding can only be bound to a single component; in particular, within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
+   * @note The combined binding can only be bound to a single component, e.g. within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
    */
   or(source: string, defaultValue?: any, ignoreUnbound?: boolean) {
     let binding = new Binding(source, defaultValue, ignoreUnbound);
+    binding.parent = this;
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
 
