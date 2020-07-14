@@ -1,5 +1,5 @@
 import { AppComponent } from "../app";
-import { bind, ManagedChangeEvent, ManagedObject } from "../core";
+import { bind, ManagedObject } from "../core";
 import { UIComponent, UIRenderable } from "./UIComponent";
 
 /** @internal Render context binding, can be reused to avoid creating new bindings */
@@ -23,7 +23,7 @@ export enum UIRenderPlacement {
 export abstract class UIRenderContext extends ManagedObject {
   /** Emit a change event for this context, e.g. when the viewport orientation or current locale changes. This will trigger all views to re-render if needed. */
   emitRenderChange() {
-    this.emit(ManagedChangeEvent.CHANGE);
+    this.emitChange();
   }
 
   /** Returns a list of all application components (activities, view components) that are associated with this render context */

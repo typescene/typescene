@@ -13,20 +13,17 @@ consider("Observers", () => {
       @observe
       static AObserver = class {
         onEvent(e: ManagedEvent) {
-          if (e.name === "OK") t.count(3);
+          if (e.name === "OK") t.count(2);
         }
       };
     }
-    A.observe(
+    A.addObserver(
       class {
         onEvent(e: ManagedEvent) {
-          if (e.name === "OK") t.count(3);
+          if (e.name === "OK") t.count(2);
         }
       }
     );
-    observe(A).addEventHandler((_a, e) => {
-      if (e.name === "OK") t.count(3);
-    });
     new A().emit("OK");
   });
 
@@ -36,20 +33,17 @@ consider("Observers", () => {
       @observe
       static AObserver = class {
         onEventAsync(e: ManagedEvent) {
-          if (e.name === "OK") t.count(3);
+          if (e.name === "OK") t.count(2);
         }
       };
     }
-    A.observe(
+    A.addObserver(
       class {
         onEventAsync(e: ManagedEvent) {
-          if (e.name === "OK") t.count(3);
+          if (e.name === "OK") t.count(2);
         }
       }
     );
-    observe(A).addEventHandler((_a, e) => {
-      if (e.name === "OK") t.count(3);
-    }, true);
     new A().emit("OK");
     t.assert(!t.getCount(), "Handler called synchronously");
   });
@@ -64,14 +58,7 @@ consider("Observers", () => {
         order += e.name;
       }
     }
-    A.observe(AObserver);
-    observe(A).addEventHandler(
-      (_a, e) => {
-        order += e.name;
-      },
-      true,
-      100
-    );
+    A.addObserver(AObserver);
     let a = new A();
     a.emit("1"), a.emit("2"); // trigger 2 immed async
     order += "A";
@@ -82,7 +69,7 @@ consider("Observers", () => {
     setTimeout(() => a.emit("6"), 140); // held until ~200ms
     setTimeout(() => (order += "C"), 150);
     t.waitAsync(300, () => {
-      t.test(order === "A22B44C66");
+      t.test(order === "A2B4C6");
     });
   });
 
@@ -93,20 +80,17 @@ consider("Observers", () => {
       @observe
       static AObserver = class {
         onAChange(v: string) {
-          if (v === "OK") t.count(3);
+          if (v === "OK") t.count(2);
         }
       };
     }
-    A.observe(
+    A.addObserver(
       class {
         onAChange(v: string) {
-          if (v === "OK") t.count(3);
+          if (v === "OK") t.count(2);
         }
       }
     );
-    observe(A).addPropertyChangeHandler("a", (_a, v) => {
-      if (v === "OK") t.count(3);
-    });
     new A().a = "OK";
   });
 
@@ -118,23 +102,16 @@ consider("Observers", () => {
       @observe
       static AObserver = class {
         onAChangeAsync(v: string) {
-          if (v === "OK") t.count(3);
+          if (v === "OK") t.count(2);
         }
       };
     }
-    A.observe(
+    A.addObserver(
       class {
         onAChangeAsync(v: string) {
-          if (v === "OK") t.count(3);
+          if (v === "OK") t.count(2);
         }
       }
-    );
-    observe(A).addPropertyChangeHandler(
-      "a",
-      (_a, v) => {
-        if (v === "OK") t.count(3);
-      },
-      true
     );
     new A().a = "OK";
     t.assert(!t.getCount(), "Handler called synchronously");
@@ -152,15 +129,7 @@ consider("Observers", () => {
         order += v;
       }
     }
-    A.observe(AObserver);
-    observe(A).addPropertyChangeHandler(
-      "a",
-      (_a, v) => {
-        order += v;
-      },
-      true,
-      100
-    );
+    A.addObserver(AObserver);
     let a = new A();
     (a.a = "1"), (a.a = "2"); // trigger 2 immed async
     order += "A";
@@ -171,7 +140,7 @@ consider("Observers", () => {
     setTimeout(() => (a.a = "6"), 140); // held until ~200ms
     setTimeout(() => (order += "C"), 150);
     t.waitAsync(300, () => {
-      t.test(order === "A22B44C66");
+      t.test(order === "A2B4C6");
     });
   });
 
@@ -184,13 +153,10 @@ consider("Observers", () => {
     class AObserver {
       @onPropertyEvent("b")
       handleBEvent(_v: B, e: ManagedEvent) {
-        if (e.name === "OK") t.count(2);
+        if (e.name === "OK") t.ok();
       }
     }
-    A.observe(AObserver);
-    observe(A).addPropertyEventHandler("b", (_b, _v, e) => {
-      if (e.name === "OK") t.count(2);
-    });
+    A.addObserver(AObserver);
     new A().b.emit("OK");
   });
 
@@ -204,17 +170,10 @@ consider("Observers", () => {
     class AObserver {
       @onPropertyEvent("b")
       handleBEventAsync(_v: B, e: ManagedEvent) {
-        if (e.name === "OK") t.count(2);
+        if (e.name === "OK") t.ok();
       }
     }
-    A.observe(AObserver);
-    observe(A).addPropertyEventHandler(
-      "b",
-      (_b, _v, e) => {
-        if (e.name === "OK") t.count(2);
-      },
-      true
-    );
+    A.addObserver(AObserver);
     new A().b.emit("OK");
     t.assert(!t.getCount(), "Handler called synchronously");
   });
@@ -234,15 +193,7 @@ consider("Observers", () => {
         order += e.name;
       }
     }
-    A.observe(AObserver);
-    observe(A).addPropertyEventHandler(
-      "b",
-      (_b, _v, e) => {
-        order += e.name;
-      },
-      true,
-      100
-    );
+    A.addObserver(AObserver);
     let a = new A();
     a.b.emit("1"), a.b.emit("2"); // trigger 2 immed async
     order += "A";
@@ -253,7 +204,7 @@ consider("Observers", () => {
     setTimeout(() => a.b.emit("6"), 140); // held until ~200ms
     setTimeout(() => (order += "C"), 150);
     t.waitAsync(300, () => {
-      t.test(order === "A22B44C66");
+      t.test(order === "A2B4C6");
     });
   });
 });

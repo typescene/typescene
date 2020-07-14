@@ -209,7 +209,10 @@ export class Component extends ManagedObject {
 
     // add event handlers, if any
     if (eventHandlers) {
-      this.handle(eventHandlers);
+      this.addEventHandler(function (e) {
+        let h = eventHandlers![e.name];
+        h && h.call(this, e);
+      });
     }
 
     // return a function that applies remaining properties to new instances
@@ -380,28 +383,31 @@ export namespace Component {
       ...include: ComponentConstructor[]
     ) {
       this._bindings = this._getAllBindings(...include);
+    }
 
-      // apply bindings when the composite component is first created
-      Composite.addGlobalClassInitializer(() => {
-        // get a list of all properties that should be observed
-        let propertiesToObserve = this._bindings
-          .filter(b => b.propertyName !== undefined)
-          .map(b => b.propertyName!);
+    /** @internal Add an observer to the composite class if not added yet */
+    observeBindings() {
+      if (this._init) return;
+      this._init = true;
 
-        // add an observer to the composite parent class
-        // to be able to capture property changes ONLY
-        if (propertiesToObserve.length) {
-          class PropertyChangeObserver {
-            constructor(public readonly c: Component) {}
-            @onPropertyChange(...propertiesToObserve)
-            updatePropertyAsync(v: any, _e: any, name: string) {
-              let o = this.c[HIDDEN_OBSERVER_PROPERTY];
-              o && o.updateCompositeBound(name, v);
-            }
+      // get a list of all properties that should be observed
+      let propertiesToObserve = this._bindings
+        .filter(b => b.propertyName !== undefined)
+        .map(b => b.propertyName!);
+
+      // add an observer to the composite parent class
+      // to be able to capture property changes ONLY
+      if (propertiesToObserve.length) {
+        class PropertyChangeObserver {
+          constructor(public readonly c: Component) {}
+          @onPropertyChange(...propertiesToObserve)
+          updatePropertyAsync(v: any, _e: any, name: string) {
+            let o = this.c[HIDDEN_OBSERVER_PROPERTY];
+            o && o.updateCompositeBound(name, v);
           }
-          Composite.addObserver(PropertyChangeObserver);
         }
-      });
+        this.Composite.addObserver(PropertyChangeObserver);
+      }
     }
 
     /** @internal Force recomposition for all instances of the parent Component; called automatically if this composition replaces an existing one for the same property. This method is mostly used to support Hot Module Reload where a new view is preset onto existing components. */
@@ -464,6 +470,7 @@ export namespace Component {
       return bindings;
     }
 
+    private _init?: boolean;
     private _bindings: Binding[];
   }
 
@@ -638,6 +645,7 @@ export namespace Component {
           this.compositeBindings = new ManagedMap();
         }
         let composition = this.component[HIDDEN_COMPOSE_PROPERTY][p];
+        composition.observeBindings();
         composition.getBindings().forEach(b => this.addCompositeBound(b));
 
         // create component itself and assign to property
@@ -667,12 +675,10 @@ export namespace Component {
       this.compositeBindings = undefined;
     }
   }
-  ComponentObserver.handle({
-    CompositeParentChange(e: ManagedEvent) {
-      if (e instanceof CompositeParentChangeEvent) {
-        this.setCompositeParent(e.composite);
-      }
-    },
+  ComponentObserver.addEventHandler(function (e) {
+    if (e instanceof CompositeParentChangeEvent) {
+      this.setCompositeParent(e.composite);
+    }
   });
   Component.addObserver(ComponentObserver);
 }
@@ -700,19 +706,22 @@ function _makeEventHandler(handler: string) {
   }
 }
 
+/** Simple ManagedObject class that encapsulates a single value, used below */
+class ManagedValueObject<T> extends ManagedObject {
+  constructor(public value: T) {
+    super();
+  }
+  valueOf() {
+    return this.value;
+  }
+}
+
 /** Helper method to update a component property with given value, with some additional logic for managed lists */
 function _applyPropertyValue(c: Component, p: string, v: any) {
   let o = (c as any)[p];
   if (o && o instanceof ManagedList && Array.isArray(v)) {
     // update managed lists with array items
-    o.replace(
-      v.map(it => {
-        if (it instanceof ManagedObject) return it;
-        let r = new ManagedObject();
-        (r as any).value = it;
-        return r;
-      })
-    );
+    o.replace(v.map(it => (it instanceof ManagedObject ? it : new ManagedValueObject(it))));
   } else {
     // set property value
     (c as any)[p] = v;

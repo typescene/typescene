@@ -76,7 +76,7 @@ export abstract class ManagedService extends ManagedObject {
   static find(name: string) {
     let ucName = String(name).toUpperCase();
     let ref = ServiceContainer.instance.services.get(ucName);
-    return ref && ref.target;
+    return ref && ref.get();
   }
 
   /** Create a new instance of the service. The service is not available until it is registered using the `ManagedService.register` method */
@@ -95,7 +95,7 @@ export abstract class ManagedService extends ManagedObject {
     let ref = ServiceContainer.instance.services.get(ucName);
     if (ref) {
       // set new target on the existing reference (destroying the old service)
-      ref.target = this;
+      ref.set(this);
     } else {
       ref = new ManagedReference(this)
         .restrict(ManagedService as any)

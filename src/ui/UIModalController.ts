@@ -15,7 +15,7 @@ import { UIRenderContext, UIRenderPlacement } from "./UIRenderContext";
 export class UIModalController extends UIRenderableController {
   static preset(
     presets: UIModalController.Presets,
-    content?: ComponentConstructor<UIComponent>,
+    content?: ComponentConstructor<UIComponent> & (new () => UIComponent),
     modal?: UIRenderableConstructor
   ): Function {
     let Modal = modal || presets.modal;

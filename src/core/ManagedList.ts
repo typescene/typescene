@@ -20,7 +20,7 @@ if (typeof Symbol !== "function") {
 
 /** Represents a list of managed objects. The objects in the list are _ordered_ and _unique_, ensuring that there are no gaps or repeated list items. */
 export class ManagedList<T extends ManagedObject = ManagedObject> extends ManagedObject {
-  /** Creates a new list of objects */
+  /** Creates a new list of managed objects */
   constructor(...objects: T[]) {
     super();
     this["^count"] = 0;
@@ -33,11 +33,19 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     }
   }
 
-  /** Propagate events from all objects in this list by emitting them on the list object itself, optionally restricted to given types of events or a filter function */
+  /**
+   * Propagate events from all objects in this list by emitting the same events on the list object itself.
+   * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its only argument.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
+   */
   propagateEvents(
     f?: (this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void
   ): this;
-  /** Propagate events from all objects in this list by emitting them on the list object itself, optionally restricted to given types of events or a filter function */
+  /**
+   * Propagate events from all objects in this list by emitting the same events on the list object itself.
+   * If one or more event classes are specified, only events that extend given event types are propagated.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
+   */
   propagateEvents(
     ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
   ): this;
@@ -397,7 +405,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     return -1;
   }
 
-  /** Returns an array with all objects currently in this list */
+  /** Returns an array that contains all objects in this list */
   toArray() {
     if (!this[util.HIDDEN_STATE_PROPERTY]) return [];
     let result = new Array<T>(this.count);
@@ -488,7 +496,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     };
   }
 
-  /** Stop newly referenced objects from becoming child objects even if this `ManagedList` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference list items when the parent object is destroyed */
+  /** Stop newly referenced objects from becoming child objects _even if_ this `ManagedList` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference list items when the parent object is destroyed */
   weakRef() {
     this._isWeakRef = true;
     return this;

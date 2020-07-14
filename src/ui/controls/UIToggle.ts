@@ -1,4 +1,4 @@
-import { CHANGE, managed, ManagedEvent, observe, onPropertyEvent } from "../../core";
+import { managed, ManagedEvent, onPropertyEvent, observe } from "../../core";
 import { FormContextChangeEvent, UIForm } from "../containers";
 import { Stringable } from "../UIComponent";
 import { UIRenderContext } from "../UIRenderContext";
@@ -69,13 +69,13 @@ export class UIToggle extends UIControl {
     let ctx = this.form && this.form.formContext;
     if (ctx && this.name && ctx[this.name] !== !!this.state) {
       ctx[this.name] = !!this.state;
-      ctx.emit(CHANGE);
+      ctx.emitChange();
     }
   }
 
   /** @internal */
   @observe
-  static UIToggleObserver = (() => {
+  protected static UIToggleObserver = (() => {
     class UIToggleObserver {
       constructor(public component: UIToggle) {}
       @onPropertyEvent("form")

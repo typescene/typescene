@@ -8,8 +8,8 @@ import {
   ManagedEvent,
   ManagedObject,
   ManagedState,
-  observe,
   shadowObservable,
+  observe,
 } from "../core";
 import { UICell } from "./containers/UICell";
 import { UIRenderable, UIRenderableConstructor } from "./UIComponent";
@@ -90,7 +90,7 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
   @managed
   readonly object: TObject;
 
-  /** The `value` property of the encapsulated object (or the list value itself, if the list was bound to an array with non-managed object values) */
+  /** The intrinsic value of the encapsulated object (result of `valueOf()` called on the original object) */
   readonly value: any;
 
   /** The encapsulated cell, as a child component; only created when the `UIListCellAdapter` is rendered */
@@ -159,8 +159,9 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     }
   }
 
+  /** @internal */
   @observe
-  static UIListCellAdapterObserver = class {
+  protected static UIListCellAdapterObserver = class {
     constructor(public readonly adapter: UIListCellAdapter) {}
     onSelect(e: ComponentEvent) {
       if (e.source === this.adapter || e.source === this.adapter.cell) {

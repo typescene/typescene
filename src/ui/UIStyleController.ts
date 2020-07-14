@@ -7,7 +7,7 @@ import { UIStyle } from "./UIStyle";
 export class UIStyleController extends UIRenderableController {
   static preset(
     presets: UIStyleController.Presets,
-    content?: ComponentConstructor & { new (): UIComponent }
+    content?: ComponentConstructor<UIComponent> & (new () => UIComponent)
   ): Function {
     return super.preset(presets, content);
   }

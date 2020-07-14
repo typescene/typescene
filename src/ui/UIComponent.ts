@@ -99,7 +99,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
     // replace `requestFocus` with event handler
     if (presets.requestFocus) {
       delete presets.requestFocus;
-      presets.onRendered = function() {
+      presets.onRendered = function () {
         if (!this._requestedFocusBefore) {
           this._requestedFocusBefore = true;
           this.requestFocus();
@@ -119,7 +119,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
 
     // return preset function
     let f = super.preset(presets, ...rest);
-    return function(this: UIContainer) {
+    return function (this: UIContainer) {
       f.call(this);
       let mixin = style || (styleName && UITheme.current.styles[styleName]);
       if (mixin) {
@@ -326,4 +326,5 @@ export interface UIRenderable extends Component {
 }
 
 /** Type definition for a constructor of a component that can be rendered on its own (see `UIRenderable`) */
-export type UIRenderableConstructor = ComponentConstructor & (new () => UIRenderable);
+export type UIRenderableConstructor = ComponentConstructor<UIRenderable> &
+  (new () => UIRenderable);

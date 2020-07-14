@@ -1,5 +1,5 @@
 import { Component, ComponentConstructor } from "../core/Component";
-import { ACTIVE, CHANGE, INACTIVE } from "../core/ManagedEvent";
+import { CHANGE, ManagedCoreEvent } from "../core/ManagedEvent";
 import { ManagedList } from "../core/ManagedList";
 import { managedChild } from "../core/ManagedReference";
 import { AppActivity } from "./AppActivity";
@@ -25,7 +25,7 @@ export class AppActivityList extends Component {
     // propagate list events, active/inactive
     this.propagateChildEvents();
     this.$list.propagateEvents(e => {
-      if (e === ACTIVE || e === INACTIVE) {
+      if (e === ManagedCoreEvent.ACTIVE || e === ManagedCoreEvent.INACTIVE) {
         return CHANGE;
       }
     });

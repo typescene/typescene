@@ -1,4 +1,4 @@
-import { ManagedChangeEvent, ManagedObject } from "../core";
+import { ManagedObject } from "../core";
 import { err, ERROR } from "../errors";
 import { AppActivity } from "./AppActivity";
 
@@ -13,7 +13,7 @@ export class AppActivationContext extends ManagedObject {
     if (this._target !== target) {
       this._target = target;
       this._split = target ? target.split("/") : [];
-      this.emit(ManagedChangeEvent.CHANGE);
+      this.emitChange();
     }
   }
   private _target = "";

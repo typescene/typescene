@@ -1,4 +1,4 @@
-import { CHANGE, managed, ManagedEvent, observe, onPropertyEvent } from "../../core";
+import { managed, ManagedEvent, onPropertyEvent, observe } from "../../core";
 import { FormContextChangeEvent, UIForm } from "../containers";
 import { Stringable } from "../UIComponent";
 import { UIRenderContext } from "../UIRenderContext";
@@ -80,14 +80,14 @@ export class UITextField extends UIControl {
       }
       if (oldValue !== value) {
         ctx[this.name] = value;
-        ctx.emit(CHANGE);
+        ctx.emitChange();
       }
     }
   }
 
   /** @internal */
   @observe
-  static UITextFieldObserver = (() => {
+  protected static UITextFieldObserver = (() => {
     class UITextFieldObserver {
       constructor(public component: UITextField) {}
       @onPropertyEvent("form")

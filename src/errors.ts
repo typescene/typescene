@@ -45,7 +45,6 @@ export const enum ERROR {
   Ref_Type,
   Service_NoName,
   Service_BlankName,
-  Observe_ObservedType,
   Observe_ObserveParent,
   Observe_ShadowGetter,
   Observe_RateLimitNonAsync,
@@ -104,7 +103,6 @@ const errors: { [error: number]: string } = {
   [ERROR.Ref_Type]: "[Object] Existing reference is not of given type",
   [ERROR.Service_NoName]: "[Service] Missing property name",
   [ERROR.Service_BlankName]: "[Service] Service name cannot be blank",
-  [ERROR.Observe_ObservedType]: "[Object] Observed target is not a managed object class",
   [ERROR.Observe_ObserveParent]: "[Object] Cannot observe events on parent reference",
   [ERROR.Observe_ShadowGetter]:
     "[Object] Shadow observable can only be added to properties with getters",

@@ -40,7 +40,8 @@ export class UIListController extends UIRenderableController {
     ListItemAdapter?:
       | UIListItemAdapter
       | ((instance: UIListController) => UIListItemAdapter),
-    container: ComponentConstructor & (new () => UIContainer) = _defaultContainer
+    container: ComponentConstructor<UIContainer> &
+      (new () => UIContainer) = _defaultContainer
   ): Function {
     this.presetBindingsFrom(ListItemAdapter as any);
     this.addObserver(

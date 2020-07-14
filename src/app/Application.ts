@@ -139,11 +139,3 @@ export namespace Application {
     activationContext?: AppActivationContext;
   }
 }
-
-class X extends AppActivity {
-  constructor() {
-    super();
-  }
-}
-
-Application.run(X);
