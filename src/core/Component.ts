@@ -10,7 +10,7 @@ import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject, ManagedState } from "./ManagedObject";
 import { managedChild } from "./ManagedReference";
-import { onPropertyChange } from "./observe";
+import { onPropertyChange, observe } from "./observe";
 
 /** Arbitrary name of a hidden property for bindings on the Component prototype */
 const HIDDEN_BINDINGS_PROPERTY = "^preBnd";
@@ -383,13 +383,11 @@ export namespace Component {
       ...include: ComponentConstructor[]
     ) {
       this._bindings = this._getAllBindings(...include);
+      observe(Composite, () => this.createObserver());
     }
 
-    /** @internal Add an observer to the composite class if not added yet */
-    observeBindings() {
-      if (this._init) return;
-      this._init = true;
-
+    /** @internal create an observer class specifically for this composition */
+    createObserver() {
       // get a list of all properties that should be observed
       let propertiesToObserve = this._bindings
         .filter(b => b.propertyName !== undefined)
@@ -406,7 +404,7 @@ export namespace Component {
             o && o.updateCompositeBound(name, v);
           }
         }
-        this.Composite.addObserver(PropertyChangeObserver);
+        return PropertyChangeObserver;
       }
     }
 
@@ -470,7 +468,6 @@ export namespace Component {
       return bindings;
     }
 
-    private _init?: boolean;
     private _bindings: Binding[];
   }
 
@@ -645,7 +642,6 @@ export namespace Component {
           this.compositeBindings = new ManagedMap();
         }
         let composition = this.component[HIDDEN_COMPOSE_PROPERTY][p];
-        composition.observeBindings();
         composition.getBindings().forEach(b => this.addCompositeBound(b));
 
         // create component itself and assign to property

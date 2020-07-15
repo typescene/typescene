@@ -79,7 +79,7 @@ export class ManagedObject {
     this: ManagedObjectConstructor<T>,
     Observer: { new (instance: T): any }
   ) {
-    observe(this, undefined, Observer as any);
+    observe(this, () => Observer);
     return this;
   }
 

@@ -25,16 +25,14 @@ const RESOLVED = Promise.resolve();
  */
 export function observe<C extends ManagedObjectConstructor>(
   Target: C,
-  propertyName?: string,
-  Observer?: { new (instance: InstanceType<C>): any }
+  propertyName: string | (() => Function | undefined)
 ) {
   // register a callback to be invoked for every instance of the target class,
   // but add the observer handlers only once
-  if (propertyName) {
-    Observer = (Target as any)[propertyName!];
-  }
   let firstCall = true;
   ((Target as any) as typeof ManagedObject)._addInitializer(function (this: ManagedObject) {
+    let Observer =
+      typeof propertyName === "function" ? propertyName() : (Target as any)[propertyName];
     if (Observer) {
       if (firstCall) _addObserverHandlers(Target, Observer);
       firstCall = false;
