@@ -205,18 +205,13 @@ export class ManagedObject {
 
   /**
    * Returns the managed object that contains a _managed child reference_ that points to this instance (see `@managedChild` and `@compose` decorators).
+   * If a class argument is specified, parent references are recursed until a parent of given type is found.
    * The object itself is never returned, even if it contains a managed child reference that points to itself.
    * @note The reference to the managed parent (but not its events) can be observed (see `observe()`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
    */
-  protected getManagedParent(): ManagedObject | undefined;
-  /**
-   * Returns the managed object that contains a _managed child reference_ that points to this instance (see `@managedChild` decorator). If a class argument is specified, parent references are recursed until a parent of given type is found.
-   * The object itself is never returned, even if it contains a managed child reference that points to itself (or if parents recursively reference the object or each other).
-   */
-  protected getManagedParent<TParent extends ManagedObject>(
-    ParentClass: ManagedObjectConstructor<TParent>
-  ): TParent | undefined;
-  protected getManagedParent(ParentClass?: ManagedObjectConstructor<any>) {
+  protected getManagedParent<TParent extends ManagedObject = ManagedObject>(
+    ParentClass?: ManagedObjectConstructor<TParent>
+  ): TParent | undefined {
     let ref = this[util.HIDDEN_REF_PROPERTY].parent;
     let parent: ManagedObject | undefined = ref && ref.a;
 
@@ -240,7 +235,7 @@ export class ManagedObject {
         }
       }
     }
-    return parent && parent !== this ? parent : undefined;
+    return parent && parent !== this ? (parent as TParent) : undefined;
   }
 
   /**
