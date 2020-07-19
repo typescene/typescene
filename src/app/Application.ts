@@ -4,6 +4,7 @@ import {
   logUnhandledException,
   managedChild,
   ManagedList,
+  ManagedService,
 } from "../core";
 import { err, ERROR } from "../errors";
 import { UIRenderContext } from "../ui";
@@ -125,6 +126,11 @@ export class Application extends Component {
     this.add(viewActivity);
     await viewActivity.activateAsync();
     return viewActivity;
+  }
+
+  /** Returns the currently registered service with given name, if any. This is an alias of `ManagedService.find()`. */
+  findService(name: string) {
+    return ManagedService.find(name);
   }
 }
 

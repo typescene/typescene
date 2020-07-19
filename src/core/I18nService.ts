@@ -2,9 +2,13 @@ import { ManagedList } from "./ManagedList";
 import { ManagedObject } from "./ManagedObject";
 import { ManagedService, service } from "./ManagedService";
 
+// Cumulative list of all strings that should be translatable,
+// even if they are not yet translated
+const _allTTStrings: any = {};
+
 /**
  * Abstract base class definition for a `ManagedService` that provides internationalization features.
- * To implement i18n in an application, extend this class and register an instance for the current locale before rendering the UI. Alternatively, use `UIRenderContext.emitRenderChange` after registering a new service to update the UI. In the application's implementation of the `I18nService` class, the methods `tt` and and `getNonTranslatable` must be defined.
+ * To implement i18n in an application, extend this class and register an instance for the current locale before rendering the UI. Alternatively, use `UIRenderContext.emitRenderChange` after registering a new service to update the UI. In the application's implementation of the `I18nService` class, the method `tt` must be defined.
  * @note The service name _must_ remain `"Core.I18n"` (default, assigned by this base class) for global functions such as 'tt' to work.
  */
 export abstract class I18nService extends ManagedService {
@@ -16,12 +20,9 @@ export abstract class I18nService extends ManagedService {
   /**
    * Translate and/or format given value, based on given type string (defaults to 'translate' for strings passed to the `tt` function, or 'datetime' for Date values).
    *
-   * @note Use the `tt` function instead where possible, which also removes `***{...}***` tags which can be used for unique string identifiers or comments to translators. This method should not need to remove those tags by itself.
+   * @note Do not call this method directly: use the `tt` function instead, which also removes `***{...}***` tags which can be used for unique string identifiers or comments to translators. This method should not need to remove those tags by itself.
    */
   abstract tt(value: any, type: string): string;
-
-  /** Returns an object with property names set to strings that should have been translated, but for which a translation was not available (abstract) */
-  abstract getNonTranslatable(): { [text: string]: any };
 
   /**
    * Pick one of the given plural forms, based on given number (or given array/ManagedList length). Can be overridden for languages that require more advanced logic.
@@ -30,6 +31,11 @@ export abstract class I18nService extends ManagedService {
    */
   getPlural(n: any, forms: string[]) {
     return _getPlural(n, forms);
+  }
+
+  /** Returns a list of strings that have been passed to the `tt` function for translation, even if they have not been translated yet (e.g. `AppException` messages for errors that have not yet been thrown). This list can be used at runtime to identify untranslated text or to generate a language file. */
+  getAllTranslatedText() {
+    return Object.keys(_allTTStrings);
   }
 }
 
@@ -76,6 +82,9 @@ export function tt(value: any, ...params: any[]) {
     else type = "translate";
   }
   if (value && value["_tt_" + type]) return value;
+  if (type === "translate") {
+    _allTTStrings[value] = true;
+  }
   return {
     ["_tt_" + type]: true,
     toString() {
