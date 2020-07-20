@@ -313,14 +313,11 @@ export class Component extends ManagedObject {
     return false;
   }
 
-  /** Returns the current parent component. See `@managedChild` decorator. */
-  getParentComponent(): Component | undefined;
-  /** Returns the current parent component. See `@managedChild` decorator. */
-  getParentComponent<TParent extends Component>(
-    ParentClass: ComponentConstructor<TParent>
-  ): TParent | undefined;
-  getParentComponent(ParentClass: any = Component) {
-    return this.getManagedParent(ParentClass);
+  /** Returns the current parent component. If a class reference is specified, finds the nearest parent of given type. See `@managedChild` decorator. */
+  getParentComponent<TParent extends Component = Component>(
+    ParentClass?: ComponentConstructor<TParent>
+  ) {
+    return this.getManagedParent(ParentClass || Component) as TParent | undefined;
   }
 
   /**

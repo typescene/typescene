@@ -64,11 +64,11 @@ export class ManagedRecord extends Component {
     return result;
   }
 
-  /** Returns the parent record (or parent's parent, etc.) of given type, defaulting to `ManagedRecord`. See `@managedChild` decorator. */
-  getParentRecord<TParent extends ManagedRecord>(
+  /** Returns the parent record (or parent's parent, etc.). If a class reference is specified, finds the nearest parent of given type. See `@managedChild` decorator. */
+  getParentRecord<TParent extends ManagedRecord = ManagedRecord>(
     ParentClass?: ManagedRecordConstructor<TParent>
   ) {
-    return this.getManagedParent(ParentClass || ManagedRecord);
+    return this.getManagedParent(ParentClass || ManagedRecord) as TParent | undefined;
   }
 
   /** Returns the next record in a parent list (i.e. a list that is a child object of another record) */
