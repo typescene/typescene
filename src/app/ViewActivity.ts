@@ -25,7 +25,10 @@ import { AppActivity } from "./AppActivity";
 export class ViewActivity extends AppActivity implements UIRenderable {
   static preset(presets: ViewActivity.Presets, View?: UIRenderableConstructor): Function {
     let addViewComponent = (View: UIRenderableConstructor) => {
-      this.presetActiveComponent("view", View, AppActivity);
+      // TODO: this doesn't work anymore without active composition
+      this.presetBoundComponent("view", View, AppActivity);
+      // TODO: without active composition, it is probably necessary
+      // to instantiate the view here.
       if (!Object.prototype.hasOwnProperty.call(View, "preset")) {
         // add a callback to the view class which updates the
         // view component on this class (recursively)

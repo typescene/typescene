@@ -6,7 +6,7 @@ import { ManagedReference } from "./ManagedReference";
 import { ERROR, err } from "../errors";
 import * as util from "./util";
 
-/** Generic constructor type for ManagedRecord, matching both parameterless constructors and those with one or more required parameters */
+/** Generic constructor type for ManagedRecord classes */
 export type ManagedRecordConstructor<TObject extends ManagedRecord = ManagedRecord> = new (
   ...args: never[]
 ) => TObject;

@@ -12,7 +12,8 @@ import { err, ERROR } from "../errors";
 export class ViewComponent extends AppComponent implements UIRenderable {
   static preset(presets: object, ...View: UIRenderableConstructor[]): Function {
     if (View.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
-    if (View[0]) this.presetActiveComponent("view", View[0], ViewActivity);
+    // TODO: this doesn't work anymore without active composition
+    if (View[0]) this.presetBoundComponent("view", View[0], ViewActivity);
     return super.preset(presets);
   }
 
@@ -107,7 +108,8 @@ export namespace ViewComponent {
     return class ViewComponentWithTemplate extends ViewComponent {
       static preset(presets: any, ...C: TRest) {
         let t = templateProvider(presets, ...C);
-        this.presetActiveComponent("view", t).limitBindings();
+        // TODO: this doesn't work anymore without active composition
+        this.presetBoundComponent("view", t).limitBindings();
         this.presetBindingsFrom(t);
         return super.preset(presets);
       }

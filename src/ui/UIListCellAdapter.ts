@@ -56,7 +56,8 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
         ? handlers
         : cellPresets)[k] = (presets as any)[k];
     }
-    let p = this.presetActiveComponent(
+    // TODO: this doesn't work anymore without active composition
+    let p = this.presetBoundComponent(
       "cell",
       UICell.with(cellPresets, ...rest),
       UIRenderableController

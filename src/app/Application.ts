@@ -53,7 +53,8 @@ export class Application extends Component {
     ...activities: Array<ComponentConstructor<AppActivity>>
   ): Function {
     if (activities.length) {
-      this.presetActiveComponent(
+      // TODO: this doesn't work anymore without active composition
+      this.presetBoundComponent(
         "activities",
         AppActivityList.with(...activities),
         AppActivity

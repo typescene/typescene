@@ -67,7 +67,7 @@ UIModalController.addObserver(
       }
       if (this.controller.modal) {
         let ref = this._getReferenceComponent();
-        let application = this.controller.getCompositeParent(Application);
+        let application = this.controller.getBoundParentComponent(Application);
         if (ref && application && application.renderContext) {
           this._renderCallback = application.renderContext.getRenderCallback() as any;
           let callbackProxy: UIRenderContext.RenderCallback = (output, afterRender) => {

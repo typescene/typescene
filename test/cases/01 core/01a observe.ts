@@ -53,7 +53,7 @@ consider("Observers", () => {
     let order = "";
     class A extends ManagedObject {}
     class AObserver {
-      @rateLimit(100)
+      @rateLimit(300)
       onEventAsync(e: ManagedEvent) {
         order += e.name;
       }
@@ -62,13 +62,13 @@ consider("Observers", () => {
     let a = new A();
     a.emit("1"), a.emit("2"); // trigger 2 immed async
     order += "A";
-    setTimeout(() => a.emit("3"), 30); // skip
-    setTimeout(() => a.emit("4"), 40); // held until ~100ms
-    setTimeout(() => (order += "B"), 50);
-    setTimeout(() => a.emit("5"), 130); // skip
-    setTimeout(() => a.emit("6"), 140); // held until ~200ms
-    setTimeout(() => (order += "C"), 150);
-    t.waitAsync(300, () => {
+    setTimeout(() => a.emit("3"), 50); // skip
+    setTimeout(() => a.emit("4"), 100); // held until ~100ms
+    setTimeout(() => (order += "B"), 100);
+    setTimeout(() => a.emit("5"), 400); // skip
+    setTimeout(() => a.emit("6"), 450); // held until ~200ms
+    setTimeout(() => (order += "C"), 450);
+    t.waitAsync(800, () => {
       t.test(order === "A2B4C6");
     });
   });
@@ -124,7 +124,7 @@ consider("Observers", () => {
       a?: string;
     }
     class AObserver {
-      @rateLimit(100)
+      @rateLimit(300)
       onAChangeAsync(v: string) {
         order += v;
       }
@@ -133,13 +133,13 @@ consider("Observers", () => {
     let a = new A();
     (a.a = "1"), (a.a = "2"); // trigger 2 immed async
     order += "A";
-    setTimeout(() => (a.a = "3"), 30); // skip
-    setTimeout(() => (a.a = "4"), 40); // held until ~100ms
-    setTimeout(() => (order += "B"), 50);
-    setTimeout(() => (a.a = "5"), 130); // skip
-    setTimeout(() => (a.a = "6"), 140); // held until ~200ms
-    setTimeout(() => (order += "C"), 150);
-    t.waitAsync(300, () => {
+    setTimeout(() => (a.a = "3"), 50); // skip
+    setTimeout(() => (a.a = "4"), 100); // held until ~100ms
+    setTimeout(() => (order += "B"), 100);
+    setTimeout(() => (a.a = "5"), 400); // skip
+    setTimeout(() => (a.a = "6"), 450); // held until ~200ms
+    setTimeout(() => (order += "C"), 450);
+    t.waitAsync(800, () => {
       t.test(order === "A2B4C6");
     });
   });
@@ -188,7 +188,7 @@ consider("Observers", () => {
     }
     class AObserver {
       @onPropertyEvent("b")
-      @rateLimit(100)
+      @rateLimit(300)
       handleBEventAsync(_v: B, e: ManagedEvent) {
         order += e.name;
       }
@@ -197,13 +197,13 @@ consider("Observers", () => {
     let a = new A();
     a.b.emit("1"), a.b.emit("2"); // trigger 2 immed async
     order += "A";
-    setTimeout(() => a.b.emit("3"), 30); // skip
-    setTimeout(() => a.b.emit("4"), 40); // held until ~100ms
-    setTimeout(() => (order += "B"), 50);
-    setTimeout(() => a.b.emit("5"), 130); // skip
-    setTimeout(() => a.b.emit("6"), 140); // held until ~200ms
-    setTimeout(() => (order += "C"), 150);
-    t.waitAsync(300, () => {
+    setTimeout(() => a.b.emit("3"), 50); // skip
+    setTimeout(() => a.b.emit("4"), 100); // held until ~300ms
+    setTimeout(() => (order += "B"), 100);
+    setTimeout(() => a.b.emit("5"), 400); // skip
+    setTimeout(() => a.b.emit("6"), 450); // held until ~600ms
+    setTimeout(() => (order += "C"), 450);
+    t.waitAsync(800, () => {
       t.test(order === "A2B4C6");
     });
   });

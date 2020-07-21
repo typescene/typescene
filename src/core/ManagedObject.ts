@@ -64,7 +64,7 @@ let _nextRefId = 16;
 /** Maximum number of recursive event emissions allowed _per object_ */
 const RECURSE_EMIT_LIMIT = 4;
 
-/** Generic constructor type for ManagedObject, matching both parameterless constructors and those with one or more required parameters */
+/** Generic constructor type for ManagedObject classes */
 export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObject> = new (
   ...args: never[]
 ) => TObject;
@@ -239,7 +239,7 @@ export class ManagedObject {
   }
 
   /**
-   * Emit an event. If an event constructor is given, a new instance is created using given constructor arguments (rest parameters). If an event name (string) is given, a new default event instance is created with given name. This method may be overridden in derived classes to use a different default event class.
+   * Emit an event. If an event constructor is given, a new instance is created using given constructor arguments (rest parameters). If an event name (string) is given, a new plain event is created with given name.
    * Use the `ManagedEvent.freeze` method to freeze event instances before emitting.
    * See `ManagedObject.handle` and `ManagedObject.observe` (static methods to be used on subclasses of `ManagedObject`) for ways to handle events.
    * @note There is a limit to the number of events that can be emitted recursively; avoid calling this method on the same object from _within_ an event handler.
@@ -605,7 +605,7 @@ export class ManagedObject {
   }
 
   /** @internal Make given reference link object the (new) parent-child link for the referenced object */
-  protected static _makeManagedChildRefLink(ref: util.RefLink) {
+  protected static _makeManagedChildRefLink(ref: util.RefLink, propertyName?: string) {
     let target: ManagedObject = ref.b;
     let targetRefs = target[util.HIDDEN_REF_PROPERTY];
     if (targetRefs[ref.u] === ref) {
@@ -622,7 +622,7 @@ export class ManagedObject {
           this._discardRefLink(oldParent);
           oldParent.g && oldParent.g(this);
         }
-        target.emit(ManagedParentChangeEvent, ref.a);
+        target.emit(ManagedParentChangeEvent, ref.a, propertyName);
       }
     }
   }
@@ -749,7 +749,7 @@ export class ManagedObject {
             );
             if (isChildReference) {
               // set (new) parent-child link on the target object
-              ManagedObject._makeManagedChildRefLink(ref);
+              ManagedObject._makeManagedChildRefLink(ref, propertyKey as string);
             }
           }
           if (readonlyRef) target = readonlyRef.get()!;
