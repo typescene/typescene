@@ -2,9 +2,9 @@ import { ManagedObject } from "../core";
 import { err, ERROR } from "../errors";
 import { AppActivity } from "./AppActivity";
 
-/** Represents the application state using a single path in URL format. Used by `Application` and `AppActivity` classes to implement routing behaviors. */
+/** Represents the application state using a single 'target' path in URL format. Used by `AppActivity` classes to implement routing behavior. This class is overridden by specialized implementations to work with platform features, e.g. DOM navigation in a Web browser. */
 export class AppActivationContext extends ManagedObject {
-  /** The current full target path, in URL format without leading or trailing slashes (e.g. `foo/bar/123`), defaults to the empty string. Changes to this property automatically result in a change event being emitted on the object itself. */
+  /** The current full target path, in URL format without leading or trailing slashes (e.g. `foo/bar/123`), defaults to the empty string. Changes to this property automatically result in a change event being emitted on the activation context instance itself. */
   get target() {
     return this._target;
   }

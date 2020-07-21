@@ -5,6 +5,7 @@ import {
   managedChild,
   ManagedList,
   ManagedService,
+  ManagedCoreEvent,
 } from "../core";
 import { err, ERROR } from "../errors";
 import { UIRenderContext } from "../ui";
@@ -53,12 +54,14 @@ export class Application extends Component {
     ...activities: Array<ComponentConstructor<AppActivity>>
   ): Function {
     if (activities.length) {
-      // TODO: this doesn't work anymore without active composition
-      this.presetBoundComponent(
-        "activities",
-        AppActivityList.with(...activities),
-        AppActivity
-      );
+      // preset an AppActivityList with given activities
+      let L = AppActivityList.with(...activities);
+      this.presetBoundComponent("activities", L, AppActivity);
+      this.addEventHandler(function (e) {
+        // toggle property based on activation state
+        if (e === ManagedCoreEvent.ACTIVE) this.activities = new L();
+        if (e === ManagedCoreEvent.INACTIVE) this.activities = undefined;
+      });
     }
     return super.preset(presets);
   }
@@ -70,11 +73,11 @@ export class Application extends Component {
   @managedChild
   activities?: AppActivityList;
 
-  /** Application render context as a managed child object, propagated to all (nested) `AppComponent` instances */
+  /** Application render context as a managed child object, propagated to all (nested) `AppComponent` instances. This object is set by specialized application classes such as `BrowserApplication` to match the capabilities of the runtime platform.  */
   @managedChild
   renderContext?: UIRenderContext;
 
-  /** Activity activation context as a managed child object, propagated to all (nested) `AppComponent` instances */
+  /** Activity activation context as a managed child object, propagated to all (nested) `AppComponent` instances. This object is set by specialized application classes such as `BrowserApplication` to match the capabilities of the runtime platform. */
   @managedChild
   activationContext?: AppActivationContext;
 
@@ -102,9 +105,15 @@ export class Application extends Component {
     await this.destroyManagedAsync();
   }
 
-  /** Navigate to given (relative) path, or go back in history if argument is `:back`, using the current `Application.activationContext` */
+  /** Navigate to given (relative) path using the current `Application.activationContext` */
   navigate(path: string) {
     if (this.activationContext) this.activationContext.navigate(path);
+    return this;
+  }
+
+  /** Go back to the previous navigation path, if implemented by the current `Application.activationContext` */
+  goBack() {
+    if (this.activationContext) this.activationContext.navigate(":back");
     return this;
   }
 

@@ -6,7 +6,6 @@ export function err(error: ERROR, s?: any) {
 export const enum ERROR {
   ActivationContext_InvalidPath,
   Application_Inactive,
-  ViewActivity_ViewBound,
   ViewActivity_NoRenderContext,
   ViewActivity_NoApplication,
   ViewActivity_NoDialogBuilder,
@@ -59,7 +58,6 @@ const errors: { [error: number]: string } = {
   [ERROR.ActivationContext_InvalidPath]: "[ActivationContext] Invalid path: %s",
   [ERROR.Application_Inactive]:
     "[Application] Cannot add activities to inactive application",
-  [ERROR.ViewActivity_ViewBound]: "[ViewActivity] View property cannot be bound",
   [ERROR.ViewActivity_NoRenderContext]:
     "[ViewActivity] Render context not found (not a child component?)",
   [ERROR.ViewActivity_NoApplication]: "[ViewActivity] Application instance not found",
