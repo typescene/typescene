@@ -1,12 +1,12 @@
 import { Binding } from "../../core";
-import { UIComponentEventHandler } from "../UIComponent";
+import { UIComponentEventHandler, Stringable } from "../UIComponent";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
 
 /** Represents a UI component that displays a referenced image */
 export class UIImage extends UIControl {
   /** Creates a preset image class with given URL, if any */
-  static withUrl(url: string | Binding) {
+  static withUrl(url: Stringable | Binding) {
     return this.with({ url });
   }
 
@@ -16,7 +16,7 @@ export class UIImage extends UIControl {
   }
 
   /** Create a new label with given URL */
-  constructor(url?: string) {
+  constructor(url?: Stringable) {
     super();
     this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["image"]);
     this.shrinkwrap = true;
@@ -38,14 +38,14 @@ export class UIImage extends UIControl {
   allowKeyboardFocus?: boolean;
 
   /** Image resource URL */
-  url?: string;
+  url?: Stringable;
 }
 
 export namespace UIImage {
   /** UIImage presets type, for use with `Component.with` */
   export interface Presets extends UIControl.Presets {
     /** Image resource URL */
-    url?: string;
+    url?: Stringable;
     /** Set to true to allow this image to receive input focus using mouse, touch, or `UIComponent.requestFocus` */
     allowFocus?: boolean;
     /** Set to true to allow this image to receive input focus using the keyboard as well as other methods; implies `allowFocus` */

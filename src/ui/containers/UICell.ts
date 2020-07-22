@@ -15,6 +15,20 @@ const _mixin = UIStyle.create("UICell", {
   position: { top: 0 },
 });
 
+/** Basic animated transition types, used for `UIComponent.revealTransition` and `UIComponent.exitTransition`. More transitions may be available depending on platform and cell type. */
+export enum UICellTransition {
+  right = "right",
+  left = "left",
+  up = "up",
+  down = "down",
+  fade = "fade",
+  rightFast = "right-fast",
+  leftFast = "left-fast",
+  upFast = "up-fast",
+  downFast = "down-fast",
+  fadeFast = "fade-fast",
+}
+
 /** Represents a UI component that visually groups other components in a rectangular cell */
 export class UICell extends UIContainer {
   static preset(
@@ -168,6 +182,12 @@ export class UICell extends UIContainer {
   /** Opacity (0-1; defaults to fully opaque if undefined) */
   opacity?: number;
 
+  /** Animated transition that plays when this cell is first rendered */
+  revealTransition?: UICellTransition | string;
+
+  /** Animated transition that plays when this cell is removed from a container */
+  exitTransition?: UICellTransition | string;
+
   /**
    * Other CSS attributes that are applied directly to the container, if supported (plain object)
    * @note Changes to individual properties are not observed by the renderer.
@@ -226,6 +246,12 @@ export namespace UICell {
     allowFocus?: boolean;
     /** Set to true to allow this cell *itself* to receive input focus using the keyboard as well as other methods; implies `allowFocus` */
     allowKeyboardFocus?: boolean;
+
+    /** Animation that plays when this cell is first rendered */
+    revealTransition?: UICellTransition | string;
+    /** Animation that plays when this cell is removed from a container */
+    exitTransition?: UICellTransition | string;
+
     /** Other CSS attributes that are applied directly to the container, if supported (plain object). */
     css?: Partial<CSSStyleDeclaration> & { className?: string };
 

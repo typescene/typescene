@@ -2,7 +2,7 @@ import { Binding, Component, managed, ManagedList, ManagedMap } from "../core";
 import { UIComponent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
 
-/** Renderable component that wraps around a referenced view (view component or activity), which is _not_ a child component of the component itself. The view may be selected from a bound list and/or map, using a (bound or assigned) index.
+/** Renderable component that encapsulates a referenced view (view component or activity), which is _not_ a child component of the component itself. The view may be selected from a bound list and/or map, using a (bound or assigned) index.
  * @note Because the rendered view is not a child component, events (including UI events such as 'Clicked') never propagate up to the containing component(s).
  */
 export class UIViewRenderer extends Component implements UIRenderable {

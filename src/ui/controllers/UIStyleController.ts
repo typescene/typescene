@@ -1,7 +1,7 @@
-import { ComponentConstructor } from "../core";
-import { UIComponent } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
-import { UIStyle } from "./UIStyle";
+import { ComponentConstructor } from "../../core";
+import { UIComponent } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
+import { UIStyle } from "../UIStyle";
 
 /** Renderable wrapper that controls the style of its single content component, by applying one of the given styles based on the current value of a property */
 export class UIStyleController extends UIRenderableController {

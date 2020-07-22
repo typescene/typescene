@@ -1,4 +1,5 @@
-import { Stringable, UIRenderableConstructor, UITransitionType } from "./UIComponent";
+import { Stringable, UIRenderableConstructor } from "./UIComponent";
+import { UICellTransition } from "./containers/UICell";
 import { UIStyle } from "./UIStyle";
 
 const TEXT_COLOR_B = "rgba(0,0,0,.8)";
@@ -43,9 +44,9 @@ export abstract class UIMenuBuilder {
   /** Set the alignment of the menu to its related component (`start`, `stretch`, or `end`), if applicable */
   abstract setGravity(gravity: "start" | "stretch" | "end"): this;
   /** Set the animation that plays when the menu is displayed, if applicable */
-  abstract setRevealTransition(transition: UITransitionType): this;
+  abstract setRevealTransition(transition: UICellTransition | string): this;
   /** Set the animation that plays when the menu is removed, if applicable */
-  abstract setExitTransition(transition: UITransitionType): this;
+  abstract setExitTransition(transition: UICellTransition | string): this;
   /** Build a constructor for a menu with the current options, which should emit a `SelectMenuItem` event (of type `UIMenuItemSelectedEvent`) when an item is selected, and a `CloseModal` event to close the menu */
   abstract build(): UIRenderableConstructor;
 }

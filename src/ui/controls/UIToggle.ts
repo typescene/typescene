@@ -15,7 +15,7 @@ export class UIToggle extends UIControl {
   }
 
   /** Creates a preset toggle class with given name and label, if any */
-  static withName(name: string, label?: string) {
+  static withName(name: string, label?: Stringable) {
     return this.with({ name, label });
   }
 

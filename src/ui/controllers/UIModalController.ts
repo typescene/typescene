@@ -1,15 +1,15 @@
-import { Application } from "../app";
+import { Application } from "../../app";
 import {
   Binding,
   ComponentConstructor,
   ComponentEvent,
   ComponentEventHandler,
   managedChild,
-} from "../core";
-import { err, ERROR } from "../errors";
-import { UIComponent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
-import { UIRenderContext, UIRenderPlacement } from "./UIRenderContext";
+} from "../../core";
+import { err, ERROR } from "../../errors";
+import { UIComponent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
+import { UIRenderContext, UIRenderPlacement } from "../UIRenderContext";
 
 /** Renderable wrapper for a single component that can be used to display another component as a modal view. The modal component is created immediately after the `ShowModal` event is emitted, and removed when the `CloseModal` event is emitted. */
 export class UIModalController extends UIRenderableController {

@@ -9,12 +9,12 @@ import {
   ManagedListChangeEvent,
   ManagedMap,
   ManagedObject,
-} from "../core";
-import { UICloseColumn } from "./containers/UIColumn";
-import { UIContainer } from "./containers/UIContainer";
-import { UIComponentEvent, UIRenderable } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
-import { UIStyle } from "./UIStyle";
+} from "../../core";
+import { UICloseColumn } from "../containers/UIColumn";
+import { UIContainer } from "../containers/UIContainer";
+import { UIComponentEvent, UIRenderable } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
+import { UIStyle } from "../UIStyle";
 
 /** Type definition for a component constructor that accepts a single object argument, and constructs a renderable component */
 export interface UIListItemAdapter<TObject extends ManagedObject = ManagedObject> {

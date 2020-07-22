@@ -1,6 +1,6 @@
-import { ComponentEventHandler, managed, ManagedObject, ManagedRecord } from "../core";
-import { FormContextChangeEvent } from "./containers/UIForm";
-import { UIRenderableController } from "./UIRenderableController";
+import { ComponentEventHandler, managed, ManagedObject, ManagedRecord } from "../../core";
+import { FormContextChangeEvent } from "../containers/UIForm";
+import { UIRenderableController } from "../UIRenderableController";
 
 /**
  * Renderable wrapper that injects a form context record, to be used by (nested) child input controls.

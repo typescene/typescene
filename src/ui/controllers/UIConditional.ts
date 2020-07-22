@@ -1,5 +1,5 @@
-import { UIRenderableConstructor } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
+import { UIRenderableConstructor } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
 
 /** Encapsulates content that is added/removed asynchronously based on the value of a (bound) property */
 export class UIConditional extends UIRenderableController {

@@ -10,11 +10,11 @@ import {
   ManagedState,
   shadowObservable,
   observe,
-} from "../core";
-import { UICell } from "./containers/UICell";
-import { UIRenderable, UIRenderableConstructor } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
-import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
+} from "../../core";
+import { UICell } from "../containers/UICell";
+import { UIRenderable, UIRenderableConstructor } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
+import { renderContextBinding, UIRenderContext } from "../UIRenderContext";
 
 /** Event that is emitted on a particular `UIListCellAdapter`. */
 export class UIListCellAdapterEvent<

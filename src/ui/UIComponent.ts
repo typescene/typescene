@@ -9,7 +9,7 @@ import { UITheme } from "./UITheme";
 export type Stringable = string | { toString(): string };
 
 /** Empty style instance, used on plain UIComponent instances */
-let _emptyStyle = new UIStyle();
+const _emptyStyle = new UIStyle();
 
 /** Event handler type (see `Component.with`), as a string or function */
 export type UIComponentEventHandler<TComponent = UIComponent, TEvent = UIComponentEvent> =
@@ -53,29 +53,16 @@ export class UIRenderEvent<TSource extends UIComponent> extends ManagedEvent {
   /** Event source UI component */
   readonly source: TSource;
 
-  /** Initial render callback, to be called only once */
+  /** Initial render callback, to be called only once. The callback always returns a new callback that can be used for further updates. */
   readonly renderCallback: UIRenderContext.RenderCallback;
 }
 
 /** Focus request type, used by `UIComponent.requestFocus` */
-export const enum UIFocusRequestType {
+export enum UIFocusRequestType {
   SELF = 0,
   FORWARD = 1,
   REVERSE = -1,
 }
-
-/** Simple animated transition type, used for `UIComponent.revealTransition` and `UIComponent.exitTransition` */
-export type UITransitionType =
-  | "right"
-  | "left"
-  | "up"
-  | "down"
-  | "fade"
-  | "right-fast"
-  | "left-fast"
-  | "up-fast"
-  | "down-fast"
-  | "fade-fast";
 
 /** Event that is emitted on a particular UI component when it requests focus for itself or a sibling component; handled by the component renderer if possible. Should not be propagated. */
 export class UIFocusRequestEvent<TSource extends UIComponent> extends ManagedEvent {
@@ -92,6 +79,16 @@ export class UIFocusRequestEvent<TSource extends UIComponent> extends ManagedEve
   /** Focus direction */
   readonly direction: UIFocusRequestType;
 }
+
+/** Type definition for a component that can be rendered on its own */
+export interface UIRenderable extends Component {
+  /** Trigger asynchronous rendering for this component, and all contained components (if any) */
+  render: UIComponent["render"];
+}
+
+/** Type definition for a constructor of a component that can be instantiated and rendered on its own (see `UIRenderable`) */
+export type UIRenderableConstructor = ComponentConstructor<UIRenderable> &
+  (new () => UIRenderable);
 
 /** Represents a visible part of the user interface. */
 export abstract class UIComponent extends Component implements UIRenderable {
@@ -132,7 +129,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
   }
 
   /** Create a new UI component */
-  constructor() {
+  protected constructor() {
     super();
     this.propagateChildEvents(ComponentEvent);
   }
@@ -156,12 +153,12 @@ export abstract class UIComponent extends Component implements UIRenderable {
 
   private _firstRendered?: boolean;
 
-  /** Returns true if this component can be focused directly using mouse or touch, or manually using `UIComponent.requestFocus`. This method may be overridden by derived component classes, but the value returned must always be the same. */
+  /** Returns true if this component can be focused directly using mouse or touch, or manually using `UIComponent.requestFocus`. This method may be overridden by derived component classes, but the return value must be constant for each instance. */
   isFocusable() {
     return false;
   }
 
-  /** Returns true if this component can be focused using the keyboard *or* other methods; a true return value implies the same for `UIComponent.isFocusable`. This method may be overridden by derived component classes, but the value returned must always be the same. */
+  /** Returns true if this component can be focused using the keyboard as well as using other methods (rather than direct manipulation only). This method may be overridden by derived component classes, but the return value must be constant for each instance. */
   isKeyboardFocusable() {
     return false;
   }
@@ -184,13 +181,16 @@ export abstract class UIComponent extends Component implements UIRenderable {
     this.emit(UIFocusRequestEvent, this, UIFocusRequestType.REVERSE);
   }
 
-  /** Applies given style set to individual style objects (e.g. `UIComponent.dimensions`), overridden in derived classes to copy applicable styles */
+  /** Applies given style set to individual style objects (e.g. `UIComponent.dimensions`). This method is overridden by derived classes to copy only applicable styles */
   protected applyStyle(style: UIStyle) {
     this.dimensions = style.getStyles().dimensions;
     this.position = style.getStyles().position;
   }
 
-  /** Combined style set; when this is set to an instance of `UIStyle`, the individual style object properties (e.g. `UIComponent.dimensions`) are set to read-only objects taken from the `UIStyle` instance. To override individual properties, set these properties *after* setting `style`, or use `Component.with` to create a new constructor. */
+  /**
+   * Combined style set. This can be set to an instance of `UIStyle`, which copies the individual style object properties (e.g. `UIComponent.dimensions`) to read-only objects taken from the `UIStyle` instance.
+   * @note To override individual properties, set these properties *after* setting `style`.
+   */
   get style() {
     return this._style;
   }
@@ -204,7 +204,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
   private _style = _emptyStyle;
   private _requestedFocusBefore?: boolean;
 
-  /** Set to true to hide this component from view (while it is still rendered) */
+  /** Set to true to hide this component from view (does not stop the component from being rendered) */
   hidden?: boolean;
 
   /** Options for the dimensions of this component */
@@ -219,12 +219,6 @@ export abstract class UIComponent extends Component implements UIRenderable {
   /** WAI-ARIA label text for this component (not tooltip), if applicable */
   accessibleLabel?: string;
 
-  /** Animated transition that plays when this component is first rendered */
-  revealTransition?: UITransitionType;
-
-  /** Animated transition that plays when this component is removed from a container */
-  exitTransition?: UITransitionType;
-
   /** Last rendered output, if any; set by the renderer */
   lastRenderOutput?: UIRenderContext.Output<this>;
 }
@@ -234,7 +228,7 @@ export namespace UIComponent {
   export interface Presets {
     /** Style set (either an instance of `UIStyle` *or* the name of a style set defined in `UITheme.current`), which is *mixed into* the current style set on the component, before setting any other style properties */
     style?: UIStyle | string;
-    /** Set to true to hide this component from view (while it is still rendered) */
+    /** Set to true to hide this component from view (does not stop the component from being rendered) */
     hidden?: boolean;
     /** Options for the dimensions of this component (overrides) */
     dimensions?: Partial<UIStyle.Dimensions | {}>;
@@ -246,10 +240,6 @@ export namespace UIComponent {
     accessibleLabel?: string;
     /** Set to true to request focus immediately after rendering for the first time; cannot be used together with `onRendered` */
     requestFocus?: boolean;
-    /** Animation that plays when this component is first rendered */
-    revealTransition?: UITransitionType;
-    /** Animation that plays when this component is removed from a container */
-    exitTransition?: UITransitionType;
 
     // general event handlers
     onRendered?: string | ((this: UIComponent) => void);
@@ -318,13 +308,3 @@ export namespace UIComponent {
     private _seq = 0;
   }
 }
-
-/** Type definition for a component that can be rendered on its own */
-export interface UIRenderable extends Component {
-  /** Trigger asynchronous rendering for this component, and all contained components (if any) */
-  render: UIComponent["render"];
-}
-
-/** Type definition for a constructor of a component that can be rendered on its own (see `UIRenderable`) */
-export type UIRenderableConstructor = ComponentConstructor<UIRenderable> &
-  (new () => UIRenderable);

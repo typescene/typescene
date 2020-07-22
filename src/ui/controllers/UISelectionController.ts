@@ -1,6 +1,6 @@
-import { Component, ComponentEvent, managed } from "../core";
-import { UIRenderable } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
+import { Component, ComponentEvent, managed } from "../../core";
+import { UIRenderable } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
 
 /** Renderable wrapper that controls selection state across components, by emitting `Deselect` events for previously selected components upon `Select` events on newly selected components */
 export class UISelectionController extends UIRenderableController {

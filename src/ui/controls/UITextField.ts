@@ -15,7 +15,7 @@ export class UITextField extends UIControl {
   }
 
   /** Creates a preset text field class with given name and placeholder, if any */
-  static withName(name: string, placeholder?: string) {
+  static withName(name: string, placeholder?: Stringable) {
     return this.with({ name, placeholder });
   }
 

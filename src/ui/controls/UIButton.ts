@@ -33,7 +33,7 @@ export class UIButton extends UIControl {
   }
 
   /** Create a new button with given label */
-  constructor(label?: string) {
+  constructor(label?: Stringable) {
     super();
     this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["button"]);
     this.shrinkwrap = true;

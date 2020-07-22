@@ -8,7 +8,7 @@ import {
   ManagedRecord,
 } from "../../core";
 import { UIRenderable, UIRenderableConstructor } from "../UIComponent";
-import { UIFormContextController } from "../UIFormContextController";
+import { UIFormContextController } from "../controllers/UIFormContextController";
 import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
 import { UICell } from "./UICell";
