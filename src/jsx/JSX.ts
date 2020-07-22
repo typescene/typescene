@@ -10,7 +10,7 @@ import {
   UIRenderable,
   UIRenderableConstructor,
   ViewComponent,
-} from "../../dist";
+} from "../";
 import * as intrinsics from "./intrinsics";
 
 /** JSX support for Typescene UI components */
@@ -39,7 +39,7 @@ export function JSX(
   }
 
   // merge different types of content
-  let merged = presets ? { ...presets } : Object.create(null);
+  let merged = presets ? { ...presets } : {};
   if (fmt) {
     if (!bindings) {
       // content is only text
@@ -112,8 +112,8 @@ export namespace JSX {
     >
   > = Pick<InstanceType<TComponent>, K>;
 
-  /** Returns JSX-enabled factory function for given component class */
-  export function ify<T extends typeof Component & UIRenderableConstructor>(
+  /** Returns JSX-compatible factory function for given component class */
+  export function tag<T extends typeof Component & UIRenderableConstructor>(
     C: T
   ): FactoryType<T, ComponentPresetArgType<T>> & {
     with: FactoryType<T, ComponentPresetArgType<T>>;

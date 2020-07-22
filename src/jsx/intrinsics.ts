@@ -1,4 +1,4 @@
-import { ComponentPresetArgType, UIRow } from "../../";
+import { ComponentPresetArgType } from "../core";
 import {
   UIBorderlessButton,
   UIBorderlessTextField,
@@ -31,6 +31,7 @@ import {
   UIOutlineButton,
   UIParagraph,
   UIPrimaryButton,
+  UIRow,
   UIScrollContainer,
   UISelectionController,
   UISeparator,
@@ -40,7 +41,7 @@ import {
   UITextField,
   UIToggle,
   UIViewRenderer,
-} from "../../dist";
+} from "../ui/";
 
 // add all intrinsics to an object so that JSX(...) can find the correct classes
 export const tags = {

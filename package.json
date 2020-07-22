@@ -29,7 +29,7 @@
     "clean": "rimraf dist && rimraf JSX/dist",
     "prepublishOnly": "npm run build",
     "prebuild": "npm run clean && tsc -p src --declaration",
-    "build": "tsc -p src --removeComments && tsc -d -p JSX/src",
+    "build": "tsc -p src --removeComments",
     "postbuild": "node test/run",
     "watch": "tsc -p src -w",
     "test": "node test/run"

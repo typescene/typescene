@@ -246,14 +246,14 @@ export class Component extends ManagedObject {
    */
   static presetBindingsFrom(...constructors: Array<ComponentConstructor | undefined>) {
     if (!this.prototype.hasOwnProperty(HIDDEN_BIND_INHERIT_PROPERTY)) {
-      this.prototype[HIDDEN_BIND_INHERIT_PROPERTY] = this.prototype[
-        HIDDEN_BIND_INHERIT_PROPERTY
-      ]
-        ? this.prototype[HIDDEN_BIND_INHERIT_PROPERTY].slice()
-        : [];
+      let a = this.prototype[HIDDEN_BIND_INHERIT_PROPERTY];
+      this.prototype[HIDDEN_BIND_INHERIT_PROPERTY] = a ? a.slice() : [];
     }
     for (const C of constructors) {
-      if (C) this.prototype[HIDDEN_BIND_INHERIT_PROPERTY].push(C);
+      if (C) {
+        if (!C.prototype || !(C.prototype instanceof Component)) throw TypeError();
+        this.prototype[HIDDEN_BIND_INHERIT_PROPERTY].push(C);
+      }
     }
   }
 
@@ -407,7 +407,7 @@ export namespace Component {
 
         // add inherited bindings
         let i = (C.prototype as Component)[HIDDEN_BIND_INHERIT_PROPERTY];
-        for (let p in i) addBindings(i[p]);
+        for (let c of i) addBindings(c);
 
         // add unbound composite bindings
         let c = (C.prototype as Component)[HIDDEN_COMPOSTN_PROPERTY];
