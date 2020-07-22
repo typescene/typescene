@@ -190,9 +190,9 @@ export class ManagedObject {
     return this[util.HIDDEN_REFCOUNT_PROPERTY];
   }
 
-  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed`, `@managedChild`, `@managedDependency`, and `@compose` decorators) */
+  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed`, `@managedChild`, and `@managedDependency` decorators) */
   protected getManagedReferrers() {
-    let seen: boolean[] = {} as any;
+    let seen: boolean[] = Object.create(null);
     let result: ManagedObject[] = [];
     this[util.HIDDEN_REF_PROPERTY].forEach(reflink => {
       let object: ManagedObject = reflink.a;
@@ -204,7 +204,7 @@ export class ManagedObject {
   }
 
   /**
-   * Returns the managed object that contains a _managed child reference_ that points to this instance (see `@managedChild` and `@compose` decorators).
+   * Returns the managed object that contains a _managed child reference_ that points to this instance, if any (see `@managedChild`).
    * If a class argument is specified, parent references are recursed until a parent of given type is found.
    * The object itself is never returned, even if it contains a managed child reference that points to itself.
    * @note The reference to the managed parent (but not its events) can be observed (see `observe()`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
@@ -228,7 +228,7 @@ export class ManagedObject {
         // continue in a loop, but keep track of objects already seen
         let seen: boolean[] | undefined;
         while (parent && !(parent instanceof <any>ParentClass)) {
-          (seen || (seen = {} as any))[parent.managedId] = true;
+          (seen || (seen = Object.create(null)))[parent.managedId] = true;
           parentRef = parent[util.HIDDEN_REF_PROPERTY].parent;
           parent = parentRef && parentRef.a;
           if (parent && seen![parent.managedId]) break;

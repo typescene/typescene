@@ -4,7 +4,7 @@ import { Stringable } from "./UIComponent";
 let _nextUID = 1;
 
 /** All mixins created, by ID */
-let _mixins: { [id: string]: UIStyle } = {};
+let _mixins: { [id: string]: UIStyle } = Object.create(null);
 
 /** Inherited style object, composed from one or more other objects */
 class InheritedStyleObject<T, K extends string> {
@@ -104,8 +104,8 @@ class InheritedControlStyle extends InheritedStyleObject<
       opacity: { enumerable: true, get: o._value.bind(o, "opacity") },
       css: {
         enumerable: true,
-        get: function(this: InheritedControlStyle) {
-          let result: any = {};
+        get: function (this: InheritedControlStyle) {
+          let result: any = Object.create(null);
           for (let i = 0; i < this._inherit.length; i++) {
             let css: Partial<CSSStyleDeclaration> = this._inherit[i].css;
             if (!css) continue;
@@ -116,8 +116,8 @@ class InheritedControlStyle extends InheritedStyleObject<
       },
       cssClassNames: {
         enumerable: true,
-        get: function(this: InheritedControlStyle) {
-          let seen: { [name: string]: true } = {};
+        get: function (this: InheritedControlStyle) {
+          let seen: { [name: string]: true } = Object.create(null);
           for (let i = this._inherit.length - 1; i >= 0; i--) {
             let names: string[] | string | undefined = this._inherit[i].cssClassNames;
             if (!names) continue;
@@ -162,7 +162,7 @@ export class UIStyle {
   static create(name: string, styles: Partial<UIStyle.StyleObjects>): UIStyle;
   static create(name: any, styles: any = name) {
     if (typeof name !== "string") name = "UIStyle_" + _nextUID++;
-    return new UIStyle(name, undefined, styles || {});
+    return new UIStyle(name, undefined, styles || Object.create(null));
   }
 
   /** Returns true if given object does *not* belong to an instance of `UIStyle` (i.e. overridden with a plain object) */
@@ -178,11 +178,11 @@ export class UIStyle {
     this.id = "S_" + (name ? name.replace(/[^\w\d_\-]/g, "") + "--" : "") + _nextUID++;
     this.ids = base ? [...base.ids, this.id] : [this.id];
     if (base) this.conditionalStyles = { ...base.conditionalStyles };
-    else this.conditionalStyles = {};
+    else this.conditionalStyles = Object.create(null);
     if (!base && !styles.length) {
       // initialize an empty instance
       this.inherited = [];
-      this._styles = Object.freeze({});
+      this._styles = Object.freeze(Object.create(null));
       this._combined = Object.freeze({
         dimensions: _emptyStyleObject,
         position: _emptyStyleObject,

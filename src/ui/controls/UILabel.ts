@@ -118,7 +118,7 @@ export function tl(text: string, textStyle?: Partial<UIStyle.TextStyle>) {
   if (text[0] === "{") {
     let lastIndex = text.indexOf("}");
     if (lastIndex > 0) {
-      if (!textStyle) textStyle = {};
+      if (!textStyle) textStyle = Object.create(null) as object;
       let styleTag = text.slice(1, lastIndex);
       text = text.slice(lastIndex + 1);
       for (let tag of styleTag.split("|")) {

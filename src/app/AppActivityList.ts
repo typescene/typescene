@@ -53,6 +53,14 @@ export class AppActivityList extends Component {
     return this;
   }
 
+  /**
+   * Returns the activity at given position in the list
+   * @exception Throws an error if the index is not within the bounds of this list.
+   */
+  get(index: number) {
+    return this.$list.get(index);
+  }
+
   /** Returns true if the list includes given activity */
   includes(activity: AppActivity) {
     return this.$list.includes(activity);

@@ -4,7 +4,7 @@ import { ManagedService, service } from "./ManagedService";
 
 // Cumulative list of all strings that should be translatable,
 // even if they are not yet translated
-const _allTTStrings: any = {};
+const _allTTStrings: any = Object.create(null);
 
 /**
  * Abstract base class definition for a `ManagedService` that provides internationalization features.

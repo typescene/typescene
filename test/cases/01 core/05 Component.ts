@@ -1,6 +1,5 @@
 import {
   Component,
-  boundComponent,
   managedChild,
   bind,
   ComponentConstructor,
@@ -20,8 +19,9 @@ consider("Component", () => {
       a = 123;
     }
     class MyComponent extends Component {
-      @boundComponent(ChildComponent) child = new ChildComponent();
+      @managedChild child = new ChildComponent();
     }
+    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     t.test(c.child.getBoundParentComponent() === c);
   });
@@ -32,8 +32,9 @@ consider("Component", () => {
       @managedChild child?: ChildComponent;
     }
     class MyComponent extends Component {
-      @boundComponent(ChildComponent) child = new ChildComponent();
+      @managedChild child = new ChildComponent();
     }
+    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     c.child.child = new ChildComponent();
     t.test(c.child.child.getBoundParentComponent() === c);
@@ -49,8 +50,9 @@ consider("Component", () => {
       @managedChild child?: ChildComponent;
     }
     class MyComponent extends Component {
-      @boundComponent(ChildComponent) child = new ChildComponent(true);
+      @managedChild child = new ChildComponent(true);
     }
+    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     t.test(c.child.child?.getBoundParentComponent() === c);
   });
@@ -61,8 +63,9 @@ consider("Component", () => {
       @managedChild children = new ManagedList().restrict(ChildComponent);
     }
     class MyComponent extends Component {
-      @boundComponent(ChildComponent) child = new ChildComponent();
+      @managedChild child = new ChildComponent();
     }
+    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     c.child.children.add(new ChildComponent());
     t.test(c.child.children.first()!.getBoundParentComponent() === c);
@@ -77,9 +80,9 @@ consider("Component", () => {
     const ComponentWithBinding = ChildComponent.with({ a: bind("b") });
     class MyComponent extends Component {
       b = 0;
-      @boundComponent(ComponentWithBinding)
-      child = new ComponentWithBinding();
+      @managedChild child = new ComponentWithBinding();
     }
+    MyComponent.presetBoundComponent("child", ComponentWithBinding);
     let c = new MyComponent();
     c.child.child = new ComponentWithBinding();
     c.b = 456;
@@ -96,8 +99,9 @@ consider("Component", () => {
     const ComponentWithBinding = ChildComponent.with({ a: bind("b") });
     class MyComponent extends Component {
       b = 0;
-      @boundComponent(ComponentWithBinding) child?: ChildComponent;
+      @managedChild child?: ChildComponent;
     }
+    MyComponent.presetBoundComponent("child", ComponentWithBinding);
     let c = new MyComponent();
     let child = new ComponentWithBinding();
     child.child = new ComponentWithBinding();

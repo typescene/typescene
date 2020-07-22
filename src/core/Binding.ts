@@ -11,7 +11,7 @@ let _nextBindingUID = 16;
 
 /** Definition of a reader instance that provides a bound value */
 interface BoundReader {
-  readonly composite: Component;
+  readonly boundParent: Component;
   getValue(hint?: any): any;
 }
 
@@ -26,10 +26,9 @@ export class Binding {
   }
 
   /** Create a new binding for given property and default value. See `bind`. */
-  constructor(source?: string, defaultValue?: any, ignoreUnbound?: boolean) {
+  constructor(source?: string, defaultValue?: any) {
     let path: string[] | undefined;
     let propertyName = source !== undefined ? String(source) : undefined;
-    if (ignoreUnbound) this.ignoreUnbound = true;
 
     // parse property name, path, and filters
     if (propertyName !== undefined) {
@@ -48,8 +47,8 @@ export class Binding {
     // create a reader class that provides a value getter
     let self = this;
     this.Reader = class {
-      /** Create a new reader, linked to given composite object */
-      constructor(public readonly composite: Component) {}
+      /** Create a new reader, linked to given bound parent */
+      constructor(public readonly boundParent: Component) {}
 
       /** The current (filtered) value for this binding */
       getValue(propertyHint?: any) {
@@ -57,7 +56,7 @@ export class Binding {
           arguments.length > 0
             ? propertyHint
             : propertyName !== undefined
-            ? (this.composite as any)[propertyName]
+            ? (this.boundParent as any)[propertyName]
             : undefined;
 
         // find nested properties and mapped keys
@@ -89,7 +88,7 @@ export class Binding {
 
         // return filtered result
         if (self._filter) {
-          result = self._filter(result, this.composite);
+          result = self._filter(result, this.boundParent);
         }
         return result === undefined && defaultValue !== undefined ? defaultValue : result;
       }
@@ -105,7 +104,7 @@ export class Binding {
   readonly id = util.BINDING_ID_PREFIX + _nextBindingUID++;
 
   /** @internal Constructor for a reader, that reads current bound and filtered values */
-  Reader: new (composite: Component) => BoundReader;
+  Reader: new (boundParent: Component) => BoundReader;
 
   /** Name of the property that should be observed for this binding (highest level only, does not include names of nested properties or keys) */
   readonly propertyName?: string;
@@ -121,14 +120,11 @@ export class Binding {
   /** Parent binding, if any (e.g. for nested bindings in string format bindings) */
   parent?: Binding;
 
-  /** Set to true to ignore this binding when it cannot be bound (to avoid the 'Binding not found for X' error, which can happen if a component is not added through `@compose` but as a regular child object using `@managedChild`). */
-  ignoreUnbound?: boolean;
-
   /** Apply translation or internationalization formatting to the resulting value. If the parameter is omitted, the (string) value is translated using the current locale (see `I18nService`); otherwise the value is formatted using the `tt(type)` function using the given type name, e.g. `currency`, `date:short`, `datetime:long`, etc. */
   i18n(type?: string) {
     let oldFilter = this._filter;
-    this._filter = (v, composite) => {
-      if (oldFilter) v = oldFilter(v, composite);
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
       return tt(v, type);
     };
     return this;
@@ -166,8 +162,8 @@ export class Binding {
 
     // store new chained filter
     let oldFilter = this._filter;
-    this._filter = (v, composite) => {
-      if (oldFilter) v = oldFilter(v, composite);
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
       return filter(v, arg);
     };
     return this;
@@ -176,8 +172,8 @@ export class Binding {
   /** Add a filter to this binding to compare the bound value to the given value(s), the result is always either `true` (at least one match) or `false` (none match) */
   match(...values: any[]) {
     let oldFilter = this._filter;
-    this._filter = (v, composite) => {
-      if (oldFilter) v = oldFilter(v, composite);
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
       return values.some(w => w === v);
     };
     return this;
@@ -186,8 +182,8 @@ export class Binding {
   /** Add a filter to this binding to compare the bound value to the given value(s), the result is always either `true` (none match) or `false` (at least one match) */
   nonMatch(...values: any[]) {
     let oldFilter = this._filter;
-    this._filter = (v, composite) => {
-      if (oldFilter) v = oldFilter(v, composite);
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
       return !values.some(w => w === v);
     };
     return this;
@@ -197,17 +193,17 @@ export class Binding {
    * Add an 'and' term to this binding (i.e. logical and, like `&&` operator); the argument(s) are used to construct another binding using the `bind()` function.
    * @note The combined binding can only be bound to a single component, e.g. within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
    */
-  and(source: string, defaultValue?: any, ignoreUnbound?: boolean) {
-    let binding = new Binding(source, defaultValue, ignoreUnbound);
+  and(source: string, defaultValue?: any) {
+    let binding = new Binding(source, defaultValue);
     binding.parent = this;
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
 
     // add filter to get value from binding and AND together
     let oldFilter = this._filter;
-    this._filter = (v, composite) => {
-      if (oldFilter) v = oldFilter(v, composite);
-      let bound = composite.getBoundBinding(binding);
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
+      let bound = boundParent.getBoundBinding(binding);
       if (!bound) throw err(ERROR.Binding_NotFound, source);
       return v && bound.value;
     };
@@ -218,17 +214,17 @@ export class Binding {
    * Add an 'or' term to this binding (i.e. logical or, like `||` operator); the argument(s) are used to construct another binding using the `bind()` function.
    * @note The combined binding can only be bound to a single component, e.g. within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
    */
-  or(source: string, defaultValue?: any, ignoreUnbound?: boolean) {
-    let binding = new Binding(source, defaultValue, ignoreUnbound);
+  or(source: string, defaultValue?: any) {
+    let binding = new Binding(source, defaultValue);
     binding.parent = this;
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
 
     // add filter to get value from binding and AND together
     let oldFilter = this._filter;
-    this._filter = (v, composite) => {
-      if (oldFilter) v = oldFilter(v, composite);
-      let bound = composite.getBoundBinding(binding);
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
+      let bound = boundParent.getBoundBinding(binding);
       if (!bound) throw err(ERROR.Binding_NotFound, source);
       return v || bound.value;
     };
@@ -236,7 +232,7 @@ export class Binding {
   }
 
   /** Chained filter function, if any */
-  private _filter?: (v: any, composite: Component) => any;
+  private _filter?: (v: any, boundParent: Component) => any;
 
   /** List of applicable filters, new filters may be added here */
   static readonly filters: { [id: string]: (v: any, ...args: any[]) => any } = {
@@ -277,7 +273,7 @@ export class StringFormatBinding extends Binding {
     // prepare bindings for all tags in given format string
     let bindings: Array<Binding> = [];
     let bindSources: string[] = [];
-    let indexBySource: { [s: string]: number } = {};
+    let indexBySource: { [s: string]: number } = Object.create(null);
     let match = String(text).match(/\$\{([^\}]+)\}/g);
     if (match) {
       for (let s of match) {
@@ -306,15 +302,15 @@ export class StringFormatBinding extends Binding {
 
     // amend reader to get values from bindings and compile text
     this.Reader = class extends this.Reader {
-      constructor(composite: Component) {
-        super(composite);
+      constructor(boundParent: Component) {
+        super(boundParent);
         this.text = String(text);
       }
       text: string;
       getValue() {
         // take values for all bindings first
         let values = bindings.map((binding, i) => {
-          let bound = this.composite.getBoundBinding(binding);
+          let bound = this.boundParent.getBoundBinding(binding);
           if (!bound) throw err(ERROR.Binding_NotFound, bindSources[i]);
           return bound.value;
         });
@@ -348,19 +344,19 @@ export namespace Binding {
    * @internal A list of components that are actively bound to a specific binding. Also includes a method to update the value on all components, using the `Component.updateBoundValue` method.
    */
   export class Bound extends ManagedList<Component> {
-    /** Create a new bound instance for given binding and host composer */
-    constructor(public binding: Binding, composite: Component) {
+    /** Create a new bound instance for given binding and its currently bound parent component */
+    constructor(public binding: Binding, boundParent: Component) {
       super();
       if (binding.parent) {
         // find bound parent first
-        let parent = composite.getBoundBinding(binding.parent);
+        let parent = boundParent.getBoundBinding(binding.parent);
         if (!parent) throw err(ERROR.Binding_ParentNotFound);
         this.parent = parent;
       }
 
       // set own properties
       this.propertyName = binding.propertyName;
-      this._reader = new binding.Reader(composite);
+      this._reader = new binding.Reader(boundParent);
     }
 
     /** Bound parent binding */
@@ -374,7 +370,7 @@ export namespace Binding {
       return !!this._updatedValue;
     }
 
-    /** The current bound value, taken from the composite object (or cached) */
+    /** The current bound value, taken from the bound parent component (or cached) */
     get value() {
       // use existing value, or get a value from the reader
       return this._updatedValue ? this._lastValue : this._reader.getValue();
@@ -423,7 +419,7 @@ export namespace Binding {
 }
 
 /**
- * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the composite parent object, such as the `Activity` for a view, the `Application` for an activity, the `ViewComponent` for nested views, or any other class that has a property decorated with `@compose`.
+ * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the bound parent component, such as the `Activity` for a view, the `Application` for an activity, or the `ViewComponent` for nested views.
  *
  * The bound property name is specified using the first argument. Nested properties are allowed (e.g. `foo.bar`), but _only_ the first property will be observed. Hence, changes to nested properties are not reflected automatically. To update bound values for nested properties, emit a `ManagedChangeEvent` on the highest level property.
  *
@@ -437,15 +433,13 @@ export namespace Binding {
  * For convenience, `!property` is automatically rewritten as `property|!` to negate property values, and `!!property` to convert any value to a boolean value.
  *
  * A default value may also be specified. This value is used when the bound value itself is undefined.
- *
- * If the final parameter is set to true, the binding is ignored when the component is added to a composite parent that has not been preset with this binding (to avoid the 'Binding not found for X' error), which can happen if a component is not added through `@compose` but as a regular child object using `@managedChild`.
  */
-export function bind(propertyName?: string, defaultValue?: any, ignoreUnbound?: boolean) {
-  return new Binding(propertyName, defaultValue, ignoreUnbound);
+export function bind(propertyName?: string, defaultValue?: any) {
+  return new Binding(propertyName, defaultValue);
 }
 
 /**
- * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with a string that includes property values from the composite parent object, such as the `Activity` for a view, the `Application` for an activity, the `ViewComponent` for nested views, or any other class that has a property decorated with `@compose`.
+ * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with a string that includes property values from the bound parent component, such as the `Activity` for a view, the `Application` for an activity, or the `ViewComponent` for nested views.
  *
  * A format string should be passed as a first argument. The text is bound as-is, with the following types of tags replaced:
  *
@@ -514,7 +508,7 @@ function _uniqueFormatter(d: any) {
   if (d instanceof ManagedList) d = d.toArray();
   if (!Array.isArray(d)) return d;
   let values: any[] = [];
-  let strings: any = {};
+  let strings: any = Object.create(null);
   return d.filter(v => {
     if (v == undefined) return false;
     if (typeof v === "string") {

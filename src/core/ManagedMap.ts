@@ -173,7 +173,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
   objects() {
     let result: T[] = [];
     if (!this[util.HIDDEN_STATE_PROPERTY]) return result;
-    let seen: boolean[] = {} as any;
+    let seen: boolean[] = Object.create(null);
     let refs = this[util.HIDDEN_REF_PROPERTY];
     for (let propId in refs) {
       if (propId[0] === util.MANAGED_MAP_REF_PREFIX) {
@@ -232,7 +232,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
 
   /** Returns an object with properties for all keys and objects in this map */
   toObject() {
-    let result: { [index: string]: T } = {};
+    let result: { [index: string]: T } = Object.create(null);
     if (!this[util.HIDDEN_STATE_PROPERTY]) return result;
     let refs = this[util.HIDDEN_REF_PROPERTY];
     for (let propId in refs) {

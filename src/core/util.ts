@@ -1,22 +1,22 @@
 import { err, ERROR } from "../errors";
 
 /** @internal Arbitrary name of the hidden property containing a managed object's references */
-export const HIDDEN_REF_PROPERTY = "^o";
+export const HIDDEN_REF_PROPERTY = "^-out";
 
 /** @internal Arbitrary name of the hidden property containing the number of inward references */
-export const HIDDEN_REFCOUNT_PROPERTY = "^i";
+export const HIDDEN_REFCOUNT_PROPERTY = "^-in";
 
 /** @internal Arbitrary name of the hidden property containing a managed object's state */
 export const HIDDEN_STATE_PROPERTY = "^$";
 
 /** @internal Arbitrary name of the hidden method that handles events on the same object */
-export const HIDDEN_EVENT_HANDLER = "^e";
+export const HIDDEN_EVENT_HANDLER = "^-ev";
 
 /** @internal Arbitrary name of the hidden method that handles and forwards events from referenced child objects */
-export const HIDDEN_CHILD_EVENT_HANDLER = "^ec";
+export const HIDDEN_CHILD_EVENT_HANDLER = "^-ec";
 
 /** @internal Arbitrary name of the hidden method that handles and forwards events from referenced non-child objects (in lists and reference objects ONLY) */
-export const HIDDEN_NONCHILD_EVENT_HANDLER = "^en";
+export const HIDDEN_NONCHILD_EVENT_HANDLER = "^-en";
 
 /** @internal Arbitrary name of property on property getter to contain shadow property name */
 export const GETTER_SHADOW_PROP = "-shadow";
@@ -25,7 +25,7 @@ export const GETTER_SHADOW_PROP = "-shadow";
 export const GETTER_SHADOW_FORCE_ASYNC = "-async";
 
 /** @internal Arbitrary name of the setter function method to get a property handler/getter pair */
-export const SETTER_CHAIN = "^ch";
+export const SETTER_CHAIN = "^-ch";
 
 /** @internal Arbitrary prefix character for common property IDs */
 export const PROPERTY_ID_PREFIX = "P";
@@ -40,7 +40,7 @@ export const MANAGED_MAP_REF_PREFIX = "%";
 export const MAKE_REF_MANAGED_PARENT_FN = "_makeRefManagedParent";
 
 /** @internal Prefix for binding IDs, which double as names of hidden methods for updaters on component prototypes */
-export const BINDING_ID_PREFIX = "^bound:";
+export const BINDING_ID_PREFIX = "^^bind:";
 
 /** @internal Reusable object that represents a single reference */
 export interface RefLink {

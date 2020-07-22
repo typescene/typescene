@@ -27,7 +27,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     let addViewComponent = (View: UIRenderableConstructor) => {
       this.presetBoundComponent("view", View, AppActivity);
       if (this.prototype._allActive) {
-        if (this.prototype._viewClass) {
+        if (this.prototype._ViewClass) {
           // this exact activity class was previously bound to a different view,
           // go through all active instances to replace the view now
           for (let id in this.prototype._allActive) {
@@ -36,9 +36,9 @@ export class ViewActivity extends AppActivity implements UIRenderable {
           }
         }
       } else {
-        this.prototype._allActive = {};
+        this.prototype._allActive = Object.create(null);
       }
-      this.prototype._viewClass = View;
+      this.prototype._ViewClass = View;
       if (!Object.prototype.hasOwnProperty.call(View, "preset")) {
         // add a callback for 'hot' reload to update the view class
         (View as any)["@updateActivity"] = addViewComponent;
@@ -210,7 +210,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
 
   // these two references are set on the prototype instead (by static `preset()`):
   private _allActive?: { [managedId: string]: ViewActivity };
-  private _viewClass?: UIRenderableConstructor;
+  private _ViewClass?: UIRenderableConstructor;
 
   /** @internal Observe view activities to create views and render when needed */
   @observe
@@ -220,8 +220,8 @@ export class ViewActivity extends AppActivity implements UIRenderable {
       if (this.activity._allActive) {
         this.activity._allActive[this.activity.managedId] = this.activity;
       }
-      if (this.activity._viewClass) {
-        this.activity.view = new this.activity._viewClass();
+      if (this.activity._ViewClass) {
+        this.activity.view = new this.activity._ViewClass();
       }
     }
     onInactive() {

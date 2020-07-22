@@ -49,8 +49,8 @@ export class UIListCellAdapter<TObject extends ManagedObject = ManagedObject>
     ...rest: Array<UIRenderableConstructor>
   ): Function {
     // separate event handlers from other presets
-    let cellPresets: any = {};
-    let handlers: any = {};
+    let cellPresets: any = Object.create(null);
+    let handlers: any = Object.create(null);
     for (let k in presets) {
       (k[0] === "o" && k[1] === "n" && (k.charCodeAt(2) < 97 || k.charCodeAt(2) > 122)
         ? handlers

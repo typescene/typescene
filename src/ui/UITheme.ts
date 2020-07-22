@@ -113,10 +113,7 @@ export class UITheme {
       let b = parseInt(c.slice(5, 7), 16);
       return 0.3 * r + 0.6 * g + 0.1 * b > 140;
     } else if (c.slice(0, 4) === "rgb(" || c.slice(0, 5) === "rgba(") {
-      let v = c
-        .slice(4)
-        .split(",")
-        .map(parseFloat);
+      let v = c.slice(4).split(",").map(parseFloat);
       return 0.3 * v[0] + 0.6 * v[1] + 0.1 * v[2] > 140;
     } else if (c.slice(0, 4) === "hsl(") {
       let lum = parseFloat(c.slice(4).split(",")[2]);
@@ -250,7 +247,7 @@ export class UITheme {
   }
 
   /** Set of basic icons that can be used on labels or buttons (empty by default) */
-  icons: { [name: string]: string } = {};
+  icons: { [name: string]: string } = Object.create(null);
 
   /** Define a new icon with given name */
   addIcon(name: string, icon: string) {

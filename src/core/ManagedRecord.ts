@@ -29,7 +29,7 @@ export class ManagedRecord extends Component {
 
   /** Serialize this record as a regular object, including all string, number, boolean, and undefined property values (except for properties that start with an underscore, and `managedId`). Also calls `serialize` on all _child_ records (including those within lists and maps, but not regular arrays or objects, nor managed objects that are not referenced as child records) */
   serialize() {
-    let result = {} as any;
+    let result = Object.create(null);
     const serializeValue = (p: string, v: any): any => {
       if (
         v === undefined ||
@@ -46,7 +46,7 @@ export class ManagedRecord extends Component {
         if (v instanceof ManagedReference) return serializeValue(p, v.get());
         if (v instanceof ManagedList) return v.map(x => serializeValue(p, x));
         if (v instanceof ManagedMap) {
-          let result = {} as any;
+          let result = Object.create(null);
           v.forEach((key, value) => {
             result[key] = serializeValue(p + "#" + key, value);
           });
@@ -94,14 +94,14 @@ export class ManagedRecord extends Component {
   }
 
   /**
-   * Returns an array of unique records that contain managed references to this object (see `@managed`, `@managedChild`, `@managedDependency`, and `@compose` decorators). This includes records that refer directly to this object, as well as those that refer to managed list(s) or map(s) that contain this record.
+   * Returns an array of unique records that contain managed references to this object (see `@managed`, `@managedChild`, and `@managedDependency`). This includes records that refer directly to this object, as well as those that refer to managed list(s) or map(s) that contain this record.
    * @param FilterByClass
    *  If specified, results will only include instances of given class. Other referrers are _not_ inspected recursively.
    */
   getReferrerRecords<TResult extends ManagedRecord = ManagedRecord>(
     FilterByClass?: ManagedRecordConstructor<TResult>
   ): TResult[] {
-    let seen: boolean[] = {} as any;
+    let seen: boolean[] = Object.create(null);
     let result: TResult[] = [];
     let F = FilterByClass || ManagedRecord;
 

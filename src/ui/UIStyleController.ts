@@ -16,7 +16,7 @@ export class UIStyleController extends UIRenderableController {
   state?: string;
 
   /** Available styles to be applied to the content component (plain object) */
-  styles: { [name: string]: UIStyle } = {};
+  styles: { [name: string]: UIStyle } = Object.create(null);
 
   /** Base style (taken from the content component right after it is assigned to the `content` property) */
   baseStyle?: UIStyle;

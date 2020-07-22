@@ -39,7 +39,7 @@ export function JSX(
   }
 
   // merge different types of content
-  let merged = presets ? { ...presets } : {};
+  let merged = presets ? { ...presets } : Object.create(null);
   if (fmt) {
     if (!bindings) {
       // content is only text

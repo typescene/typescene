@@ -271,7 +271,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
       });
 
     // go through the new list and figure out what needs to happen
-    let seen: boolean[] = {} as any;
+    let seen: boolean[] = Object.create(null);
     let pendingAdds: ((nextIncluded?: T) => void)[] = [];
     for (let object of objects) {
       if (object === undefined) continue;
