@@ -5,12 +5,12 @@ import { UIControl } from "./UIControl";
 /** Control that has no content, but expands in both directions when needed */
 export class UISpacer extends UIControl {
   static preset(presets: UISpacer.Presets) {
-    if (presets.height) {
+    if (presets.height !== undefined) {
       let dimensions: UIStyle.Dimensions = presets.dimensions || (presets.dimensions = {});
       dimensions.minHeight = presets.height;
       presets.shrinkwrap = true;
     }
-    if (presets.width) {
+    if (presets.width !== undefined) {
       let dimensions: UIStyle.Dimensions = presets.dimensions || (presets.dimensions = {});
       dimensions.minWidth = presets.width;
       presets.shrinkwrap = true;

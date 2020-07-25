@@ -1,13 +1,14 @@
 import { Binding } from "../../core";
 import { UIComponentEventHandler, Stringable } from "../UIComponent";
 import { UITheme } from "../UITheme";
+import { UIStyle } from "../UIStyle";
 import { UIControl } from "./UIControl";
 
-/** Represents a UI component that displays a referenced image */
+/** Represents a UI component that displays an image */
 export class UIImage extends UIControl {
-  /** Creates a preset image class with given URL, if any */
-  static withUrl(url: Stringable | Binding) {
-    return this.with({ url });
+  /** Creates a preset image class with given URL and style, if any */
+  static withUrl(url: Stringable | Binding, style?: string | UIStyle) {
+    return this.with({ url, style });
   }
 
   static preset(presets: UIImage.Presets): Function {

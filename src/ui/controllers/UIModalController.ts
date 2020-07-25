@@ -15,22 +15,22 @@ import { UIRenderContext, UIRenderPlacement } from "../UIRenderContext";
 export class UIModalController extends UIRenderableController {
   static preset(
     presets: UIModalController.Presets,
-    content?: ComponentConstructor<UIComponent> & (new () => UIComponent),
-    modal?: UIRenderableConstructor
+    Content?: ComponentConstructor<UIComponent> & (new () => UIComponent),
+    Modal?: UIRenderableConstructor
   ): Function {
-    let Modal = modal || presets.modal;
+    let ModalClass = Modal || presets.modal;
     delete presets.modal;
-    if (Binding.isBinding(Modal)) {
+    if (Binding.isBinding(ModalClass)) {
       throw err(ERROR.UIModalController_Binding);
     }
-    if (Modal) this.presetBindingsFrom(Modal);
-    let f = super.preset(presets, content);
+    if (ModalClass) this.presetBindingsFrom(ModalClass);
+    let f = super.preset(presets, Content);
     return function (this: UIModalController) {
       f.call(this);
       this.propagateChildEvents(e => {
         if (e instanceof ComponentEvent) {
           if (e.name === "ShowModal") {
-            let instance = Modal && new Modal();
+            let instance = ModalClass && new ModalClass();
             this.modal = instance || undefined;
             return;
           } else if (e.name === "CloseModal") {
@@ -56,6 +56,7 @@ export class UIModalController extends UIRenderableController {
   /** True if clicking outside the modal component should close it, defaults to true */
   modalShadeClickToClose = true;
 }
+
 UIModalController.addObserver(
   class {
     constructor(public controller: UIModalController) {}

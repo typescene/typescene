@@ -3,7 +3,7 @@ import { UIComponent, UIRenderable, UIRenderableConstructor } from "./UIComponen
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Base class for a controller that encapsulates a single renderable component, without producing any output of its own */
-export class UIRenderableController
+export class UIRenderableController<TContent extends UIRenderable = UIRenderable>
   extends Component.with({
     renderContext: renderContextBinding,
   })
@@ -14,13 +14,13 @@ export class UIRenderableController
   }
 
   /** Create a new controller with given content */
-  constructor(content?: UIRenderable) {
+  constructor(content?: TContent) {
     super();
     this.propagateChildEvents(ComponentEvent);
     this.content = content
       ? content
       : this._ContentClass
-      ? new this._ContentClass()
+      ? (new this._ContentClass() as any)
       : undefined;
   }
 
@@ -30,7 +30,7 @@ export class UIRenderableController
 
   /** Renderable content, as a managed child reference */
   @managedChild
-  content?: UIRenderable;
+  content?: TContent;
 
   render(callback?: UIRenderContext.RenderCallback) {
     this._renderer.render(this.content, callback);

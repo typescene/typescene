@@ -68,8 +68,8 @@ export class UICell extends UIContainer {
   /** Border color (`UIColor` or string) */
   borderColor?: Stringable;
 
-  /** Border style (CSS), defaults to "solid" */
-  borderStyle = "solid";
+  /** Border style (CSS), defaults to `solid` */
+  borderStyle?: Stringable;
 
   /** Border radius (in dp or CSS string) */
   borderRadius?: string | number;
@@ -114,7 +114,7 @@ export namespace UICell {
     borderThickness?: UIStyle.Offsets;
     /** Border color (`UIColor` or string) */
     borderColor?: Stringable;
-    /** Border style (CSS), defaults to "solid" */
+    /** Border style (CSS), defaults to `solid` */
     borderStyle?: string;
     /** Corner radius (in dp or CSS string, defaults to 0) */
     borderRadius?: string | number;

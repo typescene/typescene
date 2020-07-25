@@ -80,9 +80,9 @@ export namespace UIContainer {
     content?: Iterable<UIRenderable>;
     /** Options for layout of child components within this container (overrides) */
     layout?: Partial<UIStyle.ContainerLayout | {}>;
-    /** Set to true if this container may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus`, defaults to false */
+    /** True if this container *itself* may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus` (cannot be changed after rendering this component), defaults to false */
     allowFocus?: boolean;
-    /** Set to true if this container may receive input focus using the keyboard and all other methods, defaults to false */
+    /** True if this container *itself* may receive input focus using the keyboard and all other methods (cannot be changed after rendering this component), defaults to false */
     allowKeyboardFocus?: boolean;
     /** Set to true to render all child components asynchronously (results in smoother updates with slightly longer lead times) */
     asyncContentRendering?: boolean;

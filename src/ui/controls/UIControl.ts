@@ -2,7 +2,7 @@ import { Binding } from "../../core";
 import { UIComponent, UIComponentEventHandler } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
 
-/** Represents a UI component that the user can interact with (abstract) */
+/** Represents an interactive UI control component (abstract) */
 export abstract class UIControl extends UIComponent {
   static preset(presets: UIControl.Presets): Function {
     let decoration = presets.decoration;
@@ -60,7 +60,7 @@ export abstract class UIControl extends UIComponent {
   /** Set to true to disable this control */
   disabled?: boolean;
 
-  /** Set to true to shrink this element to use as little space as possible within its container, set to false to expand; defaults to true but may be overridden by individual components (also overrides `grow` property of `UIComponent.dimensions`) */
+  /** Set to true to shrink this element to use as little space as possible within its container, set to false to expand; defaults to true but may be overridden by individual components, e.g. `UILabel` (also overrides `grow` property of `UIComponent.dimensions`) */
   shrinkwrap = true;
 }
 
