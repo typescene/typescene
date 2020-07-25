@@ -1,4 +1,4 @@
-import { bindf, Binding, tt } from "../../core";
+import { Binding, tt } from "../../core";
 import { Stringable } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
@@ -93,82 +93,6 @@ export let UICloseLabel = UILabel.with({ style: "label_close" });
 
 /** Shortcut for `UILabel` constructor preset such that the label takes up as much space as possible */
 export let UIExpandedLabel = UILabel.with({ shrinkwrap: false });
-
-/**
- * Shortcut function that returns a `UILabel` constructor with given text (a 'text label', hence `tl`), and optional text styles.
- * If the text contains tags of the format `${...}` then the text is first wrapped in a call to `bindf`, to include nested bindings and format the result. This also enables the use of `#{...}` tags for pluralization.
- * If the text _starts_ with a tag in curly braces (i.e. `{...}`), then the result is affected in the following ways:
- * - {b} mixes in a text style that sets the `bold` flag
- * - {i} mixes in a text style that sets the `italic` flag
- * - {h1} through {h3} return a `UIHeading1`, `UIHeading2`, or `UIHeading3` constructor
- * - {p} returns a `UIParagraph` constructor
- * - {c} returns a `UICloseLabel` constructor
- * - {x} returns an `UIExpandedLabel` constructor
- * - {10} mixes in a text style with given font size (any number, optionally followed by a CSS unit)
- * - {@color} mixes in a text style with given text color (any color defined by the current theme)
- * - {!tt} prevents translation of the string (see below)
- *
- * @note The style tags above can be combined using the `|` (pipe) character where possible, e.g. `{b|i|20|@color}`.
- *
- * @note The text string (excluding initial tag) is passed through the `tt` function for translation upon construction of the `UILabel` component whenever an `I18nService` instance has been registered.
- */
-export function tl(text: string, textStyle?: Partial<UIStyle.TextStyle>) {
-  let constructor: typeof UILabel = UILabel;
-  let noTT: boolean | undefined;
-  if (text[0] === "{") {
-    let lastIndex = text.indexOf("}");
-    if (lastIndex > 0) {
-      if (!textStyle) textStyle = Object.create(null) as object;
-      let styleTag = text.slice(1, lastIndex);
-      text = text.slice(lastIndex + 1);
-      for (let tag of styleTag.split("|")) {
-        switch (tag) {
-          case "h1":
-            constructor = UIHeading1;
-            break;
-          case "h2":
-            constructor = UIHeading2;
-            break;
-          case "h3":
-            constructor = UIHeading3;
-            break;
-          case "p":
-            constructor = UIParagraph;
-            break;
-          case "c":
-            constructor = UICloseLabel;
-            break;
-          case "x":
-            constructor = UIExpandedLabel;
-            break;
-          case "b":
-            textStyle.bold = true;
-            break;
-          case "i":
-            textStyle.italic = true;
-            break;
-          case "!tt":
-            noTT = true;
-            break;
-          default:
-            if (tag[0] === "@") {
-              textStyle.color = tag;
-              break;
-            } else if (/^[\d\.]+$/.test(tag)) {
-              textStyle.fontSize = parseFloat(tag);
-              break;
-            } else if (/^\d/.test(tag)) {
-              textStyle.fontSize = tag;
-              break;
-            }
-        }
-      }
-    }
-  }
-  let resultText: any = noTT ? text : tt(text);
-  if (text.indexOf("${") >= 0) resultText = bindf(resultText);
-  return constructor.with({ text: resultText, textStyle });
-}
 
 export namespace UILabel {
   /** UILabel presets type, for use with `Component.with` */
