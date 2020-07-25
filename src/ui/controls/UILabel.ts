@@ -32,7 +32,7 @@ export class UILabel extends UIControl {
   /** Create a new label with given text */
   constructor(text?: Stringable) {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["label"]);
+    this.style = UITheme.getStyle("control", "label");
     this.shrinkwrap = true;
     if (text !== undefined) this.text = text;
   }

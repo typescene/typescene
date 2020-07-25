@@ -9,7 +9,6 @@ import {
 } from "../../core";
 import { UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIFormContextController } from "../controllers/UIFormContextController";
-import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
 import { UICell } from "./UICell";
 
@@ -21,11 +20,6 @@ export class FormContextChangeEvent extends ComponentEvent {
   /** The current form context object */
   formContext!: ManagedObject;
 }
-
-/** Style mixin that is automatically applied on each instance */
-const _mixin = UIStyle.create("UIForm", {
-  dimensions: { grow: 0 },
-});
 
 /**
  * Represents a UI component that groups form controls and other content in a cell.
@@ -41,7 +35,7 @@ export class UIForm extends UICell {
 
   constructor(...content: UIRenderable[]) {
     super(...content);
-    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
+    this.style = UITheme.getStyle("container", "form");
   }
 
   /**

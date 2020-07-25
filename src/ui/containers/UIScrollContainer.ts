@@ -4,17 +4,11 @@ import {
   UIRenderable,
   UIRenderableConstructor,
 } from "../UIComponent";
-import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
 import { UIContainer } from "./UIContainer";
 
 /** Slowdown factor at which scrolling will begin to snap */
 const SNAP_SLOWDOWN = 0.75;
-
-/** Style mixin that is automatically applied on each instance */
-const _mixin = UIStyle.create("UIScrollContainer", {
-  dimensions: { shrink: 1 },
-});
 
 /** Event that is emitted when the user scrolls up or down in a `UIScrollContainer */
 export class UIScrollEvent extends UIComponentEvent<UIScrollContainer> {
@@ -60,7 +54,7 @@ export class UIScrollContainer extends UIContainer {
 
   constructor(...content: UIRenderable[]) {
     super(...content);
-    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
+    this.style = UITheme.getStyle("container", "scroll");
   }
 
   /** Vertical scroll snap mode: `start` (snap to start of first 'mostly' visible component), `center` (snap container center to center of component closest to the center), or `end` (snap to end of last 'mostly' visible component) */

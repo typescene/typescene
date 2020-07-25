@@ -15,7 +15,7 @@ export abstract class UIContainer extends UIComponent {
       layout = undefined;
     }
     let f = super.preset(presets, ...rest);
-    return function(this: UIContainer) {
+    return function (this: UIContainer) {
       f.call(this);
       if (layout) this.layout = { ...this.layout, ...layout };
       if (rest.length) this.content.add(...rest.filter(C => !!C).map(C => new C!()));
@@ -59,9 +59,6 @@ export abstract class UIContainer extends UIComponent {
   /** Options for layout of child components within this container */
   layout!: UIStyle.ContainerLayout;
 
-  /** Child separator options */
-  separator?: UIStyle.SeparatorOptions;
-
   /** Set to true to render all child components asynchronously (results in smoother updates with slightly longer lead times) */
   asyncContentRendering?: boolean;
 
@@ -83,8 +80,6 @@ export namespace UIContainer {
     content?: Iterable<UIRenderable>;
     /** Options for layout of child components within this container (overrides) */
     layout?: Partial<UIStyle.ContainerLayout | {}>;
-    /** Child separator options (plain object) */
-    separator?: UIStyle.SeparatorOptions;
     /** Set to true if this container may receive direct input focus using the mouse, touch, or using `UIComponent.requestFocus`, defaults to false */
     allowFocus?: boolean;
     /** Set to true if this container may receive input focus using the keyboard and all other methods, defaults to false */

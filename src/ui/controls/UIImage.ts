@@ -18,7 +18,7 @@ export class UIImage extends UIControl {
   /** Create a new label with given URL */
   constructor(url?: Stringable) {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["image"]);
+    this.style = UITheme.getStyle("control", "image");
     this.shrinkwrap = true;
     if (url !== undefined) this.url = url;
   }

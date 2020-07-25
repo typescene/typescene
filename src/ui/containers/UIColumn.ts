@@ -1,13 +1,6 @@
 import { UIRenderable, UIRenderableConstructor } from "../UIComponent";
-import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
 import { UIContainer } from "./UIContainer";
-
-/** Style mixin that is automatically applied on each instance */
-const _mixin = UIStyle.create("UIColumn", {
-  containerLayout: { axis: "vertical" },
-  dimensions: { grow: 0, shrink: 0 },
-});
 
 /** Represents a UI component that contains other components, in a vertical arrangement */
 export class UIColumn extends UIContainer {
@@ -20,7 +13,7 @@ export class UIColumn extends UIContainer {
 
   constructor(...content: UIRenderable[]) {
     super(...content);
-    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
+    this.style = UITheme.getStyle("container", "column");
   }
 
   /** Returns true if spacing between components should be non-zero (used by renderer) */
@@ -28,8 +21,8 @@ export class UIColumn extends UIContainer {
     return !!this.spacing;
   }
 
-  /** Space between components along vertical axis (in dp or string with unit, defaults to 8) */
-  spacing?: string | number = 8;
+  /** Space between components along vertical axis (in dp or string with unit, defaults to value from `UITheme`); overrides `layout.separator` options */
+  spacing?: string | number = UITheme.current.spacing;
 
   /** Column width (in dp or string with unit, overrides value set in `UIComponent.dimensions`, if any) */
   width?: string | number;
@@ -41,7 +34,7 @@ export let UICloseColumn = UIColumn.with({ spacing: 0 });
 export namespace UIColumn {
   /** UIColumn presets type, for use with `Component.with` */
   export interface Presets extends UIContainer.Presets {
-    /** Space between components along vertical axis (in dp or string with unit, defaults to 8) */
+    /** Space between components along vertical axis (in dp or string with unit, defaults to value from `UITheme`); overrides `layout.separator` options */
     spacing?: string | number;
     /** Column width (in dp or string with unit, overrides value set in `UIComponent.dimensions`, if any) */
     width?: string | number;

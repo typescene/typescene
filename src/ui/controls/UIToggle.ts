@@ -21,7 +21,7 @@ export class UIToggle extends UIControl {
 
   constructor() {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["toggle"]);
+    this.style = UITheme.getStyle("control", "toggle");
     this.shrinkwrap = true;
   }
 

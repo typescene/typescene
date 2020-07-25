@@ -97,6 +97,15 @@ export class UITheme {
   /** The current theme. This value may be changed but it is not observed. */
   static current: UITheme;
 
+  /** Returns a `UIStyle` instance consisting of given named style(s), combined using `UIStyle.mixin(...)` */
+  static getStyle(name: string, mixin?: string) {
+    let result = this.current.styles[name];
+    if (mixin && this.current.styles[mixin]) {
+      result = result.mixin(this.current.styles[mixin]);
+    }
+    return result;
+  }
+
   /** Returns a suitable text color for given background color (mostly black, or mostly white) */
   static getTextColor(bg: Stringable): string {
     return this.isBrightColor(String(bg)) ? TEXT_COLOR_B : TEXT_COLOR_W;
@@ -199,26 +208,11 @@ export class UITheme {
     );
   }
 
-  /** Base container style, should not need to be overridden at all */
-  baseContainerStyle = UIStyle.create("UIContainer", {
-    position: { gravity: "stretch" },
-    dimensions: { grow: 1, shrink: 0 },
-    containerLayout: {
-      gravity: "stretch",
-      axis: "vertical",
-      distribution: "start",
-      wrapContent: false,
-    },
-  });
-
-  /** Base control style, can be overridden and extended with e.g. default text style set */
-  baseControlStyle = UIStyle.create("UIControl", {
-    position: { gravity: "baseline" },
-    dimensions: { shrink: 1, grow: 0 },
-  });
-
   /** Dialog backdrop shader opacity (for `DialogViewActivity`), defaults to 0.3 */
   modalDialogShadeOpacity = 0.3;
+
+  /** Default spacing between components in rows and columns, defaults to 8 */
+  spacing: string | number = 8;
 
   /** Default confirmation/alert dialog builder used by `ViewActivity.showConfirmationDialogAsync` */
   ConfirmationDialogBuilder?: new () => ConfirmationDialogBuilder;
@@ -241,35 +235,69 @@ export class UITheme {
     modalShade: "@black",
   };
 
-  /** Define a new color with given name; may reference another color, see `UITheme.replaceColor` */
-  addColor(name: string, color: Stringable) {
-    this.colors[name] = String(color);
-    return this;
-  }
-
-  /** Set of basic icons that can be used on labels or buttons (empty by default) */
+  /** Named icons that can be used on labels or buttons */
   icons: { [name: string]: string } = Object.create(null);
 
-  /** Define a new icon with given name */
-  addIcon(name: string, icon: string) {
-    this.icons[name] = icon;
-    return this;
-  }
+  /** Set of named style _mixins_ that can be applied to a UI component. These include default styles such as 'control', 'container', 'button', 'textfield', etc., but may also include custom styles so that they can be referenced by name. */
+  styles: { [name: string]: UIStyle } = {
+    container: UIStyle.create("container", {
+      position: { gravity: "stretch" },
+      dimensions: { grow: 1, shrink: 0 },
+      containerLayout: {
+        gravity: "stretch",
+        axis: "vertical",
+        distribution: "start",
+        wrapContent: false,
+      },
+    }),
+    scroll: UIStyle.create("scroll", {
+      dimensions: { grow: 1, shrink: 1 },
+    }),
+    cell: UIStyle.create("cell", {
+      containerLayout: { distribution: "space-around", gravity: "center" },
+      position: { top: 0 },
+    }),
+    cell_flow: UIStyle.create("cell_flow", {
+      dimensions: { grow: 0, shrink: 0 },
+    }),
+    cell_cover: UIStyle.create("cell_cover", {
+      position: {
+        gravity: "overlay",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+      },
+    }),
+    form: UIStyle.create("form", {
+      dimensions: { grow: 0 },
+    }),
+    column: UIStyle.create("column", {
+      containerLayout: { axis: "vertical" },
+      dimensions: { grow: 0, shrink: 0 },
+    }),
+    row: UIStyle.create("row", {
+      containerLayout: { axis: "horizontal" },
+      dimensions: { grow: 0, shrink: 0 },
+    }),
+    row_opposite: UIStyle.create("row_opposite", {
+      containerLayout: { distribution: "end" },
+    }),
+    row_center: UIStyle.create("row_center", {
+      containerLayout: { distribution: "center" },
+    }),
+    control: UIStyle.create("control", {
+      position: { gravity: "baseline" },
+      dimensions: { shrink: 1, grow: 0 },
+    }),
+  };
 
-  /** Set of named style set mixins that can be applied to a UI component, or on a preset object using the `style` property in the first argument to `Component.with`. Overridden styles should also include base styles (`button`, `button_primary`, etc.) */
-  styles: { [name: string]: UIStyle } = {};
-
-  /** Add a mixin style with given name and style set */
-  addStyle(name: string, styles: Partial<UIStyle.StyleObjects>) {
-    this.styles[name] = UIStyle.create(name, styles);
-    return this;
-  }
-
-  /** Add given mixin styles, using their own name (i.e. `UIStyle.name`) */
-  addStyles(...styles: UIStyle[]) {
-    for (let style of styles) {
-      this.styles[style.name] = style;
+  /** Add or extend a named style in `styles` with given style set; returns the new `UIStyle` instance */
+  setStyle(name: string, styles: Partial<UIStyle.StyleObjects>) {
+    if (this.styles[name]) {
+      return (this.styles[name] = this.styles[name].extend(styles, name));
+    } else {
+      return (this.styles[name] = UIStyle.create(name, styles));
     }
-    return this;
   }
 }

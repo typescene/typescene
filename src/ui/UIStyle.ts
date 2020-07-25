@@ -82,15 +82,12 @@ class InheritedTextStyle extends InheritedStyleObject<UIStyle.TextStyle, "textSt
     return o as UIStyle.TextStyle;
   }
 }
-class InheritedControlStyle extends InheritedStyleObject<
-  UIStyle.ControlStyle,
-  "controlStyle"
-> {
+class InheritedDecoration extends InheritedStyleObject<UIStyle.Decoration, "decoration"> {
   static create(
-    base?: { controlStyle: UIStyle.ControlStyle },
-    objects?: { controlStyle?: UIStyle.ControlStyle }[]
+    base?: { decoration: UIStyle.Decoration },
+    objects?: { decoration?: UIStyle.Decoration }[]
   ) {
-    let o = new this(base, objects, "controlStyle");
+    let o = new this(base, objects, "decoration");
     Object.defineProperties(o, {
       background: { enumerable: true, get: o._value.bind(o, "background") },
       textColor: { enumerable: true, get: o._value.bind(o, "textColor") },
@@ -104,7 +101,7 @@ class InheritedControlStyle extends InheritedStyleObject<
       opacity: { enumerable: true, get: o._value.bind(o, "opacity") },
       css: {
         enumerable: true,
-        get: function (this: InheritedControlStyle) {
+        get: function (this: InheritedDecoration) {
           let result: any = Object.create(null);
           for (let i = 0; i < this._inherit.length; i++) {
             let css: Partial<CSSStyleDeclaration> = this._inherit[i].css;
@@ -116,7 +113,7 @@ class InheritedControlStyle extends InheritedStyleObject<
       },
       cssClassNames: {
         enumerable: true,
-        get: function (this: InheritedControlStyle) {
+        get: function (this: InheritedDecoration) {
           let seen: { [name: string]: true } = Object.create(null);
           for (let i = this._inherit.length - 1; i >= 0; i--) {
             let names: string[] | string | undefined = this._inherit[i].cssClassNames;
@@ -128,7 +125,7 @@ class InheritedControlStyle extends InheritedStyleObject<
         },
       },
     });
-    return o as UIStyle.ControlStyle;
+    return o as UIStyle.Decoration;
   }
 }
 class InheritedContainerLayout extends InheritedStyleObject<
@@ -146,6 +143,7 @@ class InheritedContainerLayout extends InheritedStyleObject<
       gravity: { enumerable: true, get: o._value.bind(o, "gravity") },
       wrapContent: { enumerable: true, get: o._value.bind(o, "wrapContent") },
       clip: { enumerable: true, get: o._value.bind(o, "clip") },
+      separator: { enumerable: true, get: o._value.bind(o, "separator") },
     });
     return o as UIStyle.ContainerLayout;
   }
@@ -187,7 +185,7 @@ export class UIStyle {
         dimensions: _emptyStyleObject,
         position: _emptyStyleObject,
         textStyle: _emptyStyleObject,
-        controlStyle: _emptyStyleObject,
+        decoration: _emptyStyleObject,
         containerLayout: _emptyStyleObject,
       });
     } else {
@@ -198,14 +196,14 @@ export class UIStyle {
         dimensions: InheritedDimensions.create(undefined, styles),
         position: InheritedPosition.create(undefined, styles),
         textStyle: InheritedTextStyle.create(undefined, styles),
-        controlStyle: InheritedControlStyle.create(undefined, styles),
+        decoration: InheritedDecoration.create(undefined, styles),
         containerLayout: InheritedContainerLayout.create(undefined, styles),
       });
       this._combined = Object.freeze({
         dimensions: InheritedDimensions.create(baseStyles, styles),
         position: InheritedPosition.create(baseStyles, styles),
         textStyle: InheritedTextStyle.create(baseStyles, styles),
-        controlStyle: InheritedControlStyle.create(baseStyles, styles),
+        decoration: InheritedDecoration.create(baseStyles, styles),
         containerLayout: InheritedContainerLayout.create(baseStyles, styles),
       });
     }
@@ -226,7 +224,7 @@ export class UIStyle {
   /** Referenced conditional styles (should be added using `UIStyle.addState`) */
   readonly conditionalStyles: UIStyle.ConditionalStyles;
 
-  /** Returns a new style set that contains all current styles as well as the styles from given style set; the result is reused when the exact same style sets are mixed again */
+  /** Returns a new style set that contains all current styles as well as the styles from given `UIStyle` instance; the result is reused when the exact same style sets are mixed again */
   mixin(style: UIStyle) {
     if (!style) return this;
     let id = this.id + "+" + style.id;
@@ -242,7 +240,7 @@ export class UIStyle {
     return result;
   }
 
-  /** Returns a new style set that contains all current styles as well as given styles, with a new ID and optionally a new name */
+  /** Returns a new style set that contains all current styles as well as given styles (objects), with a new ID and optionally a new name. Creates a new instance each time, unlike `mixin`. */
   extend(objects: Partial<UIStyle.StyleObjects>, name?: string) {
     return new UIStyle(name || this.name, this, objects);
   }
@@ -296,10 +294,15 @@ export namespace UIStyle {
 
   /** Collection of individual objects that represent a (partial) style */
   export interface StyleObjects {
+    /** Options for the dimensions of a UI component */
     dimensions: Readonly<Dimensions>;
+    /** Options for component positioning within parent component(s) */
     position: Readonly<Position>;
+    /** Options for styles of a UI component that shows text */
     textStyle: Readonly<TextStyle>;
-    controlStyle: Readonly<ControlStyle>;
+    /** Options for the appearance of UI components, including miscellaneous CSS attributes and class names */
+    decoration: Readonly<Decoration>;
+    /** Options for layout of child components of a container component */
     containerLayout: Readonly<ContainerLayout>;
   }
 
@@ -377,8 +380,8 @@ export namespace UIStyle {
     strikeThrough?: boolean;
   }
 
-  /** Miscellaneous style options for control components, including all CSS attributes and classes */
-  export interface ControlStyle {
+  /** Options for the appearance of UI components, including miscellaneous CSS attributes and class names */
+  export interface Decoration {
     /** Background style or color (`UIColor` or string) */
     background?: Stringable;
     /** Text color (`UIColor` or string); this may be overridden by `UIStyle.TextStyle.color` if specified on the same component or a child component */
@@ -417,19 +420,21 @@ export namespace UIStyle {
     wrapContent?: boolean;
     /** True if content should be clipped within this container */
     clip?: boolean;
+    /** Options for separator between each component */
+    separator?: Readonly<SeparatorOptions>;
   }
 
   /** Separator style, for use with containers and lists */
   export interface SeparatorOptions {
-    /** Separator type, defaults to line */
-    type?: "line" | "spacer";
     /** True for vertical line, or width-only spacer */
     vertical?: boolean;
-    /** Separator line thickness or space width/height (CSS length or dp) */
-    thickness?: string | number;
-    /** Line separator margin (CSS length or dp) */
-    margin?: string | number;
+    /** Width/height of separator space (CSS length or dp) */
+    space: string | number;
+    /** Separator line thickness (CSS length or dp) */
+    lineThickness?: string | number;
     /** Line separator color (`UIColor` or string), defaults to `@separator` */
-    color?: Stringable;
+    lineColor?: Stringable;
+    /** Line separator margin (CSS length or dp) */
+    lineMargin?: string | number;
   }
 }

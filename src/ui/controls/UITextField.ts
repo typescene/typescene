@@ -21,9 +21,7 @@ export class UITextField extends UIControl {
 
   constructor() {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(
-      UITheme.current.styles["textfield"]
-    );
+    this.style = UITheme.getStyle("control", "textfield");
     this.shrinkwrap = false;
   }
 
