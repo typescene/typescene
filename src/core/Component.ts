@@ -598,11 +598,11 @@ function _makeEventHandler(handler: string) {
   if (handler.slice(-2) === "()") {
     let callMethodName = handler.slice(0, -2);
     return function (this: Component, e: ManagedEvent) {
-      let composite: any = this.getBoundParentComponent();
+      let composite: Component | undefined = this.getBoundParentComponent();
       while (composite) {
-        let f = composite && composite[callMethodName];
+        let f = composite && (composite as any)[callMethodName];
         if (typeof f === "function") return f.call(composite, e);
-        composite = composite.getCompositeParent();
+        composite = composite.getBoundParentComponent();
       }
       throw err(ERROR.Component_NotAHandler, callMethodName);
     };
