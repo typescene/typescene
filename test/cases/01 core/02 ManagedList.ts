@@ -1,4 +1,12 @@
-import { managed, ManagedList, ManagedObject, ManagedRecord, observe } from "../../../dist";
+import {
+  managed,
+  ManagedList,
+  ManagedObject,
+  ManagedRecord,
+  observe,
+  onPropertyEvent,
+  ManagedEvent,
+} from "../../../dist";
 
 consider("ManagedList", () => {
   it("can create an empty list", t => {
@@ -54,9 +62,13 @@ consider("ManagedList", () => {
     class Group extends ManagedObject {
       @managed list = new ManagedList().propagateEvents();
     }
-    observe(Group).addPropertyEventHandler("list", (_group, _list, e) => {
-      if (e.name === "Foo") t.count(3);
-    });
+    class GroupObserver {
+      @onPropertyEvent("list")
+      handler(_list: ManagedList, e: ManagedEvent) {
+        if (e.name === "Foo") t.count(3);
+      }
+    }
+    Group.addObserver(GroupObserver);
     let g = new Group();
     g.list.add(new ManagedObject(), new ManagedObject(), new ManagedObject());
     g.list.forEach(item => item.emit("Foo"));

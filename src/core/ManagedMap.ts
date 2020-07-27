@@ -1,6 +1,5 @@
 import { err, ERROR } from "../errors";
 import {
-  ManagedChangeEvent,
   ManagedEvent,
   ManagedObjectAddedEvent,
   ManagedObjectRemovedEvent,
@@ -15,9 +14,30 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     super();
   }
 
-  /** Propagate events from objects in this map by emitting them on the map object itself, optionally restricted to given types of events */
-  propagateEvents(...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>) {
-    return this.propagateChildEvents(...types);
+  /**
+   * Propagate events from all objects in this map by emitting the same events on the map object itself.
+   * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its only argument.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
+   */
+  propagateEvents(
+    f?: (this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void
+  ): this;
+  /**
+   * Propagate events from all objects in this map by emitting the same events on the map object itself.
+   * If one or more event classes are specified, only events that extend given event types are propagated.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
+   */
+  propagateEvents(
+    ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
+  ): this;
+  propagateEvents() {
+    this.propagateChildEvents.apply(this, arguments as any);
+    Object.defineProperty(this, util.HIDDEN_NONCHILD_EVENT_HANDLER, {
+      configurable: true,
+      enumerable: false,
+      value: this[util.HIDDEN_CHILD_EVENT_HANDLER],
+    });
+    return this;
   }
 
   /**
@@ -93,11 +113,12 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
       target,
       propId,
       (_obj, _target, e) => {
-        if (
+        if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
+          this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
+        } else if (
           this[util.HIDDEN_CHILD_EVENT_HANDLER] &&
           ManagedObject._isManagedChildRefLink(ref)
         ) {
-          // propagate the event if needed
           this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
         }
       },
@@ -144,7 +165,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         }
       }
     }
-    if (removed) this.emit(ManagedChangeEvent.CHANGE);
+    if (removed) this.emitChange();
     return this;
   }
 
@@ -152,7 +173,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
   objects() {
     let result: T[] = [];
     if (!this[util.HIDDEN_STATE_PROPERTY]) return result;
-    let seen: boolean[] = {} as any;
+    let seen: boolean[] = Object.create(null);
     let refs = this[util.HIDDEN_REF_PROPERTY];
     for (let propId in refs) {
       if (propId[0] === util.MANAGED_MAP_REF_PREFIX) {
@@ -211,7 +232,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
 
   /** Returns an object with properties for all keys and objects in this map */
   toObject() {
-    let result: { [index: string]: T } = {};
+    let result: { [index: string]: T } = Object.create(null);
     if (!this[util.HIDDEN_STATE_PROPERTY]) return result;
     let refs = this[util.HIDDEN_REF_PROPERTY];
     for (let propId in refs) {
@@ -227,7 +248,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     return this.toObject();
   }
 
-  /** Stop newly referenced objects from becoming child objects even if this `ManagedMap` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference objects when the parent object is destroyed */
+  /** Stop newly referenced objects from becoming child objects _even if_ this `ManagedMap` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference objects when the parent object is destroyed */
   weakRef() {
     this._isWeakRef = true;
     return this;
@@ -243,6 +264,9 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
       }
     }
   }
+
+  /** @internal */
+  private [util.HIDDEN_NONCHILD_EVENT_HANDLER]: (e: ManagedEvent, name: string) => void;
 
   private _isWeakRef?: boolean;
 }

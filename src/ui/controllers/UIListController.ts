@@ -9,14 +9,13 @@ import {
   ManagedListChangeEvent,
   ManagedMap,
   ManagedObject,
-} from "../core";
-import { UICloseColumn } from "./containers/UIColumn";
-import { UIContainer } from "./containers/UIContainer";
-import { UIComponentEvent, UIRenderable } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
-import { UIStyle } from "./UIStyle";
+} from "../../core";
+import { UICloseColumn } from "../containers/UIColumn";
+import { UIContainer } from "../containers/UIContainer";
+import { UIComponentEvent, UIRenderable } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
 
-/** Type definition for a component constructor that accepts a single object argument, and constructs a renderable component */
+/** Generic type definition for a component constructor that accepts a single object argument, and constructs a renderable component; used for creating each component in a list (see `UIListController`) */
 export interface UIListItemAdapter<TObject extends ManagedObject = ManagedObject> {
   new (object: TObject): UIRenderable;
 }
@@ -24,29 +23,32 @@ export interface UIListItemAdapter<TObject extends ManagedObject = ManagedObject
 /** Default container used in the preset method */
 const _defaultContainer = UICloseColumn.with({
   accessibleRole: "list",
-  style: UIStyle.create("UIListContainer", {
-    dimensions: { grow: 0 },
-    containerLayout: { distribution: "start" },
-  }),
 });
 
 /** Use a resolved promise to make updates async */
 const RESOLVED = Promise.resolve();
 
-/** Renderable wrapper that populates an encapsulated container with a given list of managed objects and a view adapter (component constructor) */
-export class UIListController extends UIRenderableController {
+/** Renderable wrapper that populates an encapsulated container with components, constructed using given view adapter (e.g. preset constructor for `UIListCellAdapter` components); each instance of the view adapter corresponds to exactly one value from a list */
+export class UIListController extends UIRenderableController<UIContainer> {
   static preset(
     presets: UIListController.Presets,
     ListItemAdapter?:
       | UIListItemAdapter
       | ((instance: UIListController) => UIListItemAdapter),
-    container: ComponentConstructor & (new () => UIContainer) = _defaultContainer
+    Container: ComponentConstructor<UIContainer> &
+      (new () => UIContainer) = _defaultContainer
   ): Function {
     this.presetBindingsFrom(ListItemAdapter as any);
-    this.observe(
+    this.addObserver(
       class {
-        constructor(public controller: UIListController) {}
-        readonly contentMap = new ManagedMap<UIRenderable>();
+        constructor(public controller: UIListController) {
+          this.Adapter = ListItemAdapter as any;
+          if (this.Adapter && !(this.Adapter.prototype instanceof ManagedObject)) {
+            this.Adapter = (this.Adapter as any)(this);
+          }
+        }
+        Adapter?: UIListItemAdapter;
+
         onFocusIn(e: UIComponentEvent) {
           if (e.source !== this.controller.content) {
             // store focus index
@@ -57,84 +59,23 @@ export class UIListController extends UIRenderableController {
             this.controller.restoreFocus();
           }
         }
+
         onFirstIndexChangeAsync() {
-          return this.doUpdateAsync();
+          return this.controller._doUpdateAsync(this.Adapter);
         }
+
         onMaxItemsChangeAsync() {
-          return this.doUpdateAsync();
+          return this.controller._doUpdateAsync(this.Adapter);
         }
+
         onItemsChange(_v?: any, e?: ManagedEvent) {
           if (!e || e instanceof ManagedListChangeEvent) {
-            this.doUpdateAsync();
+            this.controller._doUpdateAsync(this.Adapter);
           }
-        }
-        _updateQueued = false;
-        async doUpdateAsync() {
-          if (this._updateQueued) return;
-          this._updateQueued = true;
-          await RESOLVED;
-          this._updateQueued = false;
-
-          // update the container's content, if possible
-          let container = this.controller.content as UIContainer;
-          let content = container && container.content;
-          if (!content) return;
-          let list = this.controller.items;
-          let Adapter: UIListItemAdapter = ListItemAdapter as any;
-          if (Adapter && !(Adapter.prototype instanceof ManagedObject)) {
-            Adapter = (Adapter as any)(this.controller);
-          }
-          if (!list || !Adapter) {
-            content.clear();
-            return;
-          }
-
-          // use entire list, or just a part of it
-          let firstIndex = this.controller.firstIndex;
-          if (!(firstIndex >= 0)) firstIndex = 0;
-          let maxItems = this.controller.maxItems;
-          let items =
-            firstIndex > 0 || maxItems! >= 0
-              ? list.count > 0 && firstIndex < list.count
-                ? list.take(
-                    maxItems! >= 0 ? maxItems! : list.count,
-                    list.get(this.controller.firstIndex)
-                  )
-                : []
-              : list;
-
-          // keep track of existing view components for each object
-          let map = this.contentMap;
-          let components: UIRenderable[] = [];
-          let created = map.toObject();
-          for (let item of items) {
-            let component = created[item.managedId];
-            if (!component) {
-              component = new Adapter(item);
-              map.set(String(item.managedId), component);
-            } else {
-              delete created[item.managedId];
-            }
-            components.push(component);
-          }
-          content.replace(components);
-
-          // delete components that should no longer be in the list
-          for (let oldKey in created) {
-            map.remove(created[oldKey]);
-          }
-
-          // set focusability if needed
-          if (this.controller.enableArrowKeyFocus) {
-            container.allowKeyboardFocus = !!components.length;
-          }
-
-          // emit an event specific to this UIListController
-          this.controller.propagateComponentEvent("ListItemsChange");
         }
       }
     );
-    return super.preset(presets, container);
+    return super.preset(presets, Container);
   }
 
   /** Create a new list controller for given container */
@@ -142,7 +83,16 @@ export class UIListController extends UIRenderableController {
     super(container);
     this.propagateChildEvents(e => {
       if (e instanceof ComponentEvent) {
-        if (e.name === "ArrowUpKeyPress") {
+        if (e.name === "FocusIn") {
+          if (e.source !== this.content) {
+            // store focus index
+            let idx = this.getIndexOfComponent(e.source);
+            this.lastFocusedIndex = Math.max(0, idx);
+          } else {
+            // focus appropriate item
+            this.restoreFocus();
+          }
+        } else if (e.name === "ArrowUpKeyPress") {
           if (this.focusPreviousItem()) return;
           let parentList = this.getParentComponent(UIListController);
           parentList && parentList.enableArrowKeyFocus && parentList.restoreFocus();
@@ -215,6 +165,70 @@ export class UIListController extends UIRenderableController {
     }
     return false;
   }
+
+  /** Update the container with (existing or new) components, one for each list item */
+  private async _doUpdateAsync(Adapter?: UIListItemAdapter) {
+    if (this._updateQueued) return;
+    this._updateQueued = true;
+    await RESOLVED;
+    this._updateQueued = false;
+
+    // update the container's content, if possible
+    let container = this.content;
+    let content = container && container.content;
+    let list = this.items;
+    if (!content) return;
+    if (!list || !Adapter) {
+      content.clear();
+      return;
+    }
+
+    // use entire list, or just a part of it
+    let firstIndex = this.firstIndex;
+    if (!(firstIndex >= 0)) firstIndex = 0;
+    let maxItems = this.maxItems;
+    let items =
+      firstIndex > 0 || maxItems! >= 0
+        ? list.count > 0 && firstIndex < list.count
+          ? list.take(maxItems! >= 0 ? maxItems! : list.count, list.get(this.firstIndex))
+          : []
+        : list;
+
+    // keep track of existing view components for each object
+    let map = this._contentMap;
+    let components: UIRenderable[] = [];
+    let created = map.toObject();
+    for (let item of items) {
+      let component = created[item.managedId];
+      if (!component) {
+        component = new Adapter(item);
+        map.set(String(item.managedId), component);
+      } else {
+        delete created[item.managedId];
+      }
+      components.push(component);
+    }
+    content.replace(components);
+
+    // delete components that should no longer be in the list
+    for (let oldKey in created) {
+      map.remove(created[oldKey]);
+    }
+
+    // set focusability if needed
+    if (this.enableArrowKeyFocus) {
+      container!.allowKeyboardFocus = !!components.length;
+    }
+
+    // emit an event specific to this UIListController
+    this.propagateComponentEvent("ListItemsChange");
+  }
+
+  /** True if a list update is already queued */
+  _updateQueued = false;
+
+  /** Map of current content (managed IDs to UI components) */
+  private readonly _contentMap = new ManagedMap<UIRenderable>();
 }
 
 export namespace UIListController {

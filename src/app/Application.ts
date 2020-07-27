@@ -4,6 +4,8 @@ import {
   logUnhandledException,
   managedChild,
   ManagedList,
+  ManagedService,
+  ManagedCoreEvent,
 } from "../core";
 import { err, ERROR } from "../errors";
 import { UIRenderContext } from "../ui";
@@ -13,7 +15,7 @@ import { AppActivityList } from "./AppActivityList";
 
 /**
  * Represents the application itself, encapsulates activities (`AppActivity` components) and contexts for rendering and activation using URL-like paths.
- * Use the static `run` method to create and activate an application using a set of activity constructors, or create an application class that includes activities as sub components (properties decorated using the `@compose` decorator). For a manually created class, an instance must be created and activated (see `activate`) for the application to start.
+ * Use the static `run` method to create and activate an application using a set of activity constructors, or create an application class that includes activities as (preset) bound components.
  * @note Do not use the `Application` class directly, as it will __not__ initialize rendering or activation contexts. Instead, use platform specific application classes such as `BrowserApplication` that is exported by the `@typescene/webapp` package.
  */
 export class Application extends Component {
@@ -23,17 +25,17 @@ export class Application extends Component {
    * @note Calling this method directly on `Application` creates an application without any context (i.e. `activationContext` and `renderContext`). Instead, use a constructor that is meant for a specific platform (e.g. `BrowserApplication`).
    */
   static run<T extends Application>(
-    this: typeof Application & (new () => T),
-    ...activities: Array<ComponentConstructor & (new () => AppActivity)>
+    this: typeof Application,
+    ...activities: Array<ComponentConstructor<AppActivity>>
   ): T {
-    let C = this.with(...(activities as any));
+    let C = this.with(...(activities as any[]));
     return new C().activate() as any;
   }
 
   /** All `Application` instances that are currently active */
   static active = (() => {
     let result = new ManagedList<Application>();
-    Application.observe(
+    Application.addObserver(
       class {
         constructor(public instance: Application) {}
         onActive() {
@@ -49,14 +51,17 @@ export class Application extends Component {
 
   static preset(
     presets: Application.Presets,
-    ...activities: Array<ComponentConstructor & (new () => AppActivity)>
+    ...activities: Array<ComponentConstructor<AppActivity>>
   ): Function {
     if (activities.length) {
-      this.presetActiveComponent(
-        "activities",
-        AppActivityList.with(...activities),
-        AppActivity
-      );
+      // preset an AppActivityList with given activities
+      let L = AppActivityList.with(...activities);
+      this.presetBoundComponent("activities", L, AppActivity);
+      this.addEventHandler(function (e) {
+        // toggle property based on activation state
+        if (e === ManagedCoreEvent.ACTIVE) this.activities = new L();
+        if (e === ManagedCoreEvent.INACTIVE) this.activities = undefined;
+      });
     }
     return super.preset(presets);
   }
@@ -68,11 +73,11 @@ export class Application extends Component {
   @managedChild
   activities?: AppActivityList;
 
-  /** Application render context as a managed child object, propagated to all (nested) `AppComponent` instances */
+  /** Application render context as a managed child object, propagated to all (nested) `AppComponent` instances. This object is set by specialized application classes such as `BrowserApplication` to match the capabilities of the runtime platform.  */
   @managedChild
   renderContext?: UIRenderContext;
 
-  /** Activity activation context as a managed child object, propagated to all (nested) `AppComponent` instances */
+  /** Activity activation context as a managed child object, propagated to all (nested) `AppComponent` instances. This object is set by specialized application classes such as `BrowserApplication` to match the capabilities of the runtime platform. */
   @managedChild
   activationContext?: AppActivationContext;
 
@@ -100,9 +105,15 @@ export class Application extends Component {
     await this.destroyManagedAsync();
   }
 
-  /** Navigate to given (relative) path, or go back in history if argument is `:back`, using the current `Application.activationContext` */
+  /** Navigate to given (relative) path using the current `Application.activationContext` */
   navigate(path: string) {
     if (this.activationContext) this.activationContext.navigate(path);
+    return this;
+  }
+
+  /** Go back to the previous navigation path, if implemented by the current `Application.activationContext` */
+  goBack() {
+    if (this.activationContext) this.activationContext.navigate(":back");
     return this;
   }
 
@@ -125,6 +136,11 @@ export class Application extends Component {
     this.add(viewActivity);
     await viewActivity.activateAsync();
     return viewActivity;
+  }
+
+  /** Returns the currently registered service with given name, if any. This is an alias of `ManagedService.find()`. */
+  findService(name: string) {
+    return ManagedService.find(name);
   }
 }
 

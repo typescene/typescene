@@ -1,8 +1,15 @@
-import { Binding, Component, managed, ManagedList, ManagedMap } from "../core";
+import {
+  Binding,
+  Component,
+  managed,
+  ManagedList,
+  ManagedMap,
+  onPropertyChange,
+} from "../core";
 import { UIComponent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
 
-/** Renderable component that wraps around a referenced view (view component or activity), which is _not_ a child component of the component itself. The view may be selected from a bound list and/or map, using a (bound or assigned) index.
+/** Renderable component that encapsulates a referenced view (view component or activity), which is _not_ a child component of the component itself. The view may be selected from a bound list and/or map, using a (bound or assigned) index.
  * @note Because the rendered view is not a child component, events (including UI events such as 'Clicked') never propagate up to the containing component(s).
  */
 export class UIViewRenderer extends Component implements UIRenderable {
@@ -39,46 +46,37 @@ export class UIViewRenderer extends Component implements UIRenderable {
 }
 
 // observe to re-render when content changes
-UIViewRenderer.observe(
-  class {
-    constructor(public readonly component: UIViewRenderer) {}
-    onViewChange() {
-      this.component.render();
-    }
-    updateView() {
-      if (
-        this.component.index >= 0 &&
-        this.component.managedList &&
-        this.component.index < this.component.managedList.count
-      ) {
-        let idx = this.component.index as number;
-        this.component.view = this.component.managedList.get(idx);
-      } else if (
-        typeof this.component.index === "string" &&
-        this.component.managedMap &&
-        this.component.managedMap.has(this.component.index)
-      ) {
-        this.component.view = this.component.managedMap.get(this.component.index);
-      } else {
-        this.component.view = undefined;
-      }
-    }
-    onManagedListChange() {
-      this.updateView();
-    }
-    onManagedMapChange() {
-      this.updateView();
-    }
-    onIndexChange() {
-      this.updateView();
+class UIViewRendererObserver {
+  constructor(public readonly component: UIViewRenderer) {}
+  onViewChange() {
+    this.component.render();
+  }
+  @onPropertyChange("managedList", "managedMap", "index")
+  updateView() {
+    if (
+      this.component.index >= 0 &&
+      this.component.managedList &&
+      this.component.index < this.component.managedList.count
+    ) {
+      let idx = this.component.index as number;
+      this.component.view = this.component.managedList.get(idx);
+    } else if (
+      typeof this.component.index === "string" &&
+      this.component.managedMap &&
+      this.component.managedMap.has(this.component.index)
+    ) {
+      this.component.view = this.component.managedMap.get(this.component.index);
+    } else {
+      this.component.view = undefined;
     }
   }
-);
+}
+UIViewRenderer.addObserver(UIViewRendererObserver);
 
 export namespace UIViewRenderer {
   /** UIViewRenderer presets type, for use with `Component.with` */
   export interface Presets {
-    /** Rendered view, if bound directly (not to be used together with `managedList` or `managedMap` properties) */
+    /** Rendered view, if bound directly (cannot be used together with `managedList` or `managedMap` properties) */
     view?: Binding;
     /** List of renderable views (must be bound to either a `ManagedList` or `AppActivityList`), one of which can be selected for rendering using the `index` property */
     managedList?: Binding;

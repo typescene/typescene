@@ -1,10 +1,10 @@
 import {
-  Binding,
   logUnhandledException,
   managed,
   managedChild,
   ManagedEvent,
   tt,
+  observe,
 } from "../core";
 import { err, ERROR } from "../errors";
 import {
@@ -25,23 +25,30 @@ import { AppActivity } from "./AppActivity";
 export class ViewActivity extends AppActivity implements UIRenderable {
   static preset(presets: ViewActivity.Presets, View?: UIRenderableConstructor): Function {
     let addViewComponent = (View: UIRenderableConstructor) => {
-      this.presetActiveComponent("view", View, AppActivity);
+      this.presetBoundComponent("view", View, AppActivity);
+      if (this.prototype._allActive) {
+        if (this.prototype._ViewClass) {
+          // this exact activity class was previously bound to a different view,
+          // go through all active instances to replace the view now
+          for (let id in this.prototype._allActive) {
+            let activity = this.prototype._allActive[id];
+            if (activity.isActive()) activity.view = new View();
+          }
+        }
+      } else {
+        this.prototype._allActive = Object.create(null);
+      }
+      this.prototype._ViewClass = View;
       if (!Object.prototype.hasOwnProperty.call(View, "preset")) {
-        // add a callback to the view class which updates the
-        // view component on this class (recursively)
+        // add a callback for 'hot' reload to update the view class
         (View as any)["@updateActivity"] = addViewComponent;
       }
     };
-    let viewClass = View || presets.view;
-    delete presets.view;
-    if (Binding.isBinding(viewClass)) {
-      throw err(ERROR.ViewActivity_ViewBound);
-    }
-    if (viewClass) addViewComponent(viewClass);
+    if (View) addViewComponent(View);
     return super.preset(presets);
   }
 
-  /** Create a new inactive view activity with given name and path */
+  /** Create a new (inactive) view activity with given name and path */
   constructor(name?: string, path?: string) {
     super(name, path);
     this.propagateChildEvents(e => {
@@ -150,7 +157,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     ) {
       constructor() {
         super();
-        this.propagateChildEvents(function(e) {
+        this.propagateChildEvents(function (e) {
           if (eventHandler) eventHandler.call(this, e);
           else if (e.name === "CloseModal") this.destroyAsync();
         });
@@ -190,7 +197,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     if (cancelButtonLabel) builder.setCancelButtonLabel(String(tt(cancelButtonLabel)));
     let Dialog = builder.build();
     return new Promise<boolean>(resolve => {
-      this.showDialogAsync(Dialog, !cancelButtonLabel, function(e) {
+      this.showDialogAsync(Dialog, !cancelButtonLabel, function (e) {
         if (e.name === "Confirm") resolve(true), this.destroyAsync();
         if (e.name === "CloseModal") resolve(false), this.destroyAsync();
       });
@@ -200,12 +207,29 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   private _renderCallback?: UIRenderContext.RenderCallback;
   private _cbContext?: UIRenderContext;
   private _renderer = new UIComponent.DynamicRendererWrapper();
-}
 
-// observe view activities to render when needed
-ViewActivity.observe(
-  class {
+  // these two references are set on the prototype instead (by static `preset()`):
+  private _allActive?: { [managedId: string]: ViewActivity };
+  private _ViewClass?: UIRenderableConstructor;
+
+  /** @internal Observe view activities to create views and render when needed */
+  @observe
+  protected static ViewActivityObserver = class {
     constructor(public activity: ViewActivity) {}
+    onActive() {
+      if (this.activity._allActive) {
+        this.activity._allActive[this.activity.managedId] = this.activity;
+      }
+      if (this.activity._ViewClass) {
+        this.activity.view = new this.activity._ViewClass();
+      }
+    }
+    onInactive() {
+      if (this.activity._allActive) {
+        delete this.activity._allActive[this.activity.managedId];
+      }
+      this.activity.view = undefined;
+    }
     onRenderContextChange() {
       this.checkAndRender();
     }
@@ -216,8 +240,8 @@ ViewActivity.observe(
       if (this.activity.renderContext && this.activity.view) this.activity.render();
       else this.activity.removeViewAsync().catch(logUnhandledException);
     }
-  }
-);
+  };
+}
 
 /** Represents an application activity with a view that is rendered as a full page (when active) */
 export class PageViewActivity extends ViewActivity {
@@ -236,8 +260,6 @@ export class DialogViewActivity extends ViewActivity {
 export namespace ViewActivity {
   /** View activity presets type, for use with `Component.with` */
   export interface Presets extends AppActivity.Presets {
-    /** View component constructor, to be instantiated and rendered when the activity is activated */
-    view?: UIRenderableConstructor;
     /** View placement mode */
     placement?: UIRenderPlacement;
     /** Modal shade backdrop opacity behind content (0-1), if supported by placement mode */

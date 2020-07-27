@@ -1,31 +1,31 @@
 import { err, ERROR } from "../errors";
 
 /** @internal Arbitrary name of the hidden property containing a managed object's references */
-export const HIDDEN_REF_PROPERTY = "^ref";
+export const HIDDEN_REF_PROPERTY = "^-out";
 
 /** @internal Arbitrary name of the hidden property containing the number of inward references */
-export const HIDDEN_REFCOUNT_PROPERTY = "^ref_in";
+export const HIDDEN_REFCOUNT_PROPERTY = "^-in";
 
 /** @internal Arbitrary name of the hidden property containing a managed object's state */
-export const HIDDEN_STATE_PROPERTY = "^state";
+export const HIDDEN_STATE_PROPERTY = "^$";
 
 /** @internal Arbitrary name of the hidden method that handles events on the same object */
-export const HIDDEN_EVENT_HANDLER = "^handler";
+export const HIDDEN_EVENT_HANDLER = "^-ev";
 
 /** @internal Arbitrary name of the hidden method that handles and forwards events from referenced child objects */
-export const HIDDEN_CHILD_EVENT_HANDLER = "^refchandler";
+export const HIDDEN_CHILD_EVENT_HANDLER = "^-ec";
 
 /** @internal Arbitrary name of the hidden method that handles and forwards events from referenced non-child objects (in lists and reference objects ONLY) */
-export const HIDDEN_NONCHILD_EVENT_HANDLER = "^refnchandler";
+export const HIDDEN_NONCHILD_EVENT_HANDLER = "^-en";
 
 /** @internal Arbitrary name of property on property getter to contain shadow property name */
-export const GETTER_SHADOW_PROP = "^shadow";
+export const GETTER_SHADOW_PROP = "-shadow";
 
 /** @internal Arbitrary name of flag on property getter to indicate that synchronous observer handlers should not be allowed */
-export const GETTER_SHADOW_FORCE_ASYNC = "^async";
+export const GETTER_SHADOW_FORCE_ASYNC = "-async";
 
 /** @internal Arbitrary name of the setter function method to get a property handler/getter pair */
-export const SETTER_CHAIN = "^chain";
+export const SETTER_CHAIN = "^-ch";
 
 /** @internal Arbitrary prefix character for common property IDs */
 export const PROPERTY_ID_PREFIX = "P";
@@ -40,7 +40,7 @@ export const MANAGED_MAP_REF_PREFIX = "%";
 export const MAKE_REF_MANAGED_PARENT_FN = "_makeRefManagedParent";
 
 /** @internal Prefix for binding IDs, which double as names of hidden methods for updaters on component prototypes */
-export const BINDING_ID_PREFIX = "^bound:";
+export const BINDING_ID_PREFIX = "^^bind:";
 
 /** @internal Reusable object that represents a single reference */
 export interface RefLink {
@@ -188,12 +188,12 @@ export function defineChainableProperty<T>(
   }
 
   // otherwise create a new prototype setter
-  let protoSetter = function(this: any, v: any) {
+  let protoSetter = function (this: any, v: any) {
     // use chained function to make setter
     let prev = (protoSetter as any)[SETTER_CHAIN]();
     let handler = prev.makeHandler(this, propertyKey);
     let value: any;
-    let instanceSetter = function(this: T, v: any) {
+    let instanceSetter = function (this: T, v: any) {
       prev.setter && prev.setter.call(this, v);
       handler((value = v), undefined, handler);
     };
@@ -203,7 +203,7 @@ export function defineChainableProperty<T>(
     if (!instanceGetter) {
       if (origShadowed) {
         let getting: boolean | undefined;
-        instanceGetter = function(this: T) {
+        instanceGetter = function (this: T) {
           if (getting) return value;
           getting = true;
           try {

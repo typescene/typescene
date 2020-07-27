@@ -1,4 +1,4 @@
-import { CHANGE, managedChild, ManagedObject, observe } from "../../../dist";
+import { managedChild, ManagedObject, observe } from "../../../dist";
 
 consider("ManagedObject", () => {
   it("can create an instance", t => {
@@ -37,14 +37,15 @@ consider("ManagedObject", () => {
 
   it("can emit events and handle them", t => {
     t.failOnTimeout();
-    class MyObject extends ManagedObject {}
-    MyObject.handle({
-      Change() {
-        t.ok();
-      },
+    class MyObject extends ManagedObject {
+      x = "x";
+    }
+    MyObject.addEventHandler(function (e) {
+      t.assert(this.x === "x", "Invoked in instance context");
+      if (e.name === "Change") t.ok();
     });
     let obj = new MyObject();
-    obj.emit(CHANGE);
+    obj.emitChange();
   });
 
   it("destroys child objects when parents are destroyed", async t => {

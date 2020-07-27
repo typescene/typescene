@@ -1,8 +1,17 @@
 import { err, ERROR } from "../errors";
-import { ManagedCoreEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
+import {
+  ManagedCoreEvent,
+  ManagedEvent,
+  ManagedParentChangeEvent,
+  ManagedChangeEvent,
+  CHANGE,
+} from "./ManagedEvent";
 import { ManagedReference } from "./ManagedReference";
 import { observe } from "./observe";
 import * as util from "./util";
+
+/** Alias for Object.prototype.hasOwnProperty */
+const _hOP = Object.prototype.hasOwnProperty;
 
 /** Enumeration of possible states for a managed object */
 export enum ManagedState {
@@ -34,7 +43,16 @@ const MAX_FREE_REFLINKS = 1000;
 /** Stack of currently unused managed references, ready for reuse */
 let _freeRefLinks: util.RefLink[] = [];
 for (let i = 0; i < MAX_FREE_REFLINKS >> 2; i++) {
-  _freeRefLinks[i] = {} as any;
+  _freeRefLinks[i] = {
+    u: 0,
+    a: undefined,
+    b: undefined,
+    p: "",
+    j: undefined,
+    k: undefined,
+    f: undefined,
+    g: undefined,
+  };
 }
 
 /** Next UID to be assigned to a new managed object */
@@ -46,37 +64,30 @@ let _nextRefId = 16;
 /** Maximum number of recursive event emissions allowed _per object_ */
 const RECURSE_EMIT_LIMIT = 4;
 
-/** Generic constructor type for ManagedObject, matching both parameterless constructors and those with one or more required parameters */
-export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObject> =
-  | (new (...args: any[]) => TObject)
-  | (new (a: never, b: never, c: never, d: never, e: never, f: never) => TObject);
+/** Generic constructor type for ManagedObject classes */
+export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObject> = new (
+  ...args: never[]
+) => TObject;
 
 /** Base class for objects that have their own unique ID, life cycle including active/inactive and destroyed states, and managed references to other instances */
 export class ManagedObject {
-  /** Add an observer to _all instances_ of this class and derived classes. Alias for the `observe` function/decorator. */
-  static observe<T extends ManagedObject>(
+  /**
+   * Add an observer to _all instances_ of this class and derived classes. The observer class is instantiated for each instance of this (observed) class, and its methods are automatically called when an event or property change occurs on the observed instance.
+   * @note Observer classes may be nested inside of the observed class, which provides access to private and protected methods; see `@observe`
+   */
+  static addObserver<T extends ManagedObject>(
     this: ManagedObjectConstructor<T>,
     Observer: { new (instance: T): any }
   ) {
-    observe(this, Observer as any);
+    observe(this, () => Observer);
     return this;
   }
 
-  /** Attach an event handler to be invoked for all events that are emitted on _all instances_ of a class. */
-  static handle<T extends ManagedObject>(
+  /** Attach an event handler function, to be invoked for all events that are emitted _on all instances_ of this class _and_ derived classes. Given function is invoked in the context (`this` variable) of the emitting object, with the emitted event as a single parameter. */
+  static addEventHandler<T extends ManagedObject>(
     this: ManagedObjectConstructor<T>,
     handler: (this: T, e: ManagedEvent) => void
-  ): void;
-  /**
-   * Attach event handlers for _all instances_ of a derived class. The event name (`ManagedEvent.name` property) is used to find an event handler in given object.
-   *
-   * @note See also `ManagedObject.observe` for a more advanced way to observe events as well as property changes.
-   */
-  static handle<T extends ManagedObject>(
-    this: ManagedObjectConstructor<T>,
-    handlers: { [eventName: string]: (this: T, e: ManagedEvent) => void }
-  ): void;
-  static handle<T extends ManagedObject>(this: ManagedObjectConstructor<T>, h: any) {
+  ) {
     if ((this as any) === ManagedObject) {
       throw err(ERROR.Object_Base);
     }
@@ -84,7 +95,7 @@ export class ManagedObject {
     // get the previous prototype and handler on same prototype
     let prevProto: typeof this.prototype;
     let prevHandler: ((this: any, e: ManagedEvent) => void) | undefined;
-    if (!Object.prototype.hasOwnProperty.call(this.prototype, util.HIDDEN_EVENT_HANDLER)) {
+    if (!_hOP.call(this.prototype, util.HIDDEN_EVENT_HANDLER)) {
       // add a handler to this prototype
       prevProto = Object.getPrototypeOf(this.prototype);
       Object.defineProperty(this.prototype, util.HIDDEN_EVENT_HANDLER, {
@@ -98,13 +109,12 @@ export class ManagedObject {
     }
 
     // add the event handler function
-    this.prototype[util.HIDDEN_EVENT_HANDLER] = function(this: any, e: ManagedEvent) {
+    this.prototype[util.HIDDEN_EVENT_HANDLER] = function (this: any, e: ManagedEvent) {
       prevProto && prevProto[util.HIDDEN_EVENT_HANDLER]
         ? prevProto[util.HIDDEN_EVENT_HANDLER]!.call(this, e)
         : prevHandler && prevHandler.call(this, e);
       try {
-        if (typeof h === "function") h.call(this, e);
-        else if (h[e.name]) h[e.name].call(this, e);
+        handler.call(this, e);
       } catch (err) {
         util.exceptionHandler(err);
       }
@@ -112,46 +122,30 @@ export class ManagedObject {
     return this;
   }
 
-  /** @internal Set to the class itself when global preset method has run */
-  static CLASS_INIT = ManagedObject;
+  /** @internal Method that can be overridden on the class _prototype_ to be invoked for every new instance */
+  private ["_@@"]() {}
 
-  /** @internal Add a callback that is invoked by the constructor of this class, the first time an instance is created. The callback always runs only once. If an instance of this class has already been constructed, the callback is invoked immediately and its return value is returned. */
-  static addGlobalClassInitializer<T>(f: () => T | void) {
-    if (this.CLASS_INIT === this) {
-      // already initialized, run function right away
-      return f();
+  /** @internal Override the method that is run for every new instance, calling the previous method first, if any */
+  static _addInitializer(f: () => void) {
+    let fp = _hOP.call(this.prototype, "_@@") && this.prototype["_@@"];
+    if (fp) {
+      this.prototype["_@@"] = function () {
+        (fp as Function).call(this);
+        f.call(this);
+      };
+    } else {
+      let up = Object.getPrototypeOf(this.prototype);
+      this.prototype["_@@"] = function () {
+        let fpp = up["_@@"];
+        fpp && fpp.call(this);
+        f.call(this);
+      };
     }
-
-    // find previous callback on same prototype
-    let prevF: typeof f;
-    if (Object.prototype.hasOwnProperty.call(this.prototype, "_class_init")) {
-      prevF = this.prototype._class_init;
-    }
-
-    // set function on own prototype, which removes itself when called
-    this.prototype._class_init = () => {
-      this.CLASS_INIT = this;
-      if (prevF) return prevF(), f();
-      delete this.prototype._class_init;
-      this.prototype._class_init(); // see-through
-      f();
-    };
   }
-
-  /** @internal Method that is overridden by `addGlobalClassInitializer` */
-  _class_init() {}
 
   /** Creates a new managed object instance */
   constructor() {
-    let self = this.constructor as typeof ManagedObject;
-    if (self.CLASS_INIT !== self) this._class_init();
-
-    Object.defineProperty(this, util.HIDDEN_REF_PROPERTY, {
-      value: [],
-      writable: false,
-      configurable: false,
-      enumerable: false,
-    });
+    // override getter/setter properties to be non-enumerable
     this[util.HIDDEN_STATE_PROPERTY] = ManagedState.CREATED;
     Object.defineProperty(this, util.HIDDEN_STATE_PROPERTY, {
       ...Object.getOwnPropertyDescriptor(this, util.HIDDEN_STATE_PROPERTY),
@@ -163,6 +157,17 @@ export class ManagedObject {
       ...Object.getOwnPropertyDescriptor(this, util.HIDDEN_REFCOUNT_PROPERTY),
       enumerable: false,
     });
+
+    // intialize reflinks property to be non-enumerable as well
+    Object.defineProperty(this, util.HIDDEN_REF_PROPERTY, {
+      value: [],
+      writable: false,
+      configurable: false,
+      enumerable: false,
+    });
+
+    // run callbacks, if any
+    this["_@@"]();
   }
 
   /** Unique ID of this managed object (read only) */
@@ -185,9 +190,9 @@ export class ManagedObject {
     return this[util.HIDDEN_REFCOUNT_PROPERTY];
   }
 
-  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed`, `@managedChild`, `@managedDependency`, and `@compose` decorators) */
+  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed`, `@managedChild`, and `@managedDependency` decorators) */
   protected getManagedReferrers() {
-    let seen: boolean[] = {} as any;
+    let seen: boolean[] = Object.create(null);
     let result: ManagedObject[] = [];
     this[util.HIDDEN_REF_PROPERTY].forEach(reflink => {
       let object: ManagedObject = reflink.a;
@@ -199,19 +204,14 @@ export class ManagedObject {
   }
 
   /**
-   * Returns the managed object that contains a _managed child reference_ that points to this instance (see `@managedChild` and `@compose` decorators).
+   * Returns the managed object that contains a _managed child reference_ that points to this instance, if any (see `@managedChild`).
+   * If a class argument is specified, parent references are recursed until a parent of given type is found.
    * The object itself is never returned, even if it contains a managed child reference that points to itself.
    * @note The reference to the managed parent (but not its events) can be observed (see `observe()`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
    */
-  protected getManagedParent(): ManagedObject | undefined;
-  /**
-   * Returns the managed object that contains a _managed child reference_ that points to this instance (see `@managedChild` decorator). If a class argument is specified, parent references are recursed until a parent of given type is found.
-   * The object itself is never returned, even if it contains a managed child reference that points to itself (or if parents recursively reference the object or each other).
-   */
-  protected getManagedParent<TParent extends ManagedObject>(
-    ParentClass: ManagedObjectConstructor<TParent>
-  ): TParent | undefined;
-  protected getManagedParent(ParentClass?: ManagedObjectConstructor<any>) {
+  protected getManagedParent<TParent extends ManagedObject = ManagedObject>(
+    ParentClass?: ManagedObjectConstructor<TParent>
+  ): TParent | undefined {
     let ref = this[util.HIDDEN_REF_PROPERTY].parent;
     let parent: ManagedObject | undefined = ref && ref.a;
 
@@ -228,18 +228,18 @@ export class ManagedObject {
         // continue in a loop, but keep track of objects already seen
         let seen: boolean[] | undefined;
         while (parent && !(parent instanceof <any>ParentClass)) {
-          (seen || (seen = {} as any))[parent.managedId] = true;
+          (seen || (seen = Object.create(null)))[parent.managedId] = true;
           parentRef = parent[util.HIDDEN_REF_PROPERTY].parent;
           parent = parentRef && parentRef.a;
           if (parent && seen![parent.managedId]) break;
         }
       }
     }
-    return parent && parent !== this ? parent : undefined;
+    return parent && parent !== this ? (parent as TParent) : undefined;
   }
 
   /**
-   * Emit an event. If an event constructor is given, a new instance is created using given constructor arguments (rest parameters). If an event name (string) is given, a new default event instance is created with given name. This method may be overridden in derived classes to use a different default event class.
+   * Emit an event. If an event constructor is given, a new instance is created using given constructor arguments (rest parameters). If an event name (string) is given, a new plain event is created with given name.
    * Use the `ManagedEvent.freeze` method to freeze event instances before emitting.
    * See `ManagedObject.handle` and `ManagedObject.observe` (static methods to be used on subclasses of `ManagedObject`) for ways to handle events.
    * @note There is a limit to the number of events that can be emitted recursively; avoid calling this method on the same object from _within_ an event handler.
@@ -281,11 +281,17 @@ export class ManagedObject {
     return this;
   }
 
+  /** Emit a change event (see `ManagedChangeEvent`), to signal that the internal state of the emitting object has changed. The `name` parameter is optional; if left out, the `CHANGE` event (instance) is emitted directly. */
+  emitChange(name?: string) {
+    if (name === undefined) this.emit(CHANGE);
+    else this.emit(ManagedChangeEvent, name);
+  }
+
   /**
-   * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting events on this object itself.
-   * If a function is specified, the function is used to transform one event to one or more others, possibly including the same event, or stop propagation if the function returns undefined. The function will receive the event itself as its first argument, and the _name of the property_ that references the emitting object as its second argument.
-   * The core Active, Inactive, Destroyed, and ManagedParentChange events cannot be propagated.
-   * @note Calling this method a second time _replaces_ any existing propagation rule entirely.
+   * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting the same events on this object itself.
+   * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its first argument, and the name of the property that references the emitting object as its second argument.
+   * Core event such as `ManagedCoreEvent.ACTIVE` cannot be propagated in this way.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
    */
   protected propagateChildEvents(
     f?: (
@@ -295,9 +301,9 @@ export class ManagedObject {
     ) => ManagedEvent | ManagedEvent[] | undefined | void
   ): this;
   /**
-   * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting events on this object itself. Only propagated events that extend given event types are propagated.
-   * The core Active, Inactive, Destroyed, and ManagedParentChange events cannot be propagated.
-   * @note Calling this method a second time _replaces_ any existing propagation rule entirely.
+   * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting the same events on this object itself. Only propagated events that extend given event types are propagated.
+   * Core event such as `ManagedCoreEvent.ACTIVE` will not be propagated in this way.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
    */
   protected propagateChildEvents(
     ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
@@ -347,7 +353,7 @@ export class ManagedObject {
     return this;
   }
 
-  /** Activate this managed object (i.e. change state to `ACTIVATING` and then to `ACTIVATED`) */
+  /** Activate this object (i.e. change state to `ManagedState.ACTIVATING` and then to `ManagedState.ACTIVATED`); the `onManagedStateActivatingAsync` and `onManagedStateActiveAsync` methods are called in this process */
   protected async activateManagedAsync() {
     return this._transitionManagedState(
       ManagedState.ACTIVE,
@@ -360,7 +366,7 @@ export class ManagedObject {
     );
   }
 
-  /** Deactivate this managed object, if it is currently active (i.e. change state to `DEACTIVATING` and then to `DEACTIVATED`) */
+  /** Deactivate this object, if it is currently active (i.e. change state to `ManagedState.DEACTIVATING` and then to `ManagedState.DEACTIVATED`); the `onManagedStateDeactivatingAsync` and `onManagedStateInactiveAsync` methods are called in this process */
   protected async deactivateManagedAsync() {
     await this._transitionManagedState(
       ManagedState.INACTIVE,
@@ -374,8 +380,9 @@ export class ManagedObject {
   }
 
   /**
-   * Destroy this managed object (i.e. change state to `DESTROYING` and then to `DESTROYED`, clear all managed references from and to this object, and destroy all managed children)
-   * @note Managed child objects are automatically destroyed when their parent's reference (decorated with `@managedChild`) is cleared or changed, or the child object is removed from a managed list or map that is itself a managed child, OR when the parent object itself is destroyed. Managed objects are also automatically destroyed when one or more of their own properties (those decorated with `@managedDependency`) are cleared or changed, or the dependency object itself is destroyed.
+   * Destroy this managed object (i.e. change state to `ManagedState.DESTROYING` and then to `ManagedState.DESTROYED`, clear all managed references from and to this object, and destroy all managed children); the `onManagedStateDestroyingAsync` method is called in the process
+   * @note Managed child objects are automatically destroyed when [1] their parent's reference (decorated with `@managedChild`) is cleared or otherwise changed, or [2] the child object is removed from a managed list or map that is itself a managed child, or [3] when the parent object itself is destroyed.
+   * @note Managed objects are also automatically destroyed when one or more of their own properties decorated with `@managedDependency` are cleared or changed, or the dependency object itself is destroyed.
    */
   protected async destroyManagedAsync() {
     let n = 3;
@@ -417,29 +424,29 @@ export class ManagedObject {
     );
   }
 
-  /** Callback invoked when changing state to 'active', to be overridden */
+  /** Callback invoked when changing state to 'active', can be overridden to perform any actions before activating */
   protected async onManagedStateActivatingAsync() {}
 
-  /** Callback invoked immediately after state has changed to 'active' and before any other state transitions, to be overridden */
+  /** Callback invoked immediately after state has changed to 'active' and before any other state transitions, can be overridden */
   protected async onManagedStateActiveAsync() {}
 
-  /** Callback invoked when changing state to 'inactive', to be overridden */
+  /** Callback invoked when changing state to 'inactive', can be overridden to perform any actions before deactivating */
   protected async onManagedStateDeactivatingAsync() {}
 
-  /** Callback invoked immediately after state has changed to 'inactive' and before any other state transitions, to be overridden */
+  /** Callback invoked immediately after state has changed to 'inactive' and before any other state transitions, can be overridden */
   protected async onManagedStateInactiveAsync() {}
 
-  /** Callback invoked when changing state to 'destroyed', to be overridden */
+  /** Callback invoked when changing state to 'destroyed', can be overridden to perform any actions first */
   protected async onManagedStateDestroyingAsync() {}
 
-  /** Handle state transitions asynchronously with a way to chain next transitions */
+  /** Implementation for all state transition methods: handle state transitions asynchronously with a way to chain next transitions */
   private _transitionManagedState(
     newState: ManagedState,
     callback: () => undefined | Promise<any>,
     event: ManagedEvent,
     callbackAfter?: () => undefined | Promise<any>
   ) {
-    if (!Object.prototype.hasOwnProperty.call(this, "_transition")) {
+    if (!_hOP.call(this, "_transition")) {
       Object.defineProperty(this, "_transition", {
         configurable: false,
         writable: true,
@@ -519,7 +526,7 @@ export class ManagedObject {
     }
   }
 
-  /** @internal Create or take an existing managed reference and set given values */
+  /** @internal Create a new reference link object (or take one from the cache) and set given values, to indicate that the source object references given target */
   protected static _createRefLink<T extends ManagedObject>(
     source: T,
     target: ManagedObject,
@@ -558,7 +565,7 @@ export class ManagedObject {
     return ref;
   }
 
-  /** @internal Unlink given managed reference; returns true if unlinked, false if argument was not a RefLink instance */
+  /** @internal Unlink given managed reference link object; returns true if unlinked, false if argument was not a RefLink instance */
   protected static _discardRefLink(ref?: util.RefLink) {
     if (!ref || !(ref.u >= 0) || !ref.a || !ref.b) return false;
     let sourceRefs = ref.a && ref.a[util.HIDDEN_REF_PROPERTY];
@@ -597,8 +604,8 @@ export class ManagedObject {
     return true;
   }
 
-  /** @internal Make given RefLink the (new) parent-child link for the referenced object */
-  protected static _makeManagedChildRefLink(ref: util.RefLink) {
+  /** @internal Make given reference link object the (new) parent-child link for the referenced object */
+  protected static _makeManagedChildRefLink(ref: util.RefLink, propertyName?: string) {
     let target: ManagedObject = ref.b;
     let targetRefs = target[util.HIDDEN_REF_PROPERTY];
     if (targetRefs[ref.u] === ref) {
@@ -608,25 +615,26 @@ export class ManagedObject {
         targetRefs.parent = ref;
         if (!oldParent) {
           // make sure all contained objects are child objects
+          // (for lists and maps)
           target[util.MAKE_REF_MANAGED_PARENT_FN]();
         } else {
           // inform old parent that child has moved
           this._discardRefLink(oldParent);
           oldParent.g && oldParent.g(this);
         }
-        target.emit(ManagedParentChangeEvent, ref.a);
+        target.emit(ManagedParentChangeEvent, ref.a, propertyName);
       }
     }
   }
 
-  /** @internal Returns true if given RefLink is a parent-child link */
+  /** @internal Returns true if given managed reference object is a parent-child link */
   protected static _isManagedChildRefLink(ref: util.RefLink) {
     let target: ManagedObject = ref.b;
     let targetRefs = target[util.HIDDEN_REF_PROPERTY];
     return targetRefs.parent === ref;
   }
 
-  /** @internal Validate that source object is not destroyed, and target reference is either undefined or a managed object (optionally of given type) that is not destroyed */
+  /** @internal Validate in preparation for a reference assignment: source object should not be destroyed, and target reference should be either undefined or a managed object (optionally of given type) that is not destroyed, and possibly an instance of given class, if any */
   protected static _validateReferenceAssignment(
     source: ManagedObject,
     target?: ManagedObject,
@@ -677,7 +685,6 @@ export class ManagedObject {
     }
     if (Object.getOwnPropertyDescriptor(object, propertyKey)) {
       throw err(ERROR.Object_PropGetSet);
-      1;
     }
 
     // (re)define property on prototype
@@ -692,7 +699,7 @@ export class ManagedObject {
             if (readonlyRef) {
               // use reference target instead of reference itself
               if (target !== readonlyRef) return;
-              target = readonlyRef.target!;
+              target = readonlyRef.get()!;
             }
             next && next(target, event, topHandler);
             if (target && eventHandler) eventHandler.call(obj, event);
@@ -742,14 +749,14 @@ export class ManagedObject {
             );
             if (isChildReference) {
               // set (new) parent-child link on the target object
-              ManagedObject._makeManagedChildRefLink(ref);
+              ManagedObject._makeManagedChildRefLink(ref, propertyKey as string);
             }
           }
-          if (readonlyRef) target = readonlyRef.target!;
+          if (readonlyRef) target = readonlyRef.get()!;
           next && next(target, event, topHandler);
         };
       },
-      function(this: any) {
+      function (this: any) {
         let ref = this[util.HIDDEN_REF_PROPERTY][propId];
 
         // dereference read-only reference, if any
@@ -760,7 +767,7 @@ export class ManagedObject {
             ManagedObject._createRefLink(this, readonlyRef, propId);
             this[propertyKey] = readonlyRef;
           }
-          return readonlyRef.target;
+          return readonlyRef.get();
         }
 
         // normal getter: return referenced object
@@ -769,26 +776,24 @@ export class ManagedObject {
     );
   }
 
-  /** @internal Value-of conversion method */
-  valueOf() {
-    return (this as any).value;
-  }
-
-  /** @internal To be overridden, to turn existing references into child objects */
+  /** @internal To be overridden, to turn existing references into child objects (i.e. for lists and maps) */
   protected [util.MAKE_REF_MANAGED_PARENT_FN]() {}
 
-  /** @internal */
+  /** @internal Reference link object map */
   private readonly [util.HIDDEN_REF_PROPERTY]!: util.RefLinkMap;
-  /** @internal */
+  /** @internal Reference count */
   private [util.HIDDEN_REFCOUNT_PROPERTY]!: number;
-  /** @internal */
+  /** @internal Current state value */
   private [util.HIDDEN_STATE_PROPERTY]!: ManagedState;
-  /** @internal */
+  /** @internal Chained event handler(s) */
   private [util.HIDDEN_EVENT_HANDLER]: (e: ManagedEvent) => void;
-  /** @internal */
+  /** @internal Chained event handler(s) */
   private [util.HIDDEN_CHILD_EVENT_HANDLER]: (e: ManagedEvent, name: string) => void;
 
+  /** True if currently emitting an event */
   private _emitting?: number;
+
+  /** The current transition being handled, if any */
   private _transition?: ManagedStateTransition;
 }
 

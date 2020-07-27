@@ -33,9 +33,9 @@ export class UIButton extends UIControl {
   }
 
   /** Create a new button with given label */
-  constructor(label?: string) {
+  constructor(label?: Stringable) {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["button"]);
+    this.style = UITheme.getStyle("control", "button");
     this.shrinkwrap = true;
     if (label !== undefined) this.label = label;
   }
@@ -73,37 +73,37 @@ export class UIButton extends UIControl {
   navigateTo?: string;
 }
 
-/** Shortcut for `UIButton` constructor preset with the `button_primary` style set */
+/** Shortcut for `UIButton` constructor preset with the `button_primary` named style from the current theme (see `UITheme`) */
 export let UIPrimaryButton = UIButton.with({ style: "button_primary" });
 
-/** Shortcut for `UIButton` constructor preset with the `button_borderless` style set */
+/** Shortcut for `UIButton` constructor preset with the `button_borderless` named style from the current theme (see `UITheme`) */
 export let UIBorderlessButton = UIButton.with({ style: "button_borderless" });
 
-/** Shortcut for `UIButton` constructor preset with the `button_outline` style set */
+/** Shortcut for `UIButton` constructor preset with the `button_outline` named style from the current theme (see `UITheme`) */
 export let UIOutlineButton = UIButton.with({ style: "button_outline" });
 
-/** Shortcut for `UIButton` constructor preset with the `button_link` style set */
+/** Shortcut for `UIButton` constructor preset with the `button_link` named style from the current theme (see `UITheme`) */
 export let UILinkButton = UIButton.with({ style: "button_link" });
 
-/** Shortcut for `UIButton` constructor preset with the `button_large` style set */
+/** Shortcut for `UIButton` constructor preset with the `button_large` named style from the current theme (see `UITheme`) */
 export let UILargeButton = UIButton.with({ style: "button_large" });
 
-/** Shortcut for `UIButton` constructor preset with the `button_small` style set */
+/** Shortcut for `UIButton` constructor preset with the `button_small` named style from the current theme (see `UITheme`) */
 export let UISmallButton = UIButton.with({ style: "button_small" });
 
-/** Shortcut for `UIButton` constructor preset with the `button_icon` style set */
+/** Shortcut for `UIButton` constructor preset with the `button_icon` named style from the current theme (see `UITheme`) */
 export let UIIconButton = UIButton.with({ style: "button_icon" });
 
 export namespace UIButton {
-  /** UILabel presets type, for use with `Component.with` */
+  /** UIButton presets type, for use with `Component.with` */
   export interface Presets extends UIControl.Presets {
-    /** Label text */
+    /** Button label text */
     label?: Stringable;
     /** Icon name (platform and build system dependent) */
     icon?: string;
     /** Icon size (in dp or string with unit) */
     iconSize?: string | number;
-    /** Margin between icon and label text (in dp or string with unit) */
+    /** Margin between icon and text (in dp or string with unit) */
     iconMargin?: string | number;
     /** Icon color (`UIColor` or string) */
     iconColor?: Stringable;

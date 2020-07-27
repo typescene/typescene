@@ -1,3 +1,4 @@
+export * from "./AppException";
 export * from "./AppActivationContext";
 export * from "./AppActivity";
 export * from "./AppActivityList";

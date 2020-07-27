@@ -3,10 +3,13 @@ import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 
 /**
- * Event that can be emitted on a managed object, list/map, or reference, to be handled by objects that reference the emitting object.
- * @note Event instances may be frozen and reused for better performance. See `ManagedEvent.freeze`
+ * Event that can be emitted on a managed object, component, list/map, or reference, and can be handled by observers or by objects that reference the emitting object.
  */
 export class ManagedEvent {
+  /**
+   * Create a new event with given name
+   * @note Event instances may be frozen and reused for better performance. See `ManagedEvent.freeze`
+   */
   constructor(name = "") {
     this.name = name;
   }
@@ -14,7 +17,7 @@ export class ManagedEvent {
   /** Identifier for the type of this event */
   readonly name: string;
 
-  /** Freeze this object so that its properties cannot be modified, and the event can be reused for better performance. */
+  /** Freeze this object so that its properties cannot be modified, and the event can be _reused_ to improve performance */
   freeze() {
     if (Object.freeze) Object.freeze(this);
     return this as Readonly<this>;
@@ -23,55 +26,51 @@ export class ManagedEvent {
 
 /** Core event that is _not propagated_ by default (see `ManagedObject.propagateChildEvents`) */
 export class ManagedCoreEvent extends ManagedEvent {
-  /** Event that is emitted for all managed objects after activation */
-  static readonly ACTIVE = new ManagedCoreEvent("Active").freeze();
-
-  /** Event that is emitted for all managed objects after deactivation */
-  static readonly INACTIVE = new ManagedCoreEvent("Inactive").freeze();
-
-  /** Event that is emitted for all managed objects after they are destroyed
-   * @note Handlers on objects that referenced the destroyed object will be unable to access the destroyed object through its own managed property, since the reference is immediately set to undefined */
-  static readonly DESTROYED = new ManagedCoreEvent("Destroyed").freeze();
-
   /** Returns true if given event is a core event */
   static isCoreEvent(event: ManagedEvent): event is ManagedCoreEvent {
     return !!(event as ManagedCoreEvent)._coreEventMarker;
   }
 
-  /** Core event flag */
+  /** Core event flag, used for duck typing by static method `isCoreEvent` */
   private readonly _coreEventMarker = true;
 }
 
-/** Alias of the `ManagedCoreEvent.ACTIVE` event */
-export const ACTIVE = ManagedCoreEvent.ACTIVE;
-/** Alias of the `ManagedCoreEvent.INACTIVE` event */
-export const INACTIVE = ManagedCoreEvent.INACTIVE;
-/** Alias of the `ManagedCoreEvent.DESTROYED` event */
-export const DESTROYED = ManagedCoreEvent.DESTROYED;
+export namespace ManagedCoreEvent {
+  /** Event that is emitted for all managed objects after activation */
+  export const ACTIVE = new ManagedCoreEvent("Active").freeze();
 
-/** Event that is emitted when a managed object is assigned to a managed child reference property (see `@managedChild` decorator); the child object emits this event, with `parent` set to the _new_ parent object */
+  /** Event that is emitted for all managed objects after deactivation */
+  export const INACTIVE = new ManagedCoreEvent("Inactive").freeze();
+
+  /** Event that is emitted for all managed objects after they are destroyed
+   * @note Handlers on objects that referenced the destroyed object will be unable to access the destroyed object through their own managed properties, since the value would already be set to `undefined` */
+  export const DESTROYED = new ManagedCoreEvent("Destroyed").freeze();
+}
+
+/** Event that is emitted when a reference to a managed object is assigned to a managed child reference property (i.e. a property decorated with the `@managedChild` decorator); the child object emits this event, with `parent` set to the _new_ parent object, and `propertyName` set to the property name (only if the child object is _directly_ assigned to a property of the parent object) */
 export class ManagedParentChangeEvent extends ManagedCoreEvent {
-  constructor(parent: ManagedObject) {
+  constructor(parent: ManagedObject, propertyName?: string) {
     super("ManagedParentChange");
     this.parent = parent;
+    this.propertyName = propertyName;
   }
 
   /** The new parent object */
   readonly parent: ManagedObject;
+
+  /** The name of the property that now references the child object (if any) */
+  readonly propertyName?: string;
 }
 
-/** Event that is emitted when a change occurs to a managed object, list/map, or reference */
+/** Event that is emitted when a change occurs to a managed object, list/map, or reference; this triggers the same observer method(s) as changing the actual value of a (managed) reference property */
 export class ManagedChangeEvent extends ManagedEvent {
-  /** Frozen base change event that can be re-used instead of creating a new `ManagedChangeEvent` instance for every change. */
-  static readonly CHANGE = new ManagedChangeEvent().freeze();
-
   constructor(name = "Change") {
     super(name);
   }
 }
 
-/** Alias of the `ManagedChangeEvent.CHANGE` event */
-export const CHANGE = ManagedChangeEvent.CHANGE;
+/** Event that is emitted by `ManagedObject.emitChange()` without parameters; this is an instance of the `ManagedChangeEvent` class that can be widely reused and emitted on all managed objects, to signal that the internal state of the object has changed */
+export const CHANGE = new ManagedChangeEvent().freeze();
 
 /** Base type for events that are emitted when changes occur to a `ManagedList` or `ManagedMap` */
 export class ManagedListChangeEvent extends ManagedChangeEvent {
@@ -84,7 +83,7 @@ export class ManagedListChangeEvent extends ManagedChangeEvent {
   readonly source: ManagedList | ManagedMap;
 }
 
-/** Event that is emitted when an item is added to a `ManagedList` or `ManagedMap` */
+/** Event that is emitted when an item is added to a `ManagedList` or `ManagedMap`. The object contains a reference to the object that has been added to the list or map. */
 export class ManagedObjectAddedEvent extends ManagedListChangeEvent {
   constructor(source: ManagedList | ManagedMap, object: ManagedObject, key?: string) {
     super("ManagedObjectAdded", source);
@@ -99,7 +98,7 @@ export class ManagedObjectAddedEvent extends ManagedListChangeEvent {
   readonly object: ManagedObject;
 }
 
-/** Event that is emitted when an item is removed from a `ManagedList` */
+/** Event that is emitted when an item is removed from a `ManagedList`. The event object contains a reference to the object that has been removed from the list or map. */
 export class ManagedObjectRemovedEvent extends ManagedListChangeEvent {
   constructor(source: ManagedList | ManagedMap, object: ManagedObject, key?: string) {
     super("ManagedObjectRemoved", source);

@@ -1,90 +1,38 @@
-import { AppActivity } from "../../app";
-import {
-  Component,
-  ComponentEvent,
-  ComponentEventHandler,
-  managed,
-  ManagedObject,
-  ManagedRecord,
-} from "../../core";
-import { UIRenderable, UIRenderableConstructor } from "../UIComponent";
-import { UIFormContextController } from "../UIFormContextController";
-import { UIStyle } from "../UIStyle";
-import { UITheme } from "../UITheme";
+import { ComponentEventHandler, managed, ManagedRecord } from "../../core";
+import { UIRenderableConstructor } from "../UIComponent";
 import { UICell } from "./UICell";
+import { UIRenderableController } from "../UIRenderableController";
+import { UIFormContext } from "../UIFormContext";
 
-/**
- * Event that is emitted when the form context of a `UIForm` or `UIFormContextController` has been changed
- * @note Despite its name, this event does **not** inherit from `ManagedChangeEvent`.
- */
-export class FormContextChangeEvent extends ComponentEvent {
-  /** The current form context object */
-  formContext!: ManagedObject;
-}
-
-/** Style mixin that is automatically applied on each instance */
-const _mixin = UIStyle.create("UIForm", {
-  dimensions: { grow: 0 },
-});
+/** Base class for encapsulated cell */
+const _FormCell = UICell.with({ style: "form", accessibleRole: "form" });
 
 /**
  * Represents a UI component that groups form controls and other content in a cell.
- * @note This component is optional and has the same effect as `UIFormContextController` which does not render its own cell.
+ * @note This component encapsulates content in a `UICell` component. To set a form context binding without grouping content, use `UIFormContextController`.
  */
-export class UIForm extends UICell {
+export class UIForm extends UIRenderableController {
   static preset(
     presets: UIForm.Presets,
     ...rest: Array<UIRenderableConstructor | undefined>
-  ): Function {
-    return super.preset(presets, ...rest);
+  ) {
+    let formContextPreset = presets.formContext;
+    delete presets.formContext;
+    let CellClass = _FormCell.with(presets, ...rest);
+    this.presetBoundComponent("content", CellClass).limitBindings("formContext");
+    return super.preset({ formContext: formContextPreset }, CellClass);
   }
 
-  constructor(...content: UIRenderable[]) {
-    super(...content);
-    this.style = UITheme.current.baseContainerStyle.mixin(_mixin);
-  }
-
-  /**
-   * Returns the closest parent form (or form context controller, see `UIFormContextController`) for given component; can be used by input components to find and observe the form context component before rendering.
-   * Does not return components beyond the scope of the current `AppActivity` parent.
-   */
-  static find(component: Component) {
-    let current: Component | undefined = component;
-    while (current) {
-      current = current.getParentComponent();
-      if (current instanceof UIForm) return current;
-      if (current instanceof UIFormContextController) return current;
-      if (current instanceof AppActivity) break;
-    }
-  }
-
-  accessibleRole = "form";
-
-  /** Form state context; defaults to an empty managed record */
+  /** Form state context; should be bound to a `UIFormContext` component */
   @managed
-  formContext: ManagedObject = new ManagedRecord();
+  formContext?: UIFormContext;
 }
-
-// observe to emit event when form context changes
-UIForm.observe(
-  class {
-    constructor(public form: UIForm) {}
-    onFormContextChange() {
-      if (!this.form.formContext) return;
-      let event = new FormContextChangeEvent("FormContextChange", this.form);
-      event.formContext = this.form.formContext;
-      this.form.emit(event);
-    }
-  }
-);
 
 export namespace UIForm {
   /** UIForm presets type, for use with `Component.with` */
   export interface Presets extends UICell.Presets {
-    /** Form state object; must be a (binding to a) managed record, see `ManagedRecord` */
+    /** Form state context; should be bound to a `UIFormContext` component */
     formContext?: ManagedRecord;
-    /** Event handler for any change to the form state */
-    onFormContextChange: ComponentEventHandler<UIForm>;
     /** Event handler for form submissions */
     onSubmit: ComponentEventHandler<UIForm>;
   }

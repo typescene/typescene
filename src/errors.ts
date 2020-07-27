@@ -6,7 +6,6 @@ export function err(error: ERROR, s?: any) {
 export const enum ERROR {
   ActivationContext_InvalidPath,
   Application_Inactive,
-  ViewActivity_ViewBound,
   ViewActivity_NoRenderContext,
   ViewActivity_NoApplication,
   ViewActivity_NoDialogBuilder,
@@ -40,12 +39,10 @@ export const enum ERROR {
   Object_PropGetSet,
   Object_NotWritable,
   Object_InvalidDep,
-  Record_Validation,
-  Record_Destroyed,
+  Record_Serializable,
   Ref_Type,
   Service_NoName,
   Service_BlankName,
-  Observe_ObservedType,
   Observe_ObserveParent,
   Observe_ShadowGetter,
   Observe_RateLimitNonAsync,
@@ -61,7 +58,6 @@ const errors: { [error: number]: string } = {
   [ERROR.ActivationContext_InvalidPath]: "[ActivationContext] Invalid path: %s",
   [ERROR.Application_Inactive]:
     "[Application] Cannot add activities to inactive application",
-  [ERROR.ViewActivity_ViewBound]: "[ViewActivity] View property cannot be bound",
   [ERROR.ViewActivity_NoRenderContext]:
     "[ViewActivity] Render context not found (not a child component?)",
   [ERROR.ViewActivity_NoApplication]: "[ViewActivity] Application instance not found",
@@ -99,12 +95,10 @@ const errors: { [error: number]: string } = {
     "[Object] Cannot turn properties with getters and/or setters into managed references",
   [ERROR.Object_NotWritable]: "[Object] Property is not writable",
   [ERROR.Object_InvalidDep]: "[Object] Dependency must point to a managed object: %s",
-  [ERROR.Record_Validation]: "[Record] Validation failed",
-  [ERROR.Record_Destroyed]: "[Record] Record has been destroyed",
+  [ERROR.Record_Serializable]: "[Record] Property is not serializable: %s",
   [ERROR.Ref_Type]: "[Object] Existing reference is not of given type",
   [ERROR.Service_NoName]: "[Service] Missing property name",
   [ERROR.Service_BlankName]: "[Service] Service name cannot be blank",
-  [ERROR.Observe_ObservedType]: "[Object] Observed target is not a managed object class",
   [ERROR.Observe_ObserveParent]: "[Object] Cannot observe events on parent reference",
   [ERROR.Observe_ShadowGetter]:
     "[Object] Shadow observable can only be added to properties with getters",

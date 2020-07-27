@@ -1,46 +1,56 @@
-import { Application } from "../app";
-import {
-  Binding,
-  ComponentConstructor,
-  ComponentEvent,
-  ComponentEventHandler,
-  managedChild,
-} from "../core";
-import { err, ERROR } from "../errors";
-import { UIComponent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
-import { UIRenderContext, UIRenderPlacement } from "./UIRenderContext";
+import { Application } from "../../app";
+import { Binding, ComponentConstructor, ComponentEvent, managedChild } from "../../core";
+import { err, ERROR } from "../../errors";
+import { UIComponent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
+import { UIRenderContext, UIRenderPlacement } from "../UIRenderContext";
 
 /** Renderable wrapper for a single component that can be used to display another component as a modal view. The modal component is created immediately after the `ShowModal` event is emitted, and removed when the `CloseModal` event is emitted. */
 export class UIModalController extends UIRenderableController {
   static preset(
     presets: UIModalController.Presets,
-    content?: ComponentConstructor & (new () => UIComponent),
-    modal?: UIRenderableConstructor
+    Content?: ComponentConstructor<UIComponent> & (new () => UIComponent),
+    Modal?: UIRenderableConstructor
   ): Function {
-    let Modal = modal || presets.modal;
+    let ModalClass = Modal || presets.modal;
     delete presets.modal;
-    if (Binding.isBinding(Modal)) {
+    if (Binding.isBinding(ModalClass)) {
       throw err(ERROR.UIModalController_Binding);
     }
-    if (Modal) this.presetBindingsFrom(Modal);
-    let f = super.preset(presets, content);
-    return function(this: UIModalController) {
-      f.call(this);
-      this.propagateChildEvents(e => {
-        if (e instanceof ComponentEvent) {
-          if (e.name === "ShowModal") {
-            let instance = Modal && new Modal();
-            this.modal = instance || undefined;
-            return;
-          } else if (e.name === "CloseModal") {
-            this.modal = undefined;
-            return;
-          }
-          return e;
+    if (Content) {
+      this.presetBoundComponent("content", Content).limitBindings();
+    }
+    if (ModalClass) {
+      this.presetBoundComponent("modal", ModalClass).limitBindings();
+      this.prototype._ModalClass = ModalClass;
+    }
+    return super.preset(presets, Content);
+  }
+
+  constructor() {
+    super();
+    this.propagateChildEvents(e => {
+      if (e instanceof ComponentEvent) {
+        if (e.name === "ShowModal") {
+          this.showModal();
+          return;
+        } else if (e.name === "CloseModal") {
+          this.closeModal();
+          return;
         }
-      });
-    };
+        return e;
+      }
+    });
+  }
+
+  /** Show the (preset) modal component */
+  showModal() {
+    if (this._ModalClass) this.modal = new this._ModalClass();
+  }
+
+  /** Remove the currently showing modal component, if any */
+  closeModal() {
+    this.modal = undefined;
   }
 
   /** The current modal component to be displayed, as a managed child reference, or undefined if the modal component is currently not displayed */
@@ -55,8 +65,12 @@ export class UIModalController extends UIRenderableController {
 
   /** True if clicking outside the modal component should close it, defaults to true */
   modalShadeClickToClose = true;
+
+  // set on prototype
+  private _ModalClass?: UIRenderableConstructor;
 }
-UIModalController.observe(
+
+UIModalController.addObserver(
   class {
     constructor(public controller: UIModalController) {}
 
@@ -67,7 +81,7 @@ UIModalController.observe(
       }
       if (this.controller.modal) {
         let ref = this._getReferenceComponent();
-        let application = this.controller.getCompositeParent(Application);
+        let application = this.controller.getBoundParentComponent(Application);
         if (ref && application && application.renderContext) {
           this._renderCallback = application.renderContext.getRenderCallback() as any;
           let callbackProxy: UIRenderContext.RenderCallback = (output, afterRender) => {
@@ -120,9 +134,5 @@ export namespace UIModalController {
     modalShadeOpacity?: number;
     /** True if clicking outside the modal component should close it, defaults to true */
     modalShadeClickToClose?: boolean;
-    /** Event handler that is invoked when the modal component is made visible */
-    onShowModal: ComponentEventHandler<UIModalController>;
-    /** Event handler that is invoked when the modal component is removed */
-    onCloseModal: ComponentEventHandler<UIModalController>;
   }
 }

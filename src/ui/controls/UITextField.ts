@@ -1,9 +1,8 @@
-import { CHANGE, managed, ManagedEvent, observe, onPropertyEvent } from "../../core";
-import { FormContextChangeEvent, UIForm } from "../containers";
+import { observe, managed } from "../../core";
 import { Stringable } from "../UIComponent";
-import { UIRenderContext } from "../UIRenderContext";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
+import { formContextBinding, UIFormContext } from "../UIFormContext";
 
 /** Represents a text field component */
 export class UITextField extends UIControl {
@@ -15,15 +14,13 @@ export class UITextField extends UIControl {
   }
 
   /** Creates a preset text field class with given name and placeholder, if any */
-  static withName(name: string, placeholder?: string) {
+  static withName(name: string, placeholder?: Stringable) {
     return this.with({ name, placeholder });
   }
 
   constructor() {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(
-      UITheme.current.styles["textfield"]
-    );
+    this.style = UITheme.getStyle("control", "textfield");
     this.shrinkwrap = false;
   }
 
@@ -33,12 +30,6 @@ export class UITextField extends UIControl {
 
   isKeyboardFocusable() {
     return true;
-  }
-
-  render(callback: UIRenderContext.RenderCallback) {
-    // update form context controller reference
-    this.form = UIForm.find(this);
-    super.render(callback);
   }
 
   /** Input type as string, defaults to `text` */
@@ -56,59 +47,33 @@ export class UITextField extends UIControl {
   /** Form context property name */
   name?: string;
 
-  /** Form component (updated automatically before rendering) */
+  /** Bound form context, if any */
   @managed
-  form?: { formContext: any };
-
-  /** Update the input value from the current form context, if any */
-  private _updateValue() {
-    let ctx = this.form && (this.form.formContext as any);
-    if (ctx && this.name && this.name in ctx) {
-      let value = ctx[this.name];
-      this.value = value === undefined ? "" : String(value);
-    }
-  }
-
-  /** Update the form context value, if any */
-  private _updateCtx() {
-    let ctx = this.form && this.form.formContext;
-    if (ctx && this.name) {
-      let value: any = this.value;
-      let oldValue = ctx[this.name];
-      if (typeof oldValue === "number" && this.type === "number") {
-        value = parseFloat(value);
-      }
-      if (oldValue !== value) {
-        ctx[this.name] = value;
-        ctx.emit(CHANGE);
-      }
-    }
-  }
+  formContext?: UIFormContext;
 
   /** @internal */
   @observe
-  static UITextFieldObserver = (() => {
+  protected static UITextFieldObserver = (() => {
     class UITextFieldObserver {
       constructor(public component: UITextField) {}
-      @onPropertyEvent("form")
-      handleFormUpdate(_form: any, e: ManagedEvent) {
-        if (e instanceof FormContextChangeEvent) {
-          this.component._updateValue();
+      onFormContextChange() {
+        if (this.component.formContext && this.component.name) {
+          let value = this.component.formContext.get(this.component.name);
+          this.component.value = value === undefined ? "" : String(value);
         }
       }
-      onFormChange() {
-        this.component._updateValue();
-      }
       onInput() {
-        this.component._updateCtx();
+        this.component.formContext?.set(this.component.name, this.component.value);
       }
       onChange() {
-        this.component._updateCtx();
+        this.component.formContext?.set(this.component.name, this.component.value, true);
       }
     }
     return UITextFieldObserver;
   })();
 }
+
+UITextField.presetBinding("formContext", formContextBinding);
 
 /** Shortcut for `UITextField` constructor preset with the `textfield_borderless` style set */
 export let UIBorderlessTextField = UITextField.with({ style: "textfield_borderless" });

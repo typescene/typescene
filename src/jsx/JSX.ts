@@ -10,7 +10,7 @@ import {
   UIRenderable,
   UIRenderableConstructor,
   ViewComponent,
-} from "../../dist";
+} from "../";
 import * as intrinsics from "./intrinsics";
 
 /** JSX support for Typescene UI components */
@@ -68,7 +68,7 @@ export namespace JSX {
   /** TypeScript JSX typing information */
   export namespace JSX {
     export type IntrinsicElements = intrinsics.Elements;
-    export type Element = typeof Component & ComponentConstructor<UIRenderable>;
+    export type Element = ComponentConstructor<UIRenderable>;
   }
 
   /** References to JSX factory functions for all intrinsic tags */
@@ -112,15 +112,15 @@ export namespace JSX {
     >
   > = Pick<InstanceType<TComponent>, K>;
 
-  /** Returns JSX-enabled factory function for given component class */
-  export function ify<T extends typeof Component & UIRenderableConstructor>(
+  /** Returns JSX-compatible factory function for given component class */
+  export function tag<T extends typeof Component & UIRenderableConstructor>(
     C: T
   ): FactoryType<T, ComponentPresetArgType<T>> & {
     with: FactoryType<T, ComponentPresetArgType<T>>;
   } {
     function F(this: any) {
       if (this instanceof F) return new C();
-      return C.with.apply(C, arguments as any);
+      return (C.with as any).apply(C, arguments);
     }
     F.prototype = C.prototype;
     F.with = F;

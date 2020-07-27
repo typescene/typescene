@@ -1,9 +1,8 @@
-import { CHANGE, managed, ManagedEvent, observe, onPropertyEvent } from "../../core";
-import { FormContextChangeEvent, UIForm } from "../containers";
+import { managed, observe } from "../../core";
 import { Stringable } from "../UIComponent";
-import { UIRenderContext } from "../UIRenderContext";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
+import { formContextBinding, UIFormContext } from "../UIFormContext";
 
 /** Represents a toggle component with an optional text label */
 export class UIToggle extends UIControl {
@@ -15,13 +14,13 @@ export class UIToggle extends UIControl {
   }
 
   /** Creates a preset toggle class with given name and label, if any */
-  static withName(name: string, label?: string) {
+  static withName(name: string, label?: Stringable) {
     return this.with({ name, label });
   }
 
   constructor() {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(UITheme.current.styles["toggle"]);
+    this.style = UITheme.getStyle("control", "toggle");
     this.shrinkwrap = true;
   }
 
@@ -31,12 +30,6 @@ export class UIToggle extends UIControl {
 
   isKeyboardFocusable() {
     return true;
-  }
-
-  render(callback: UIRenderContext.RenderCallback) {
-    // update form context controller reference
-    this.form = UIForm.find(this);
-    super.render(callback);
   }
 
   /** Label text, if any */
@@ -51,52 +44,33 @@ export class UIToggle extends UIControl {
   /** Form context property name */
   name?: string;
 
-  /** Form component (updated automatically before rendering) */
+  /** Bound form context, if any */
   @managed
-  form?: { formContext: any };
-
-  /** Update the input value from the current form context, if any */
-  private _updateValue() {
-    let ctx = this.form && (this.form.formContext as any);
-    if (ctx && this.name && this.name in ctx) {
-      let value = ctx[this.name];
-      this.state = !!value;
-    }
-  }
-
-  /** Update the form context value, if any */
-  private _updateCtx() {
-    let ctx = this.form && this.form.formContext;
-    if (ctx && this.name && ctx[this.name] !== !!this.state) {
-      ctx[this.name] = !!this.state;
-      ctx.emit(CHANGE);
-    }
-  }
+  formContext?: UIFormContext;
 
   /** @internal */
   @observe
-  static UIToggleObserver = (() => {
+  protected static UIToggleObserver = (() => {
     class UIToggleObserver {
       constructor(public component: UIToggle) {}
-      @onPropertyEvent("form")
-      handleFormUpdate(_form: any, e: ManagedEvent) {
-        if (e instanceof FormContextChangeEvent) {
-          this.component._updateValue();
+      onFormContextChange() {
+        if (this.component.formContext && this.component.name) {
+          let value = this.component.formContext.get(this.component.name);
+          this.component.state = !!value;
         }
       }
-      onFormChange() {
-        this.component._updateValue();
-      }
       onInput() {
-        this.component._updateCtx();
+        this.component.formContext?.set(this.component.name, this.component.state, true);
       }
       onChange() {
-        this.component._updateCtx();
+        this.component.formContext?.set(this.component.name, this.component.state, true);
       }
     }
     return UIToggleObserver;
   })();
 }
+
+UIToggle.presetBinding("formContext", formContextBinding);
 
 export namespace UIToggle {
   /** UIToggle presets type, for use with `Component.with` */

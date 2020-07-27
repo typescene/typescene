@@ -6,7 +6,7 @@ import * as util from "./util";
 /** Property ID for the single reference link used by ManagedReference */
 const REF_PROP_ID = util.PROPERTY_ID_PREFIX + "*ref";
 
-/** Independent reference to a managed object, list, map, or other managed reference */
+/** Independent reference to a managed object, list, map, or other managed reference. An instance of this class behaves in the same way as a managed reference _property_ of an instance of `ManagedObject`. */
 export class ManagedReference<
   T extends ManagedObject = ManagedObject
 > extends ManagedObject {
@@ -16,11 +16,19 @@ export class ManagedReference<
     if (target) this.set(target);
   }
 
-  /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
+  /**
+   * Propagate events from referenced objects by emitting the same events on the reference instance itself.
+   * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its only argument.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
+   */
   propagateEvents(
     f?: (this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void
   ): this;
-  /** Propagate events from referenced objects by emitting them on the reference instance itself, optionally restricted to given types of events or a filter function */
+  /**
+   * Propagate events from referenced objects by emitting the same events on the reference instance itself.
+   * If one or more event classes are specified, only events that extend given event types are propagated.
+   * @note Calling this method a second time _replaces_ the current propagation rule/function.
+   */
   propagateEvents(
     ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
   ): this;
@@ -35,13 +43,13 @@ export class ManagedReference<
   }
 
   /**
-   * Ensure that referenced object is an instance of given class (or a sub class), and restrict new references to instances of given class. Given class must be a sub class of `ManagedObject`.
+   * Ensure that referenced objects are instances of given class (or a sub class), both the current value and any new references set. Given class must be a sub class of `ManagedObject`.
    * @exception Throws an error if referenced object is not an instance of given class, or of a sub class.
    */
   restrict<T extends ManagedObject>(
     classType: ManagedObjectConstructor<T>
   ): ManagedReference<T> {
-    let target = this.target;
+    let target = this.get();
     if (target && !(target instanceof classType)) {
       throw err(ERROR.Ref_Type);
     }
@@ -50,21 +58,11 @@ export class ManagedReference<
   }
   private _managedClassRestriction?: ManagedObjectConstructor<any>;
 
-  /** Returns the referenced object, or undefined */
+  /** Returns the referenced object, or undefined if none */
   get(): T | undefined {
     // return referenced object
     let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
     return ref && ref.b;
-  }
-
-  /** The referenced object, or undefined */
-  get target(): T | undefined {
-    // return referenced object
-    let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
-    return ref && ref.b;
-  }
-  set target(target: T | undefined) {
-    this.set(target);
   }
 
   /**
@@ -114,11 +112,11 @@ export class ManagedReference<
         ManagedObject._makeManagedChildRefLink(ref);
       }
     }
-    this.emit(ManagedChangeEvent.CHANGE);
+    this.emitChange();
     return this;
   }
 
-  /** Stop newly referenced objects from becoming child objects even if this `ManagedReference` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference objects when the parent object is destroyed */
+  /** Stop newly referenced objects from becoming child objects _even if_ this `ManagedReference` instance itself is held through a child reference (by a parent object); this can be used to automatically dereference objects when the parent object is destroyed */
   weakRef() {
     this._isWeakRef = true;
     return this;
@@ -141,7 +139,7 @@ export class ManagedReference<
 
   /** Returns the referenced object itself, or undefined (alias of `get()` method) */
   toJSON() {
-    let target = this.target;
+    let target = this.get();
     return { "$ref": target ? target.managedId : undefined };
   }
 
@@ -149,7 +147,7 @@ export class ManagedReference<
 }
 
 /**
- * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `observe()`).
+ * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `@observe`).
  *
  * The decorated property immediately becomes undefined when the referenced object is destroyed (see `ManagedObject.managedState`).
  *
@@ -160,7 +158,7 @@ export function managed<T extends ManagedObject>(target: T, propertyKey: any) {
 }
 
 /**
- * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `observe()`).
+ * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `@observe`).
  *
  * This asserts a reverse dependency between the referrer and the referenced object.
  * - The reference _must_ point to an instance of `ManagedObject`, and cannot be set to `undefined`.

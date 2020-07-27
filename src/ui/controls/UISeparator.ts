@@ -10,9 +10,7 @@ export class UISeparator extends UIControl {
 
   constructor() {
     super();
-    this.style = UITheme.current.baseControlStyle.mixin(
-      UITheme.current.styles["separator"]
-    );
+    this.style = UITheme.getStyle("control", "separator");
   }
 
   /** Separator line thickness (in dp, or string with unit) */
@@ -29,7 +27,7 @@ export class UISeparator extends UIControl {
 }
 
 export namespace UISeparator {
-  /** UIDivider presets type, for use with `Component.with` */
+  /** UISpacer presets type, for use with `Component.with` */
   export interface Presets extends UIControl.Presets {
     /** Separator line thickness (in dp, or string with unit) */
     thickness: string | number;

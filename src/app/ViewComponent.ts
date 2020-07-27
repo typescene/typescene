@@ -5,45 +5,58 @@ import { ViewActivity } from "./ViewActivity";
 import { err, ERROR } from "../errors";
 
 /**
- * Represents an application component that encapsulates a view made up of UI components (or other renderable components, such as nested `ViewComponent` instances).
- * The encapsulated view (a single renderable component) is created the first time this component is rendered. After that, all UI events are propagated from the encapsulated view to the `ViewComponent` instance.
+ * Represents an application component that encapsulates a view as a bound component. Bindings and event handlers in nested view components are bound to the ViewComponent instance itself, and events are propagated by default.
  * @note This class is similar in functionality to `ViewActivity`, but `ViewComponent` views are created immediately, whereas view activities need to be activated first before their views are created.
  */
 export class ViewComponent extends AppComponent implements UIRenderable {
   static preset(presets: object, ...View: UIRenderableConstructor[]): Function {
     if (View.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
-    if (View[0]) this.presetActiveComponent("view", View[0], ViewActivity);
+    if (View[0]) this.presetChildView("view", View[0], true);
     return super.preset(presets);
   }
 
-  /** The root component that makes up the content for this view, as a child component; only created when the `ViewComponent` is rendered */
+  /**
+   * Create a child view of given type automatically for each instance of the view component. Bindings for given properties are bound to the ViewComponent instance, others are ignored so that their values will be taken from the containing bound parent instead of the ViewComponent itself.
+   * @param propertyName
+   *  The property that will be set. This property must _already_ be a designated managed child property (see `@managedChild`).
+   * @param View
+   *  The (preset) constructor for the child view. This constructor will be used to create a child component for each `ViewComponent` instance.
+   * @param boundProperties
+   *  A list of properties for which bindings (on the child component) should be bound to the `ViewComponent` instance, instead of the original parent. Alternatively, set this to `true` to bind _all_ bindings on the `ViewComponent` instance.
+   */
+  static presetChildView<TViewComponent>(
+    this: { new (...args: never[]): TViewComponent } & typeof ViewComponent,
+    propertyName: keyof TViewComponent,
+    View: UIRenderableConstructor,
+    boundProperties: Array<keyof TViewComponent> | true = []
+  ) {
+    let composition = this.presetBoundComponent(propertyName as any, View, ViewActivity);
+    if (boundProperties !== true) {
+      composition.limitBindings(...(boundProperties as string[]));
+    }
+    if (!Object.prototype.hasOwnProperty.call(this.prototype, "_Views")) {
+      this.prototype._Views = Object.create(this.prototype._Views || null);
+    }
+    this.prototype._Views[propertyName] = View;
+  }
+
+  constructor() {
+    super();
+    this.propagateChildEvents(ComponentEvent);
+    if (this._Views) {
+      for (let p in this._Views) {
+        (this as any)[p] = new this._Views[p]();
+      }
+    }
+  }
+
+  /** The root component that makes up the content for this view, bound to the `ViewComponent` itself */
   @managedChild
   view?: UIRenderable;
 
-  async onManagedStateActivatingAsync() {
-    super.onManagedStateActivatingAsync();
-    this.propagateChildEvents(ComponentEvent);
-  }
-
-  /**
-   * Render the encapsulated view for this component.
-   * This method is called automatically after the root view component is created and/or when an application render context is made available or emits a change event, and should not be called directly.
-   */
+  /** Render the encapsulated view for this component. This method should not be called directly; it is called automatically based on changes to the application render context. */
   render(callback?: UIRenderContext.RenderCallback) {
-    if (this.managedState !== ManagedState.ACTIVE && this.renderContext) {
-      // activate this component now to create the view
-      this._renderer.render(undefined, callback);
-      if (this.managedState === ManagedState.CREATED) {
-        this.activateManagedAsync()
-          .then(() => {
-            // check if (still) active, and attempt to render again
-            if (this.managedState === ManagedState.ACTIVE) {
-              this.render();
-            }
-          })
-          .catch(logUnhandledException);
-      }
-    } else if (!this.renderContext) {
+    if (!this.renderContext) {
       // something is wrong: not a child component
       throw err(ERROR.ViewComponent_NoRenderCtx);
     } else {
@@ -71,10 +84,13 @@ export class ViewComponent extends AppComponent implements UIRenderable {
   }
 
   private _renderer = new UIComponent.DynamicRendererWrapper();
+
+  // these references are set on the prototype instead (by static `preset()` method):
+  private _Views?: { [propertyName: string]: UIRenderableConstructor };
 }
 
 // observe view activities to render when needed
-ViewComponent.observe(
+ViewComponent.addObserver(
   class {
     constructor(public component: ViewComponent) {}
     onRenderContextChange(ctx: UIRenderContext) {
@@ -83,34 +99,3 @@ ViewComponent.observe(
     }
   }
 );
-
-export namespace ViewComponent {
-  /** Shortcut type for declaring a static `preset` method which accepts an object with presets with the same type as given properties of the view component itself (excluding methods) */
-  export type PresetFor<
-    TComponent extends ViewComponent,
-    K extends keyof TComponent = Exclude<
-      {
-        [P in keyof TComponent]: TComponent[P] extends Function ? never : P
-      }[keyof TComponent],
-      keyof ViewComponent
-    >
-  > = (presets: Pick<TComponent, K>, ...C: UIRenderableConstructor[]) => Function;
-
-  /**
-   * Returns a `ViewComponent` class that encapsulates the view returned by given function.
-   * The function receives `presets` (object) and rest parameters (i.e. content) and should return a component constructor.
-   * The resulting class contains a typed `preset` function such that a subsequent call to `.with()` expects the corresponding presets and rest parameter types.
-   */
-  export function template<TPreset, TRest extends UIRenderableConstructor[]>(
-    templateProvider: (presets: TPreset, ...C: TRest) => UIRenderableConstructor
-  ): typeof ViewComponent & { preset: (presets: TPreset, ...rest: TRest) => Function } {
-    return class ViewComponentWithTemplate extends ViewComponent {
-      static preset(presets: any, ...C: TRest) {
-        let t = templateProvider(presets, ...C);
-        this.presetActiveComponent("view", t).limitBindings();
-        this.presetBindingsFrom(t);
-        return super.preset(presets);
-      }
-    };
-  }
-}

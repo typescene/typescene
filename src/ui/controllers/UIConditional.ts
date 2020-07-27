@@ -1,46 +1,41 @@
-import { UIRenderableConstructor } from "./UIComponent";
-import { UIRenderableController } from "./UIRenderableController";
+import { UIRenderableConstructor } from "../UIComponent";
+import { UIRenderableController } from "../UIRenderableController";
+import { observe } from "../../core";
 
 /** Encapsulates content that is added/removed asynchronously based on the value of a (bound) property */
 export class UIConditional extends UIRenderableController {
   static preset(
     presets: UIConditional.Presets,
-    content?: UIRenderableConstructor
+    Content?: UIRenderableConstructor
   ): Function {
-    this.presetBindingsFrom(content);
-    let f = super.preset(presets);
-    return function(this: UIConditional) {
-      f.call(this);
-      (this as any).ContentConstructor = content;
-    };
+    // leave out content class and instantiate independently
+    this.presetBindingsFrom(Content);
+    this.prototype._ConditionalContentClass = Content;
+    return super.preset(presets);
   }
-
-  /** Content component constructor (read only) */
-  readonly ContentConstructor?: UIRenderableConstructor;
 
   /** Current condition state, content is rendered only if this is set to true */
   state?: boolean;
-}
 
-// observe to set/unset content reference when state changes
-UIConditional.observe(
-  class {
+  // set on prototype
+  private _ConditionalContentClass?: UIRenderableConstructor;
+
+  /** @internal */
+  @observe
+  protected static UIConditionalObserver = class {
     constructor(public component: UIConditional) {}
     onStateChange() {
       if (
-        !this.component.ContentConstructor ||
+        !this.component._ConditionalContentClass ||
         !!this.component.content === !!this.component.state
       )
         return;
       this.component.content = this.component.state
-        ? new this.component.ContentConstructor()
+        ? new this.component._ConditionalContentClass()
         : undefined;
     }
-    on_ContentConstructorChange() {
-      this.onStateChange();
-    }
-  }
-);
+  };
+}
 
 export namespace UIConditional {
   /** UIConditional presets type, for use with `Component.with` */

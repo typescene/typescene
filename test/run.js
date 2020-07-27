@@ -45,28 +45,32 @@ function execAll(folderName) {
 
 function runAllTests() {
   let errors = [];
-  let promises = [];
   let groups = TestCase.getTestGroups();
+  let p = Promise.resolve();
   groups.forEach(group => {
-    group.cases.forEach(testCase => {
-      promises.push(
-        testCase
-          .runAsync()
-          .catch(err => {
-            errors.push(testCase.name + ":\n" + String(err.stack || err));
-          })
-          .then(() => {
-            let err = testCase.getError();
-            if (err) {
+    p = p.then(() => {
+      let promises = [];
+      group.cases.forEach(testCase => {
+        promises.push(
+          testCase
+            .runAsync()
+            .catch(err => {
               errors.push(testCase.name + ":\n" + String(err.stack || err));
-            }
-            process.stdout.write(".");
-          })
-      );
+            })
+            .then(() => {
+              let err = testCase.getError();
+              if (err) {
+                errors.push(testCase.name + ":\n" + String(err.stack || err));
+              }
+              process.stdout.write(".");
+            })
+        );
+      });
+      return Promise.all(promises);
     });
   });
-  Promise.all(promises).then(() => {
-    process.stdout.write("\n");
+  p.then(() => {
+    process.stdout.write("🏁\n");
     let log = "";
     let nUndef = 0;
     log += "-".repeat(80) + "\n";

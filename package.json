@@ -29,17 +29,17 @@
     "clean": "rimraf dist && rimraf JSX/dist",
     "prepublishOnly": "npm run build",
     "prebuild": "npm run clean && tsc -p src --declaration",
-    "build": "tsc -p src --removeComments && tsc -d -p JSX/src",
+    "build": "tsc -p src --removeComments",
     "postbuild": "node test/run",
     "watch": "tsc -p src -w",
     "test": "node test/run"
   },
   "dependencies": {
-    "tslib": "^1.10.0"
+    "tslib": "^2.0.0"
   },
   "devDependencies": {
     "esm": "^3.2.25",
-    "rimraf": "^2.6.3",
-    "typescript": "^3.5.3"
+    "rimraf": "^3.0.2",
+    "typescript": "^4.0.0-beta"
   }
 }
