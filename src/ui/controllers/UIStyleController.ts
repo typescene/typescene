@@ -2,6 +2,7 @@ import { ComponentConstructor } from "../../core";
 import { UIComponent } from "../UIComponent";
 import { UIRenderableController } from "../UIRenderableController";
 import { UIStyle } from "../UIStyle";
+import { UITheme } from "../UITheme";
 
 /** Renderable wrapper that controls the style of its single content component, by applying one of the given styles based on the current value of a property */
 export class UIStyleController extends UIRenderableController {
@@ -12,11 +13,14 @@ export class UIStyleController extends UIRenderableController {
     return super.preset(presets, content);
   }
 
-  /** Currently selected style (string index into `UIStyleController.styles` object) */
+  /** Currently selected style (string index into `UIStyleController.styles` object, or true to apply the single `style` object) */
   state?: string;
 
+  /** Style that is applied if the current `state` is not false or undefined */
+  style?: UIStyle | string;
+
   /** Available styles to be applied to the content component (plain object) */
-  styles: { [name: string]: UIStyle } = Object.create(null);
+  styles: { [name: string]: UIStyle | string | undefined } = Object.create(null);
 
   /** Base style (taken from the content component right after it is assigned to the `content` property) */
   baseStyle?: UIStyle;
@@ -31,11 +35,17 @@ UIStyleController.addObserver(
       }
     }
     onStateChange() {
+      if (!this.controller.baseStyle) return;
       if (this.controller.content instanceof UIComponent) {
         let baseStyle = this.controller.baseStyle;
         let style = this.controller.styles[String(this.controller.state)];
-        let toApply = baseStyle && (style ? baseStyle.mixin(style) : baseStyle);
-        if (toApply) this.controller.content.style = toApply;
+        if (!style && this.controller.state) style = this.controller.style;
+        if (typeof style === "string") style = UITheme.getStyle(style);
+        if (style instanceof UIStyle) {
+          this.controller.content.style = baseStyle.mixin(style);
+        } else {
+          this.controller.content.style = baseStyle;
+        }
       }
     }
   }
@@ -44,9 +54,11 @@ UIStyleController.addObserver(
 export namespace UIStyleController {
   /** UIStyleController presets type, for use with `Component.with` */
   export interface Presets {
-    /** Currently selected style (string index into `UIStyleController.styles` object, typically bound to a property on the composite component) */
+    /** Currently selected style (string index into `UIStyleController.styles` object; or `true` to apply the single `style` object) */
     state?: string;
+    /** Style that is applied if the current `state` is not false or undefined */
+    style?: UIStyle | string;
     /** Available styles to be applied to the content component (plain object) */
-    styles: { [name: string]: UIStyle };
+    styles: { [name: string]: UIStyle | string };
   }
 }

@@ -3,7 +3,7 @@ import { bind, ManagedObject } from "../core";
 import { UIComponent, UIRenderable } from "./UIComponent";
 
 /** @internal Render context binding, can be reused to avoid creating new bindings */
-export let renderContextBinding = bind("renderContext");
+export const renderContextBinding = bind("renderContext");
 
 /** Global view placement modes */
 export enum UIRenderPlacement {

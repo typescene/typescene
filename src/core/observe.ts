@@ -190,10 +190,14 @@ function _addObserverHandlers(Target: Function, Observer: { new (_instance: any)
         // define a handler based on the full method name
         switch (name) {
           case "onChangeAsync":
-            addHandler(e => e instanceof ManagedChangeEvent, f, true);
+            addHandler(
+              e => e.name === "Change" || e instanceof ManagedChangeEvent,
+              f,
+              true
+            );
             break;
           case "onChange":
-            addHandler(e => e instanceof ManagedChangeEvent, f);
+            addHandler(e => e.name === "Change" || e instanceof ManagedChangeEvent, f);
             break;
           case "onEventAsync":
             addHandler(undefined, f, true);

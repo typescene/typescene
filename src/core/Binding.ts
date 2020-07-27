@@ -2,7 +2,6 @@ import { err, ERROR } from "../errors";
 import { Component } from "./Component";
 import { tt } from "./I18nService";
 import { ManagedList } from "./ManagedList";
-import { ManagedMap } from "./ManagedMap";
 import { logUnhandledException } from "./UnhandledErrorEmitter";
 import * as util from "./util";
 
@@ -59,30 +58,15 @@ export class Binding {
             ? (this.boundParent as any)[propertyName]
             : undefined;
 
-        // find nested properties and mapped keys
+        // find nested properties
         if (path) {
           for (let i = 0; i < path.length && result != undefined; i++) {
             let p = path[i];
-            if (result instanceof ManagedList) {
-              // check for toArray or pluck prefix
-              if (p === "*") {
-                result = result.toArray();
-                continue;
-              } else if (p[0] === "*") {
-                result = result.pluck(p.slice(1));
-                continue;
-              }
-            } else if (result instanceof ManagedMap) {
-              // check for toObject or key prefix
-              if (p === "#") {
-                result = result.toObject();
-                continue;
-              } else if (p[0] === "#") {
-                result = result.get(p.slice(1));
-                continue;
-              }
+            if (!(p in result) && typeof result.get === "function") {
+              result = result.get(p);
+            } else {
+              result = result[p];
             }
-            result = result[p];
           }
         }
 
@@ -143,6 +127,7 @@ export class Binding {
    * - `or(...)`: use given string if value is undefined or a blank string; the string cannot contain a `}` character.
    * - `then(...)`: use given string if value is NOT undefined or a blank string, otherwise `undefined`; the string cannot contain a `}` character.
    * - `uniq`: leave only unique values in an array, and discard undefined values
+   * - `pluck(...)`: take given property from all elements of an array
    * - `blank` or `_`: output an empty string, but make the unfiltered value available for the #{...} pattern in `bindf`.
    */
   addFilter(fmt: string) {
@@ -258,6 +243,7 @@ export class Binding {
     "integer": _intFormatter,
     "dec": _decimalFormatter,
     "uniq": _uniqueFormatter,
+    "pluck": _pluckFormatter,
   };
 }
 
@@ -421,12 +407,9 @@ export namespace Binding {
 /**
  * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the bound parent component, such as the `Activity` for a view, the `Application` for an activity, or the `ViewComponent` for nested views.
  *
- * The bound property name is specified using the first argument. Nested properties are allowed (e.g. `foo.bar`), but _only_ the first property will be observed. Hence, changes to nested properties are not reflected automatically. To update bound values for nested properties, emit a `ManagedChangeEvent` on the highest level property.
+ * The bound property name is specified using the first argument. Nested properties are allowed (e.g. `foo.bar`), but _only_ the first property will be observed. Hence, changes to nested properties are not reflected automatically. To update bound values for nested properties, emit a `ManagedChangeEvent` on the highest level property (using `ManagedObject.emitChange()` or otherwise).
  *
- * Mapped objects in a `ManagedMap` can be bound using a `#` prefix for keys (e.g. `map.#key`).
- * A `ManagedMap` can be bound as a plain object using a `#` nested property (e.g. `map.#`).
- * Properties of all objects in a `ManagedList` can be bound (as an array) using a `*` prefix for the nested property (e.g. `list.*foo`).
- * A `ManagedList` can be bound as a plain array using a `*` nested property (e.g. `list.*`).
+ * If a nested property does not exist, but a `get` method does (e.g. `ManagedMap.get()`), then this method is called with the property name as its only argument, and the resulting value used as the bound value.
  *
  * The property name may be appended with a `|` (pipe) character and a *filter* name: see `Binding.addFilter` for available filters. Multiple filters may be chained together if their names are separated with more pipe characters.
  *
@@ -519,4 +502,8 @@ function _uniqueFormatter(d: any) {
     values.push(v);
     return true;
   });
+}
+function _pluckFormatter(d: any, p: string) {
+  if (!Array.isArray(d) && !(d instanceof ManagedList)) return d;
+  return (d as any[]).map(v => v && v[p]);
 }

@@ -3,7 +3,7 @@ import { renderContextBinding, UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
 
 /** @internal Activation context binding, can be reused to avoid creating new bindings */
-export let activationContextBinding = bind("activationContext");
+export const activationContextBinding = bind("activationContext");
 
 /** Specialized `Component` that propagates application properties (abstract) */
 export abstract class AppComponent extends Component.with({

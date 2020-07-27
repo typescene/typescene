@@ -2,6 +2,7 @@ export * from "./containers";
 export * from "./controls";
 export * from "./controllers";
 export * from "./UIComponent";
+export * from "./UIFormContext";
 export * from "./UIMenu";
 export * from "./UIRenderableController";
 export * from "./UIRenderContext";

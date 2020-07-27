@@ -264,7 +264,7 @@ export class Component extends ManagedObject {
    */
   static presetBoundComponent(
     propertyName: string,
-    ...constructors: ComponentConstructor[]
+    ...constructors: Array<ComponentConstructor | undefined>
   ) {
     if (!this.prototype.hasOwnProperty(HIDDEN_COMPOSTN_PROPERTY)) {
       this.prototype[HIDDEN_COMPOSTN_PROPERTY] = {
@@ -345,7 +345,7 @@ export namespace Component {
   export class BoundComposition {
     constructor(
       public readonly Composite: typeof Component,
-      ...include: ComponentConstructor[]
+      ...include: Array<ComponentConstructor | undefined>
     ) {
       this._bindings = this._getAllBindings(...include);
       observe(Composite, () => this._createObserver());
@@ -394,11 +394,12 @@ export namespace Component {
     }
 
     /** Returns a list of all bindings on the active component, its children and inherited components */
-    private _getAllBindings(...include: ComponentConstructor[]) {
+    private _getAllBindings(...include: Array<ComponentConstructor | undefined>) {
       // find all (nested) component bindings recursively
       let bindings: Binding[] = [];
-      let addBindings = (C: ComponentConstructor) => {
+      let addBindings = (C?: ComponentConstructor) => {
         // add own bindings
+        if (!C) return;
         let b = (C.prototype as Component)[HIDDEN_BINDINGS_PROPERTY];
         for (let p in b) {
           bindings.push(b[p]);

@@ -295,9 +295,8 @@ export class UITheme {
   /** Add or extend a named style in `styles` with given style set; returns the new `UIStyle` instance */
   setStyle(name: string, styles: Partial<UIStyle.StyleObjects>) {
     if (this.styles[name]) {
-      return (this.styles[name] = this.styles[name].extend(styles, name));
-    } else {
-      return (this.styles[name] = UIStyle.create(name, styles));
+      styles = { ...this.styles[name].getStyles(), ...styles };
     }
+    return (this.styles[name] = UIStyle.create(name, styles));
   }
 }
