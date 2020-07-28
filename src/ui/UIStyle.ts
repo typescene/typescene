@@ -429,7 +429,7 @@ export namespace UIStyle {
     /** True for vertical line, or width-only spacer */
     vertical?: boolean;
     /** Width/height of separator space (CSS length or dp) */
-    space: string | number;
+    space?: string | number;
     /** Separator line thickness (CSS length or dp) */
     lineThickness?: string | number;
     /** Line separator color (`UIColor` or string), defaults to `@separator` */
