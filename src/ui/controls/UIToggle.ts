@@ -59,9 +59,6 @@ export class UIToggle extends UIControl {
           this.component.state = !!value;
         }
       }
-      onInput() {
-        this.component.formContext?.set(this.component.name, this.component.state, true);
-      }
       onChange() {
         this.component.formContext?.set(this.component.name, this.component.state, true);
       }
