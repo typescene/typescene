@@ -105,15 +105,7 @@ export class CompositeParentChangeEvent extends ManagedEvent {
  * When components are constructed, they are initialized with preset values for given properties, as well as preset bindings for properties which should automatically observe properties on the nearest parent component that (indirectly) references this component using the `@managedBound` decorator.
  */
 export class Component extends ManagedObject {
-  /**
-   * Create a new component _constructor_, for which instances are automatically updated with given properties, bindings, event handlers, and other values.
-   * - When an instance is activated, components included as preset properties are instantiated and assigned to properties with the same name as the preset object property.
-   * - When an instance becomes a (nested) child component of an active _composite object_ (or upon activation of such an object), bindings are activated to reflect values from the composite object.
-   * - Event handlers are added on all instances of the component class, using one of the following patterns:
-   *   * `{ ... onEventName: "methodName()" }` to invoke given method directly on the first composite object that defines a method with this name, whenever an event with given name is emitted, passing the event as the first and only argument, or
-   *   * `{ ... onEventName: "+OtherEvent" }` to emit another event with given name. The event is created and emitted using the `Component.propagateComponentEvent` method.
-   * - Upon initialization of each instance, the `update` method is called with the remaining properties in the intializer argument, and all rest arguments (component classes) of the same type as the arguments to this method.
-   */
+  /** Create a new component constructor, which automatically initializes new instances with given properties, bindings, event handlers, and other values. */
   static with<TComponentCtor extends ComponentConstructor>(
     this: ComponentCtorWithPreset<TComponentCtor>,
     ...rest: ComponentPresetRestType<TComponentCtor>
@@ -161,9 +153,7 @@ export class Component extends ManagedObject {
 
   /**
    * Add bindings, components, and event handlers from given presets to the current component constructor. This method is called by `Component.with` with the same arguments.
-   * Component classes _may_ override this method and return the result of `super.preset(...)` if:
-   * - the `.with()` function for a component class should accept custom type(s) for its arguments. The parameter signature for the `preset` method is used to determine the parameter signature for `.with()` on a component class.
-   * - component instances should be prepared in any way other than setting property values, adding bindings, or event handlers immediately after being constructed (using the returned callback).
+   * Component classes may override this method and return the result of `super.preset(...)`, to add further presets and bindings using static methods on this component class.
    * @returns A function (*must* be typed as `Function` even in derived classes) that is called by the constructor for each new instance, to apply remaining values from the preset object to the component object that is passed through `this`.
    */
   static preset(presets: object, ...rest: unknown[]): Function {
