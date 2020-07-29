@@ -59,7 +59,7 @@ export class UIToggle extends UIControl {
           this.component.state = !!value;
         }
       }
-      onChange() {
+      onStateChange() {
         this.component.formContext?.set(this.component.name, this.component.state, true);
       }
     }
