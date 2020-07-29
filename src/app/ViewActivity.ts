@@ -157,10 +157,11 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     ) {
       constructor() {
         super();
-        this.propagateChildEvents(function (e) {
-          if (eventHandler) eventHandler.call(this, e);
-          else if (e.name === "CloseModal") this.destroyAsync();
-        });
+        if (eventHandler) {
+          this.propagateChildEvents(function (e) {
+            eventHandler.call(this, e);
+          });
+        }
       }
     }
     let activity: ViewActivity = new SingletonActivity();
@@ -253,8 +254,14 @@ export class PageViewActivity extends ViewActivity {
  * Use `UIComponent.position` (`UIStyle.Position`, specifically the `gravity` property) to determine the position of the dialog UI.
  */
 export class DialogViewActivity extends ViewActivity {
-  placement = UIRenderPlacement.DIALOG;
-  modalShadeOpacity = UITheme.current.modalDialogShadeOpacity;
+  constructor() {
+    super();
+    this.placement = UIRenderPlacement.DIALOG;
+    this.modalShadeOpacity = UITheme.current.modalDialogShadeOpacity;
+    this.propagateChildEvents(e => {
+      if (e.name === "CloseModal") this.destroyAsync();
+    });
+  }
 }
 
 export namespace ViewActivity {
