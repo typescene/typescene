@@ -90,5 +90,6 @@ export abstract class ManagedService extends ManagedObject {
         .propagateEvents() as any;
       ServiceContainer.instance.services.set(ucName, ref);
     }
+    return this;
   }
 }

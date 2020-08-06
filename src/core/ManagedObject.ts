@@ -176,7 +176,7 @@ export class ManagedObject {
   /**
    * The current lifecycle state of this managed object.
    * @note This property is read-only. To change the state of a managed object (i.e. to move its lifecycle between active/inactive and destroyed states), use the `activateManagedAsync`, `deactivateManagedAsync`, and `destroyManagedAsync` methods. If any additional logic is required when moving between states, override the `onManagedStateActivatingAsync`, `onManagedStateActiveAsync`, `onManagedStateDeactivatingAsync`, `onManagedStateInactiveAsync` and/or `onManagedStateDestroyingAsync` methods in any class that derives from `ManagedObject`.
-   * @note This property _cannot_ be observed directly. Observer classes (see `observe()`) should use methods such as `onActive` to observe lifecycle state.
+   * @note This property _cannot_ be observed directly. Observer classes (see `addObserver`) should use methods such as `onActive` to observe lifecycle state.
    */
   get managedState() {
     return this[util.HIDDEN_STATE_PROPERTY];
@@ -184,7 +184,7 @@ export class ManagedObject {
 
   /**
    * Returns the current number of managed references that point to this object
-   * @note Observers (see `observe()`) may use an `onReferenceCountChangeAsync` method to observe this value asynchronously.
+   * @note Observers (see `addObserver`) may use an `onReferenceCountChangeAsync` method to observe this value asynchronously.
    */
   protected getReferenceCount() {
     return this[util.HIDDEN_REFCOUNT_PROPERTY];
@@ -207,7 +207,7 @@ export class ManagedObject {
    * Returns the managed object that contains a _managed child reference_ that points to this instance, if any (see `@managedChild`).
    * If a class argument is specified, parent references are recursed until a parent of given type is found.
    * The object itself is never returned, even if it contains a managed child reference that points to itself.
-   * @note The reference to the managed parent (but not its events) can be observed (see `observe()`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
+   * @note The reference to the managed parent (but not its events) can be observed (see `addObserver`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
    */
   protected getManagedParent<TParent extends ManagedObject = ManagedObject>(
     ParentClass?: ManagedObjectConstructor<TParent>
@@ -241,7 +241,7 @@ export class ManagedObject {
   /**
    * Emit an event. If an event constructor is given, a new instance is created using given constructor arguments (rest parameters). If an event name (string) is given, a new plain event is created with given name.
    * Use the `ManagedEvent.freeze` method to freeze event instances before emitting.
-   * See `ManagedObject.handle` and `ManagedObject.observe` (static methods to be used on subclasses of `ManagedObject`) for ways to handle events.
+   * See `ManagedObject.addEventHandler` and `ManagedObject.addObserver` (static methods to be used on subclasses of `ManagedObject`) for ways to handle events.
    * @note There is a limit to the number of events that can be emitted recursively; avoid calling this method on the same object from _within_ an event handler.
    */
   emit<TEvent extends ManagedEvent = ManagedEvent, TConstructorArgs extends any[] = any[]>(
