@@ -1,4 +1,4 @@
-import { Binding, tt } from "../../core";
+import { Binding, strf } from "../../core";
 import { Stringable } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
@@ -6,12 +6,12 @@ import { UIControl } from "./UIControl";
 
 /** Represents a UI component that contains a piece of text */
 export class UILabel extends UIControl {
-  /** Creates a preset label class with given text (localized using `tt` if available) and style override, if any */
+  /** Creates a preset label class with given text (localized using `strf`) and style override, if any */
   static withText(
     text: Stringable | Binding,
     style?: UIStyle.TextStyle | UIStyle | string
   ) {
-    if (typeof text === "string") text = tt(text);
+    if (typeof text === "string") text = strf(text);
     return style instanceof UIStyle || typeof style === "string"
       ? this.with({ text, style })
       : style

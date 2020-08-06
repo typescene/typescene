@@ -6,7 +6,7 @@ import { AppException } from "../app";
 export const formContextBinding = bind("formContext");
 
 /** Error that is used when a required property is missing */
-const REQUIRED_ERROR = AppException.type("FORM_REQUIRED", "$$ is required");
+const REQUIRED_ERROR = AppException.type("FORM_REQUIRED", "%s is required");
 
 /**
  * Represents form field data that can be used by input field components. By default, a `formContext` property on `AppActivity` or `ViewComponent` instances is used, but an alternative form context instance may be bound using a `UIForm` or `UIFormContextController` component.
@@ -77,7 +77,7 @@ export class UIFormContext<TData = any> extends Component {
     return result;
   }
 
-  /** Add a validation test for a field with given name, which results in an error if the current value is undefined, null, false, or an empty string (but not the number '0') */
+  /** Add a validation test for a field with given name, which results in an error if the current value is undefined, null, false, or an empty string (but not the number '0'). The description is used for generating error messages. */
   required(name: keyof TData, description?: string) {
     this.test(name, t => t.required(description));
     return this;

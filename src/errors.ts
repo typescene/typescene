@@ -5,18 +5,17 @@ export function err(error: ERROR, s?: any) {
 
 export const enum ERROR {
   ActivationContext_InvalidPath,
-  Application_Inactive,
   ViewActivity_NoRenderContext,
   ViewActivity_NoApplication,
   ViewActivity_NoDialogBuilder,
   ViewComponent_InvalidChild,
   ViewComponent_NoRenderCtx,
   Binding_UnknownFilter,
-  Binding_NotABinding,
   Binding_NotFound,
   Binding_ParentNotFound,
   Binding_NoComponent,
-  Binding_ObjectType,
+  Format_ObjectType,
+  Format_Type,
   Component_NotAHandler,
   Component_InvalidEventHandler,
   List_Symbol,
@@ -56,8 +55,6 @@ export const enum ERROR {
 
 const errors: { [error: number]: string } = {
   [ERROR.ActivationContext_InvalidPath]: "[ActivationContext] Invalid path: %s",
-  [ERROR.Application_Inactive]:
-    "[Application] Cannot add activities to inactive application",
   [ERROR.ViewActivity_NoRenderContext]:
     "[ViewActivity] Render context not found (not a child component?)",
   [ERROR.ViewActivity_NoApplication]: "[ViewActivity] Application instance not found",
@@ -66,11 +63,11 @@ const errors: { [error: number]: string } = {
   [ERROR.ViewComponent_NoRenderCtx]:
     "[ViewComponent] Render context not found (not a child component?)",
   [ERROR.Binding_UnknownFilter]: "[Binding] Unknown binding filter: %s",
-  [ERROR.Binding_NotABinding]: "[Binding] Not a binding: %s",
   [ERROR.Binding_NotFound]: "[Binding] Binding not found for: %s",
   [ERROR.Binding_ParentNotFound]: "[Binding] Bound parent binding not found for: %s",
   [ERROR.Binding_NoComponent]: "[Binding] Component not bound",
-  [ERROR.Binding_ObjectType]: "[Binding] Cannot convert bound object value to string",
+  [ERROR.Format_ObjectType]: "[Format] Cannot convert object value to string",
+  [ERROR.Format_Type]: "[Format] Invalid format type: %s",
   [ERROR.Component_NotAHandler]: "[Component] Not an event handler method: %s",
   [ERROR.Component_InvalidEventHandler]: "[Component] Invalid event handler preset: %s",
   [ERROR.List_Symbol]: "[List] Symbol not supported",

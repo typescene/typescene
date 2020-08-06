@@ -147,7 +147,7 @@ export class ManagedReference<
 }
 
 /**
- * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `@observe`).
+ * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `ManagedObject.addObserver`).
  *
  * The decorated property immediately becomes undefined when the referenced object is destroyed (see `ManagedObject.managedState`).
  *
@@ -158,7 +158,7 @@ export function managed<T extends ManagedObject>(target: T, propertyKey: any) {
 }
 
 /**
- * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `@observe`).
+ * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `ManagedObject.addObserver`).
  *
  * This asserts a reverse dependency between the referrer and the referenced object.
  * - The reference _must_ point to an instance of `ManagedObject`, and cannot be set to `undefined`.

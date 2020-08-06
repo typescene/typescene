@@ -1,10 +1,11 @@
 import { err, ERROR } from "../errors";
 import { Binding } from "./Binding";
-import { ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
+import { ManagedEvent, ManagedParentChangeEvent, ManagedCoreEvent } from "./ManagedEvent";
 import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 import { onPropertyChange, observe } from "./observe";
+import { logUnhandledException } from "./UnhandledErrorEmitter";
 
 /** Arbitrary name of a hidden property for bindings on the Component prototype */
 const HIDDEN_BINDINGS_PROPERTY = "^+bnd";
@@ -387,14 +388,17 @@ export namespace Component {
     private _getAllBindings(...include: Array<ComponentConstructor | undefined>) {
       // find all (nested) component bindings recursively
       let bindings: Binding[] = [];
+      let addBinding = (binding: Binding) => {
+        bindings.push(binding);
+        if (binding.bindings) {
+          binding.bindings.forEach(b => addBinding(b));
+        }
+      };
       let addBindings = (C?: ComponentConstructor) => {
         // add own bindings
         if (!C) return;
         let b = (C.prototype as Component)[HIDDEN_BINDINGS_PROPERTY];
-        for (let p in b) {
-          bindings.push(b[p]);
-          if (b[p].bindings) bindings.push(...b[p].bindings!);
-        }
+        for (let p in b) addBinding(b[p]);
 
         // add inherited bindings
         let i = (C.prototype as Component)[HIDDEN_BIND_INHERIT_PROPERTY];
@@ -405,10 +409,7 @@ export namespace Component {
         for (let p in c) {
           let u = c[p]._unbound;
           if (u) {
-            for (let q in u) {
-              bindings.push(u[q]);
-              if (u[q].bindings) bindings.push(...u[q].bindings!);
-            }
+            for (let q in u) addBinding(u[q]);
           }
         }
       };
@@ -446,7 +447,14 @@ export namespace Component {
 
     /** Respond to parent-change events on the component itself */
     onEvent(e: ManagedEvent) {
-      if (e instanceof ManagedParentChangeEvent) {
+      if (e === ManagedCoreEvent.DESTROYED) {
+        // unbind from current parent, if any
+        if (this._parentObserver) {
+          this._parentObserver._removeChildObserver(this);
+          this._unbind();
+          this.boundParent = undefined;
+        }
+      } else if (e instanceof ManagedParentChangeEvent) {
         // get the new component parent, if any
         let parentComponent = this.component.getParentComponent();
         let parentObserver = parentComponent && parentComponent[HIDDEN_OBSERVER_PROPERTY];
@@ -454,7 +462,7 @@ export namespace Component {
 
         // unbind from current parent first, if any
         if (this._parentObserver) {
-          delete this._parentObserver._childObservers[this.component.managedId];
+          this._parentObserver._removeChildObserver(this);
           this._unbind();
           this.boundParent = undefined;
         }
@@ -462,7 +470,7 @@ export namespace Component {
         // register with new parent observer and (re)bind if possible
         this._parentObserver = parentObserver;
         if (parentObserver) {
-          parentObserver._childObservers[this.component.managedId] = this;
+          parentObserver._addChildObserver(this);
 
           // check if the new parent is also the new bound parent itself,
           // otherwise copy bound parent from parent component observer
@@ -510,6 +518,27 @@ export namespace Component {
       return this;
     }
 
+    /** Register child component observer */
+    _addChildObserver(childObserver: ComponentObserver) {
+      let id = childObserver.component.managedId;
+      if (!this._childObservers[id]) {
+        this._childObservers[id] = childObserver;
+        this._nChildren = (this._nChildren || 0) + 1;
+      }
+    }
+
+    /** Remove child component observer */
+    _removeChildObserver(childObserver: ComponentObserver) {
+      let id = childObserver.component.managedId;
+      if (this._childObservers[id]) {
+        delete this._childObservers[id];
+        if (!--this._nChildren && this._compositeBound) {
+          // last child observer is gone, clear all bound
+          this._compositeBound.clear();
+        }
+      }
+    }
+
     /** Update bound parent reference according to (new, or existing but updated) parent component reference */
     _updateParent(parentObserver: ComponentObserver, isParent: boolean) {
       // check if parent is already the bound parent
@@ -543,16 +572,24 @@ export namespace Component {
       let component = this.component;
       let boundObserver = this.boundParent[HIDDEN_OBSERVER_PROPERTY];
       let bindings = component[HIDDEN_BINDINGS_PROPERTY];
+
+      // bind all bindings on own component
       let o = this._ownBound || (this._ownBound = Object.create(null));
       for (let p in bindings) {
         if (!o[p]) {
-          // bind this binding, and update value if possible
           let binding = bindings[p];
           let bound = boundObserver.getCompositeBound(binding);
-          if (bound) {
-            o[p] = bound.add(component);
-            (component as any)[binding.id]?.(bound.value);
-          }
+          if (bound) o[p] = bound.add(component);
+        }
+      }
+
+      // update values now
+      for (let p in o) {
+        let bound = o[p] as Binding.Bound;
+        try {
+          (component as any)[bound.binding.id]?.(bound.value);
+        } catch (err) {
+          logUnhandledException(err);
         }
       }
     }
@@ -574,6 +611,9 @@ export namespace Component {
     private _childObservers: { [managedId: string]: ComponentObserver } = Object.create(
       null
     );
+
+    /** Number of currently registered child observers (in _childObservers) */
+    private _nChildren = 0;
 
     /** Bound bindings for this component ONLY (i.e. those that need to update binding values on this component); these are taken from the bound parent component observer when set, so that they can be unbound when needed */
     private _ownBound?: { [propertyName: string]: Binding.Bound };
