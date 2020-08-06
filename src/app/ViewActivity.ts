@@ -3,8 +3,8 @@ import {
   managed,
   managedChild,
   ManagedEvent,
-  tt,
   observe,
+  strf,
 } from "../core";
 import { err, ERROR } from "../errors";
 import {
@@ -169,7 +169,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   }
 
   /**
-   * Display a confirmation/alert dialog with given content. If the 'cancel' button label is not provided, the dialog will only contain a 'confirm' button. All strings are automatically translated to the current locale using the `tt` function.
+   * Display a confirmation/alert dialog with given content. If the 'cancel' button label is not provided, the dialog will only contain a 'confirm' button. All strings are automatically translated to the current locale using the `strf` function.
    * @param message
    *  The message to be displayed, or multiple message paragraphs (for arrays)
    * @param title
@@ -191,11 +191,11 @@ export class ViewActivity extends AppActivity implements UIRenderable {
       throw err(ERROR.ViewActivity_NoDialogBuilder);
     }
     let builder = new Builder();
-    if (Array.isArray(message)) message.forEach(m => builder.addMessage(String(tt(m))));
-    else builder.addMessage(String(tt(message)));
-    if (title) builder.setTitle(String(tt(title)));
-    if (confirmButtonLabel) builder.setConfirmButtonLabel(String(tt(confirmButtonLabel)));
-    if (cancelButtonLabel) builder.setCancelButtonLabel(String(tt(cancelButtonLabel)));
+    if (Array.isArray(message)) message.forEach(m => builder.addMessage(String(strf(m))));
+    else builder.addMessage(String(strf(message)));
+    if (title) builder.setTitle(String(strf(title)));
+    if (confirmButtonLabel) builder.setConfirmButtonLabel(String(strf(confirmButtonLabel)));
+    if (cancelButtonLabel) builder.setCancelButtonLabel(String(strf(cancelButtonLabel)));
     let Dialog = builder.build();
     return new Promise<boolean>(resolve => {
       this.showDialogAsync(Dialog, !cancelButtonLabel, function (e) {
@@ -231,8 +231,24 @@ export class ViewActivity extends AppActivity implements UIRenderable {
       }
       this.activity.view = undefined;
     }
-    onRenderContextChange() {
-      this.checkAndRender();
+    async onRenderContextChange() {
+      if (this.activity.isActive() && this.activity._ViewClass) {
+        this.activity.view = undefined;
+        if (this.activity.renderContext) {
+          // introduce a delay artificially to clear the old view
+          await Promise.resolve();
+          setTimeout(() => {
+            if (
+              !this.activity.view &&
+              this.activity.renderContext &&
+              this.activity.isActive() &&
+              this.activity._ViewClass
+            ) {
+              this.activity.view = new this.activity._ViewClass();
+            }
+          }, 1);
+        }
+      }
     }
     onViewChange() {
       this.checkAndRender();

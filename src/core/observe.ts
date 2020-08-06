@@ -20,7 +20,7 @@ const RESOLVED = Promise.resolve();
 
 /**
  * Add the decorated observer to _all instances_ of the target class and derived classes. A new observer (instance of given observer class) is created for each target instance, and observed properties are amended with dynamic setters to trigger observer methods.
- * @note See `ManagedObject.handle` for another way to handle events emitted directly by instances of a managed object class.
+ * @note See `ManagedObject.addEventHandler` for another way to handle events emitted directly by instances of a managed object class.
  * @decorator
  */
 export function observe<C extends ManagedObjectConstructor>(
@@ -67,7 +67,7 @@ export function shadowObservable(
 
 /**
  * Observer method decorator: amend decorated method to turn it into a handler for changes to given property/ies.
- * @note This decorator is intended for use on methods that are part of an observer class, see `observe()`.
+ * @note This decorator is intended for use on methods that are part of an observer class, see `ManagedObject.addObserver`.
  * @decorator
  */
 export function onPropertyChange(...observedProperties: string[]): MethodDecorator {
@@ -87,7 +87,7 @@ export function onPropertyChange(...observedProperties: string[]): MethodDecorat
 
 /**
  * Observer method decorator: amend decorated method to turn it into a handler for events on managed objects that are referred to by given managed reference property/ies (decorated with `@managed`, `@managedChild`, or `@managedDependency`).
- * @note This decorator is intended for use on methods that are part of an observer class, see `observe()`.
+ * @note This decorator is intended for use on methods that are part of an observer class, see `ManagedObject.addObserver()`.
  * @decorator
  */
 export function onPropertyEvent(...observedProperties: string[]): MethodDecorator {
@@ -107,7 +107,7 @@ export function onPropertyEvent(...observedProperties: string[]): MethodDecorato
 
 /**
  * Observer method decorator: limit the decorated asynchronous observer method to be invoked only at a maximum frequency, determined by the given number of milliseconds.
- * @note This decorator is intended for use on methods that are part of an observer class, see `observe()`.
+ * @note This decorator is intended for use on methods that are part of an observer class, see `ManagedObject.addObserver()`.
  * @decorator
  */
 export function rateLimit(n: number): MethodDecorator {

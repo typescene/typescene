@@ -7,7 +7,6 @@ import {
   ManagedService,
   ManagedCoreEvent,
 } from "../core";
-import { err, ERROR } from "../errors";
 import { UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
@@ -119,9 +118,7 @@ export class Application extends Component {
 
   /** Add given activities to the application. Activities with matching paths will be activated immediately (see `AppActivity.path`). */
   add(...activities: AppActivity[]) {
-    if (!this.activities) {
-      throw err(ERROR.Application_Inactive);
-    }
+    if (!this.activities) this.activities = new AppActivityList();
     this.activities.add(...activities.filter(a => !this.activities!.includes(a)));
     return this;
   }

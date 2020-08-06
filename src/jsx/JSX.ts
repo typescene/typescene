@@ -6,10 +6,10 @@ import {
   ComponentPresetRestType,
   ComponentPresetType,
   StringFormatBinding,
-  tt,
   UIRenderable,
   UIRenderableConstructor,
   ViewComponent,
+  strf,
 } from "../";
 import * as intrinsics from "./intrinsics";
 
@@ -23,7 +23,7 @@ export function JSX(
 
   // use string content as 'text' property, if any
   let fmt = "";
-  let hasText: Boolean | undefined;
+  let hasText: boolean | undefined;
   let bindings: Binding[] | undefined;
   let components: any[] = [];
   for (let r of rest) {
@@ -32,7 +32,8 @@ export function JSX(
       hasText = true;
     } else if (r instanceof Binding) {
       if (!bindings) bindings = [];
-      fmt += "${%" + bindings.push(r) + "}";
+      bindings.push(r);
+      fmt += "%s";
     } else {
       components.push(r);
     }
@@ -43,14 +44,14 @@ export function JSX(
   if (fmt) {
     if (!bindings) {
       // content is only text
-      merged.text = tt(fmt);
+      merged.text = strf(fmt);
     } else {
       if (!hasText && bindings.length === 1) {
         // content is only one binding
         merged.text = bindings[0];
       } else {
         // content is mixed text and bindings
-        merged.text = new StringFormatBinding(fmt, ...bindings).addFilter("tt");
+        merged.text = new StringFormatBinding(fmt, ...bindings);
       }
     }
   }

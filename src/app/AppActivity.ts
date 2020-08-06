@@ -54,7 +54,7 @@ export class AppActivity extends AppComponent {
     return this.managedState === ManagedState.ACTIVE;
   }
 
-  /** The timestamp (result of `Date.now()`) corresponding to the moment this activity was last activated; or undefined if this activaty has never been activated */
+  /** The timestamp (result of `Date.now()`) corresponding to the moment this activity was last activated; or undefined if this activity has never been activated */
   activated?: number;
 
   /** The timestamp (result of `Date.now()`) corresponding to the moment this activity was last deactivated; or undefined if this activity has never been deactivated. */

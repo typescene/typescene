@@ -1,4 +1,4 @@
-import { Binding, tt } from "../../core";
+import { Binding, strf } from "../../core";
 import { Stringable } from "../UIComponent";
 import { UITheme } from "../UITheme";
 import { UIControl } from "./UIControl";
@@ -16,9 +16,9 @@ export class UIButton extends UIControl {
     return super.preset(presets);
   }
 
-  /** Creates a preset button class with given label (localized using `tt` if available) and onClick handler, if any */
+  /** Creates a preset button class with given label (localized using `strf`) and onClick handler, if any */
   static withLabel(label: Stringable | Binding, onClick?: string) {
-    if (typeof label === "string") label = tt(label);
+    if (typeof label === "string") label = strf(label);
     return this.with({ label, onClick });
   }
 
