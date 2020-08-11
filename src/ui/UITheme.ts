@@ -180,14 +180,15 @@ export class UITheme {
    * - `@green^-20%` takes the color `green` and darkens light colors, lightens dark colors by 20%
    * - `@green^+20%` takes the color `green` and lightens light colors, darkens dark colors by 20%
    * - `@green/80%` takes the color `green` and makes it 20% (more) transparent
-   * - `@green:text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
+   * - `@green.text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
    */
   static replaceColor(color: Stringable) {
     if (color instanceof UIColor) return String(color);
     let c = String(color);
     if (!c) return c;
+    // (Note: .text also works as :text for historical reasons)
     return c.replace(
-      /\@(\w+)(\:text)?((\^)?[\+\-]\d+\%)?(\:text)?(\/\d+\%)?(\:text)?/g,
+      /\@(\w+)([.:]text)?((\^)?[\+\-]\d+\%)?([.:]text)?(\/\d+\%)?([.:]text)?/g,
       (_str, id, txt, lum, contrast, txt2, alpha, txt3) => {
         let result = (this.current.colors as any)[id] || "rgba(1,2,3,0)";
         if (/\@\w/.test(result)) result = this.replaceColor(result);

@@ -136,6 +136,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
 
   /** Create and emit a UI event with given name and a reference to this component, as well as an optional platform event; see `Component.propagateComponentEvent` */
   propagateComponentEvent(name: string, inner?: ManagedEvent, event?: any) {
+    if (!this.managedState) return;
     if (!event && inner instanceof UIComponentEvent) {
       event = inner.event;
     }

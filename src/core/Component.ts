@@ -299,9 +299,11 @@ export class Component extends ManagedObject {
 
   /**
    * Create and emit an event with given name, a reference to this component, and an optional inner (propagated) event. The base implementation emits a plain `ComponentEvent`, but this method may be overridden to emit other events.
+   * @note If the component is already in the 'destroyed' state (see `ManagedObject.managedState`), then no event is emitted and this method returns immediately.
    * @note This method is used by classes created using `Component.with` if an event handler is specified using the `{ ... onEventName: "+OtherEvent" }` pattern.
    */
   propagateComponentEvent(name: string, inner?: ManagedEvent) {
+    if (!this.managedState) return;
     this.emit(ComponentEvent, name, this, inner);
   }
 

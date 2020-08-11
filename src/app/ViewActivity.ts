@@ -158,9 +158,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
       constructor() {
         super();
         if (eventHandler) {
-          this.propagateChildEvents(function (e) {
-            eventHandler.call(this, e);
-          });
+          this.propagateChildEvents(eventHandler);
         }
       }
     }

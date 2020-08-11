@@ -21,10 +21,10 @@ export class UIRow extends UIContainer {
     return !!this.spacing;
   }
 
-  /** Space between components along horizontal axis (in dp or string with unit, defaults to value from `UITheme`); overrides `layout.separator` options */
+  /** Space between components along horizontal axis (in dp or string with unit, defaults to value from `UITheme`) */
   spacing?: string | number = UITheme.current.spacing;
 
-  /** Row height (in dp or string with unit, overrides value set in `UIComponent.dimensions`, if any) */
+  /** Row height (in dp or string with unit) */
   height?: string | number;
 }
 
@@ -40,9 +40,9 @@ export let UICloseRow = UIRow.with({ spacing: 0 });
 export namespace UIRow {
   /** UIRow presets type, for use with `Component.with` */
   export interface Presets extends UIContainer.Presets {
-    /** Space between components along horizontal axis (in dp or string with unit, defaults to value from `UITheme`); overrides `layout.separator` options */
+    /** Space between components along horizontal axis (in dp or string with unit, defaults to value from `UITheme`) */
     spacing?: string | number;
-    /** Row height (in dp or string with unit, overrides value set in `UIComponent.dimensions`, if any) */
+    /** Row height (in dp or string with unit) */
     height?: string | number;
   }
 }

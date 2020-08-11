@@ -63,7 +63,7 @@ export interface RefLink {
   k?: RefLink;
 
   /** Event callback (for source property) */
-  f?: (obj: any, ref: any, e: any) => void;
+  f?: (e: any) => void;
 
   /** Destruction callback (called immediately before target is destroyed) */
   g?: (obj: any) => void;

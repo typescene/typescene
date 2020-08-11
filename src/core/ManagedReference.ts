@@ -94,7 +94,7 @@ export class ManagedReference<
         this,
         target,
         REF_PROP_ID,
-        (_obj, _target, e) => {
+        e => {
           // propagate the event if needed
           if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
             this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
@@ -104,7 +104,9 @@ export class ManagedReference<
         },
         () => {
           // handle target moved/destroyed
-          this.emit(ManagedChangeEvent);
+          if (this.managedState) {
+            this.emit(ManagedChangeEvent);
+          }
         }
       );
       if (this[util.HIDDEN_REF_PROPERTY].parent && !this._isWeakRef) {
