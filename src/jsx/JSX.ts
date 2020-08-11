@@ -69,7 +69,7 @@ export namespace JSX {
   /** TypeScript JSX typing information */
   export namespace JSX {
     export type IntrinsicElements = intrinsics.Elements;
-    export type Element = ComponentConstructor<UIRenderable>;
+    export type Element = UIRenderableConstructor;
   }
 
   /** References to JSX factory functions for all intrinsic tags */

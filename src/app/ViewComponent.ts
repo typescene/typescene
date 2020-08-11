@@ -1,4 +1,12 @@
-import { ComponentEvent, logUnhandledException, managedChild, ManagedState } from "../core";
+import {
+  ComponentEvent,
+  logUnhandledException,
+  managedChild,
+  ManagedState,
+  ComponentConstructor,
+  Binding,
+  ManagedEvent,
+} from "../core";
 import { UIComponent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
@@ -12,7 +20,72 @@ export class ViewComponent extends AppComponent implements UIRenderable {
   static preset(presets: object, ...View: UIRenderableConstructor[]): Function {
     if (View.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
     if (View[0]) this.presetChildView("view", View[0], true);
+    else if ("view" in presets) {
+      this.presetChildView("view", (presets as any).view, true);
+      delete (presets as any).view;
+    }
     return super.preset(presets);
+  }
+
+  /** Declare a view component with given default properties, initializer, and view (child) event handler */
+  static withDefaults<PresetT extends object>(options: {
+    /** View constructor for the encapsulated view */
+    view?: UIRenderableConstructor;
+    defaults?: PresetT | (() => PresetT);
+    initialize?: (this: ViewComponent & PresetT & { content?: UIRenderable }) => void;
+    event?: (
+      this: ViewComponent & PresetT & { content?: UIRenderable },
+      event: ManagedEvent
+    ) => ManagedEvent | undefined | void;
+  }): {
+    with(
+      presets: { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
+    ): ComponentConstructor<ViewComponent & PresetT>;
+    new (values?: Partial<PresetT>): ViewComponent;
+  } {
+    // create a class that derives from the base class with added presets
+    class PresetViewComponent extends this {
+      constructor(values?: any) {
+        super();
+
+        // apply given values directly
+        if (values) {
+          for (let p in values) {
+            if (Object.prototype.hasOwnProperty.call(values, p)) {
+              (this as any)[p] = values[p];
+            }
+          }
+        }
+
+        // add event handler/propagation function
+        if (options.event) this.propagateChildEvents(options.event as any);
+      }
+      static preset(presets: PresetT, Content?: UIRenderableConstructor): Function {
+        // preset content if any (passed in to .with or JSX tag content)
+        if (Content) this.presetChildView("content", Content);
+
+        // generate defaults if a function was passed in
+        let defaults =
+          (typeof options.defaults === "function"
+            ? (options.defaults as any).call(undefined)
+            : options.defaults) || {};
+
+        // call super preset method with augmented preset object
+        if (options.view) (presets as any).view = options.view;
+        let f = super.preset({ ...defaults, ...presets });
+        return function (this: ViewComponent) {
+          f.call(this);
+
+          // when done, invoke initializer if any
+          if (options.initialize) options.initialize.call(this as any);
+        };
+      }
+
+      /** View content, if any (passed in to .with or JSX tag) */
+      @managedChild
+      content?: UIRenderable;
+    }
+    return PresetViewComponent as any;
   }
 
   /**
