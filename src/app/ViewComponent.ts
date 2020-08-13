@@ -29,10 +29,13 @@ export namespace ViewComponent {
       presets: PresetT,
       ...contents: Array<UIRenderableConstructor | undefined>
     ): Function;
-    /** Create a view component, copying all properties from given object */
-    new (values?: Partial<PresetT>): ViewComponent &
-      { [P in keyof PresetT]: PresetT[P] | undefined } &
-      { [P in ContentPropertiesT]: UIRenderable | undefined };
+    /**
+     * Create a view component, copying all properties from given object
+     * @note Bindings are not allowed as arguments to this constructor, but are added as a type here to allow JSX-syntax tags to include bindings.
+     */
+    new (values?: { [P in keyof PresetT]?: PresetT[P] | Binding.Type }): ViewComponent &
+      { [P in keyof PresetT]?: PresetT[P] } &
+      { [P in ContentPropertiesT]?: UIRenderable };
   }
   /** The result of ViewComponent.with(...), used like any other preset component constructor */
   export type PresetType<PresetT, ContentPropertiesT extends string> = {
@@ -145,7 +148,9 @@ export class ViewComponent extends AppComponent implements UIRenderable {
         if (values) {
           for (let p in values) {
             if (Object.prototype.hasOwnProperty.call(values, p)) {
-              (this as any)[p] = values[p];
+              let v = values[p];
+              if (v instanceof Binding) throw TypeError();
+              (this as any)[p] = v;
             }
           }
         }
