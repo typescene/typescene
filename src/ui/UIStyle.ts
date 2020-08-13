@@ -180,6 +180,26 @@ export class UIStyle {
     return new UIStyle(name, undefined, styles || Object.create(null));
   }
 
+  /** Create an object that contains all of the given styles and/or styles from other groups; if the object contains a property that already existed in a given group, the original style is _extended_ (see `extend()`) */
+  static group<PropertyNamesT extends string>(
+    ...styles: { [P in PropertyNamesT]?: UIStyle | Partial<UIStyle.StyleObjects> }[]
+  ): { [P in PropertyNamesT]: UIStyle } {
+    let result = Object.create(null) as { [P in PropertyNamesT]: UIStyle };
+    for (let obj of styles) {
+      for (let p in obj) {
+        let s = obj[p] as UIStyle | Partial<UIStyle.StyleObjects>;
+        if (p in result) {
+          // extend existing style
+          result[p] = result[p].extend(s instanceof UIStyle ? s.getStyles() : s!);
+        } else {
+          // include given style
+          result[p] = s instanceof UIStyle ? s : UIStyle.create(p, s);
+        }
+      }
+    }
+    return result;
+  }
+
   /** Returns true if given object does *not* belong to given instance of `UIStyle` */
   static isStyleOverride<K extends keyof UIStyle.StyleObjects>(
     object?: UIStyle.StyleObjects[K],
