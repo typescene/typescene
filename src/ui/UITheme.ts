@@ -1,4 +1,4 @@
-import { UIRenderableConstructor } from "./UIComponent";
+import { UIRenderableConstructor, Stringable } from "./UIComponent";
 import { UICellTransition } from "./containers/UICell";
 import { UIStyle } from "./UIStyle";
 
@@ -8,13 +8,13 @@ const TEXT_COLOR_W = "rgba(255,255,255,.95)";
 /** Confirmation/alert dialog builder, platform dependent, used by `ViewActivity.showConfirmationDialogAsync` (abstract) */
 export abstract class ConfirmationDialogBuilder {
   /** Set the dialog title */
-  abstract setTitle(title: string): this;
+  abstract setTitle(title: Stringable): this;
   /** Add a block of text to be displayed as a paragraph */
-  abstract addMessage(message: string): this;
+  abstract addMessage(message: Stringable): this;
   /** Set the text label of the primary confirmation button */
-  abstract setConfirmButtonLabel(label: string): this;
+  abstract setConfirmButtonLabel(label: Stringable): this;
   /** Set the text label of the cancel button */
-  abstract setCancelButtonLabel(label: string): this;
+  abstract setCancelButtonLabel(label: Stringable): this;
   /** Build a constructor for a renderable dialog with the current options, which should emit a `CloseModal` or `Confirm` event when closing the dialog */
   abstract build(): UIRenderableConstructor;
 }
@@ -26,16 +26,16 @@ export abstract class UIMenuBuilder {
   /** Add a menu option with given key, text, icon, and hint */
   abstract addOption(
     key: string,
-    text: string,
+    text: Stringable,
     icon?: string,
-    hint?: string,
+    hint?: Stringable,
     hintIcon?: string,
     textStyle?: Partial<UIStyle.TextStyle>,
     hintStyle?: Partial<UIStyle.TextStyle>
   ): this;
   /** Add a list of selectable menu options */
   abstract addSelectionGroup(
-    options: Array<{ key: string; text: string }>,
+    options: Array<{ key: string; text: Stringable }>,
     selectedKey?: string,
     textStyle?: Partial<UIStyle.TextStyle>
   ): this;

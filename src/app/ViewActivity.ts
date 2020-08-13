@@ -4,7 +4,6 @@ import {
   managedChild,
   ManagedEvent,
   observe,
-  strf,
 } from "../core";
 import { err, ERROR } from "../errors";
 import {
@@ -15,6 +14,7 @@ import {
   UIRenderContext,
   UIRenderPlacement,
   UITheme,
+  Stringable,
 } from "../ui";
 import { AppActivity } from "./AppActivity";
 
@@ -179,21 +179,21 @@ export class ViewActivity extends AppActivity implements UIRenderable {
    * @returns A promise that resolves to true if the OK button was clicked, false otherwise.
    */
   showConfirmationDialogAsync(
-    message: string | string[],
-    title?: string,
-    confirmButtonLabel?: string,
-    cancelButtonLabel?: string
+    message: Stringable | Stringable[],
+    title?: Stringable,
+    confirmButtonLabel?: Stringable,
+    cancelButtonLabel?: Stringable
   ) {
     let Builder = UITheme.current.ConfirmationDialogBuilder;
     if (!Builder) {
       throw err(ERROR.ViewActivity_NoDialogBuilder);
     }
     let builder = new Builder();
-    if (Array.isArray(message)) message.forEach(m => builder.addMessage(String(strf(m))));
-    else builder.addMessage(String(strf(message)));
-    if (title) builder.setTitle(String(strf(title)));
-    if (confirmButtonLabel) builder.setConfirmButtonLabel(String(strf(confirmButtonLabel)));
-    if (cancelButtonLabel) builder.setCancelButtonLabel(String(strf(cancelButtonLabel)));
+    if (Array.isArray(message)) message.forEach(m => builder.addMessage(m));
+    else builder.addMessage(message);
+    if (title) builder.setTitle(title);
+    if (confirmButtonLabel) builder.setConfirmButtonLabel(confirmButtonLabel);
+    if (cancelButtonLabel) builder.setCancelButtonLabel(cancelButtonLabel);
     let Dialog = builder.build();
     return new Promise<boolean>(resolve => {
       this.showDialogAsync(Dialog, !cancelButtonLabel, function (e) {

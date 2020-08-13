@@ -22,7 +22,9 @@ export namespace ViewComponent {
   > {
     /** Declare a view component class with given preset properties and content */
     with(
-      presets: { [P in keyof PresetT]?: PresetT[P] | Binding.Type },
+      presets:
+        | { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
+        | { [eventName: string]: string },
       ...content: Array<UIRenderableConstructor | undefined>
     ): ViewComponent.PresetType<PresetT, ContentPropertiesT>;
     preset(
@@ -33,7 +35,11 @@ export namespace ViewComponent {
      * Create a view component, copying all properties from given object
      * @note Bindings are not allowed as arguments to this constructor, but are added as a type here to allow JSX-syntax tags to include bindings.
      */
-    new (values?: { [P in keyof PresetT]?: PresetT[P] | Binding.Type }): ViewComponent &
+    new (
+      values?:
+        | { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
+        | { [eventName: string]: string }
+    ): ViewComponent &
       { [P in keyof PresetT]?: PresetT[P] } &
       { [P in ContentPropertiesT]?: UIRenderable };
   }

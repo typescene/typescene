@@ -144,6 +144,7 @@ export class I18nString {
  * - `%{_}` to insert nothing at all (blank string)
  * - `%{uc}`, %{lc}` for uppercase and lowercase strings
  * - `%{?}` for true or false (boolean) and `%{!}` for negation
+ * - `%{n}` or `%{num}` for values cast to Number
  * - `%{then:a:b}` to select strings a or b based on boolean value
  * - `%{or:b}` to select string b if the value is not boolean true
  * - `%{local:...}` for I18n-formatted values; the type part(s) are variable, and will need to be implemented by the `I18nService.format` method of the currently registered I18n service, e.g. `strf("%{local:date}", new Date())`.
