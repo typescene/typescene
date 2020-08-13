@@ -104,24 +104,19 @@ export class ViewComponent extends AppComponent implements UIRenderable {
     ...content: [UIRenderableConstructor, ...UIRenderableConstructor[]]
   ): T;
   static with(arg: any, ...rest: any[]) {
+    // fall back to normal `with` method if no view given
+    if (!arg || typeof arg === "function" || !arg.view) {
+      return (Component.with as any).apply(this, arguments);
+    }
     if (rest.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
 
-    // accept either a plain view constructor, or an object
+    // initialize options
     let args: {
       defaults?: any;
       content?: string[];
       view: UIRenderableConstructor;
       event?: (e: any) => any;
-    };
-    if (typeof arg === "function") {
-      args = { view: arg };
-    } else {
-      // fall back to normal `with` method if no view given
-      if (!arg.view) return (Component.with as any).apply(this, arguments);
-      args = arg;
-    }
-
-    // use `content` property by default
+    } = arg;
     if (!args.content) args.content = ["content"];
 
     // create a class that derives from the base class with added presets
