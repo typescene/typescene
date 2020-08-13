@@ -22,13 +22,15 @@ export abstract class UIContainer extends UIComponent {
     };
   }
 
-  protected applyStyle(style: UIStyle) {
+  protected applyStyle(style?: UIStyle) {
+    if (!style) return;
     super.applyStyle(style);
     this.layout = style.getStyles().containerLayout;
   }
 
   /** Apply properties from given object on top of the default `containerLayout` properties from the current style set */
-  protected applyLayout(layout: Partial<UIStyle.ContainerLayout>) {
+  protected applyLayout(layout?: Partial<UIStyle.ContainerLayout>) {
+    if (!layout) return;
     let result = this.style.getOwnStyles().containerLayout;
     this.layout = { ...result, ...layout };
   }

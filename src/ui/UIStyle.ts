@@ -1,4 +1,4 @@
-import { Stringable } from "./UIComponent";
+import { UIColor } from "./UITheme";
 
 /** Next UID for a `UIStyle` object */
 let _nextUID = 1;
@@ -91,7 +91,6 @@ class InheritedDecoration extends InheritedStyleObject<UIStyle.Decoration, "deco
     Object.defineProperties(o, {
       background: { enumerable: true, get: o._value.bind(o, "background") },
       textColor: { enumerable: true, get: o._value.bind(o, "textColor") },
-      border: { enumerable: true, get: o._value.bind(o, "border") },
       borderColor: { enumerable: true, get: o._value.bind(o, "borderColor") },
       borderStyle: { enumerable: true, get: o._value.bind(o, "borderStyle") },
       borderThickness: { enumerable: true, get: o._value.bind(o, "borderThickness") },
@@ -165,7 +164,7 @@ export class UIStyle {
 
   /** Returns true if given object does *not* belong to an instance of `UIStyle` (i.e. overridden with a plain object) */
   static isStyleOverride<K extends keyof UIStyle.StyleObjects>(
-    object: UIStyle.StyleObjects[K]
+    object?: UIStyle.StyleObjects[K]
   ) {
     return object && !(object instanceof InheritedStyleObject);
   }
@@ -345,7 +344,7 @@ export namespace UIStyle {
     /** Text alignment (CSS) */
     align?: string;
     /** Text color (`UIColor` or string) */
-    color?: Stringable;
+    color?: UIColor | string;
     /** Font family (CSS) */
     fontFamily?: string;
     /** Font size (dp or string with unit) */
@@ -383,13 +382,11 @@ export namespace UIStyle {
   /** Options for the appearance of UI components, including miscellaneous CSS attributes and class names */
   export interface Decoration {
     /** Background style or color (`UIColor` or string) */
-    background?: Stringable;
+    background?: UIColor | string;
     /** Text color (`UIColor` or string); this may be overridden by `UIStyle.TextStyle.color` if specified on the same component or a child component */
-    textColor?: Stringable;
-    /** Border properties (CSS string) @deprecated */
-    border?: Stringable;
+    textColor?: UIColor | string;
     /** Border color (`UIColor` or string) */
-    borderColor?: Stringable;
+    borderColor?: UIColor | string;
     /** Border style (CSS), defaults to "solid" */
     borderStyle?: string;
     /** Border thickness (in dp or CSS string, or separate offset values) */
@@ -433,7 +430,7 @@ export namespace UIStyle {
     /** Separator line thickness (CSS length or dp) */
     lineThickness?: string | number;
     /** Line separator color (`UIColor` or string), defaults to `@separator` */
-    lineColor?: Stringable;
+    lineColor?: UIColor | string;
     /** Line separator margin (CSS length or dp) */
     lineMargin?: string | number;
   }

@@ -1,12 +1,12 @@
 import {
-  Stringable,
   UIComponentEventHandler,
   UIRenderable,
   UIRenderableConstructor,
 } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
-import { UITheme } from "../UITheme";
+import { UITheme, UIColor } from "../UITheme";
 import { UIContainer } from "./UIContainer";
+import { Binding } from "../../core";
 
 /** Basic animated transition types, used for `UIComponent.revealTransition` and `UIComponent.exitTransition`. More transitions may be available depending on platform and cell type. */
 export enum UICellTransition {
@@ -28,13 +28,28 @@ export class UICell extends UIContainer {
     presets: UICell.Presets,
     ...rest: Array<UIRenderableConstructor | undefined>
   ): Function {
+    let decoration = presets.decoration;
+    delete presets.decoration;
+    if (Binding.isBinding(decoration)) {
+      (this as any).presetBinding(
+        "decoration",
+        decoration,
+        UICell.prototype.applyDecoration
+      );
+      decoration = undefined;
+    }
+
     if (presets.allowKeyboardFocus) presets.allowFocus = presets.allowKeyboardFocus;
     if (presets.selectOnFocus) {
       presets.allowFocus = true;
       presets.onFocusIn = "+Select";
       delete presets.selectOnFocus;
     }
-    return super.preset(presets, ...rest);
+    let f = super.preset(presets, ...rest);
+    return function (this: UICell) {
+      f.call(this);
+      if (decoration) this.decoration = { ...this.decoration, ...decoration };
+    };
   }
 
   constructor(...content: UIRenderable[]) {
@@ -50,6 +65,22 @@ export class UICell extends UIContainer {
     return !!this.allowKeyboardFocus;
   }
 
+  protected applyStyle(style?: UIStyle) {
+    if (!style) return;
+    super.applyStyle(style);
+    this.decoration = style.getStyles().decoration;
+  }
+
+  /** Apply properties from given object on top of the default `decoration` properties from the current style set */
+  protected applyDecoration(decoration?: Partial<UIStyle.Decoration>) {
+    if (!decoration) return;
+    let result = this.style.getOwnStyles().decoration;
+    this.decoration = { ...result, ...decoration };
+  }
+
+  /** Options for the appearance of this cell; most of these are overridden by individual properties */
+  decoration!: UIStyle.Decoration;
+
   /** Padding around contained elements (in dp or CSS string, or separate offset values) */
   padding?: UIStyle.Offsets;
 
@@ -57,19 +88,19 @@ export class UICell extends UIContainer {
   margin?: UIStyle.Offsets;
 
   /** Cell background (`UIColor` or string), defaults to transparent */
-  background?: Stringable;
+  background?: UIColor | string;
 
   /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
-  textColor?: Stringable;
+  textColor?: UIColor | string;
 
   /** Border thickness (in dp or string with unit, or separate offset values) */
   borderThickness?: UIStyle.Offsets;
 
   /** Border color (`UIColor` or string) */
-  borderColor?: Stringable;
+  borderColor?: UIColor | string;
 
   /** Border style (CSS), defaults to `solid` */
-  borderStyle?: Stringable;
+  borderStyle?: string;
 
   /** Border radius (in dp or CSS string) */
   borderRadius?: string | number;
@@ -102,18 +133,20 @@ export let UICoverCell = UICell.with({ style: "cell_cover" });
 export namespace UICell {
   /** UICell presets type, for use with `Component.with` */
   export interface Presets extends UIContainer.Presets {
+    /** Options for the appearance of this cell; most of these are overridden by individual properties */
+    decoration?: UIStyle.Decoration;
     /** Padding around contained elements (in dp or CSS string, or separate offset values) */
     padding?: UIStyle.Offsets;
     /** Margin around the entire cell (in dp or CSS string, or separate offset values) */
     margin?: UIStyle.Offsets;
     /** Cell background (`UIColor` or string) */
-    background?: Stringable;
+    background?: UIColor | string;
     /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
-    textColor?: Stringable;
+    textColor?: UIColor | string;
     /** Border thickness (in dp or string with unit) */
     borderThickness?: UIStyle.Offsets;
     /** Border color (`UIColor` or string) */
-    borderColor?: Stringable;
+    borderColor?: UIColor | string;
     /** Border style (CSS), defaults to `solid` */
     borderStyle?: string;
     /** Corner radius (in dp or CSS string, defaults to 0) */

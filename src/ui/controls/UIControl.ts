@@ -33,20 +33,23 @@ export abstract class UIControl extends UIComponent {
     };
   }
 
-  protected applyStyle(style: UIStyle) {
+  protected applyStyle(style?: UIStyle) {
+    if (!style) return;
     super.applyStyle(style);
     this.decoration = style.getStyles().decoration;
     this.textStyle = style.getStyles().textStyle;
   }
 
   /** Apply properties from given object on top of the default `decoration` properties from the current style set */
-  protected applyDecoration(decoration: Partial<UIStyle.Decoration>) {
+  protected applyDecoration(decoration?: Partial<UIStyle.Decoration>) {
+    if (!decoration) return;
     let result = this.style.getOwnStyles().decoration;
     this.decoration = { ...result, ...decoration };
   }
 
   /** Apply properties from given object on top of the default `textStyle` properties from the current style set */
-  protected applyTextStyle(textStyle: Partial<UIStyle.TextStyle>) {
+  protected applyTextStyle(textStyle?: Partial<UIStyle.TextStyle>) {
+    if (!textStyle) return;
     let result = this.style.getOwnStyles().textStyle;
     this.textStyle = { ...result, ...textStyle };
   }

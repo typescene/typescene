@@ -18,9 +18,9 @@ export class UIViewRenderer extends Component implements UIRenderable {
     return super.preset(presets);
   }
 
-  /** Returns a preset constructor for a view renderer that displays a view from the `content` property on the bound parent component (i.e. view is set to `bind("content")`); can be used on `ViewComponent` classes that reference content views using this property */
-  static withBoundContent() {
-    return this.with({ view: bind("content") });
+  /** Returns a preset constructor for a view renderer that displays a view from a property of the bound parent component (defaults to `content`, i.e. view is set to `bind("content")`); can be used on `ViewComponent` classes that reference content views using this property */
+  static withBoundContent(propertyName = "content") {
+    return this.with({ view: bind(propertyName) });
   }
 
   /** List of indexed views and/or view activities, _not_ child components */

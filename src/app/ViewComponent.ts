@@ -3,14 +3,42 @@ import {
   logUnhandledException,
   managedChild,
   ManagedState,
-  ComponentConstructor,
   Binding,
   ManagedEvent,
+  Component,
+  ComponentPresetType,
 } from "../core";
 import { UIComponent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 import { err, ERROR } from "../errors";
+
+export namespace ViewComponent {
+  /** The result of ViewComponent.with(...), used like any other preset component constructor */
+  export interface PresetViewComponentConstructor<
+    PresetT,
+    ContentPropertiesT extends string
+  > {
+    /** Declare a view component class with given preset properties and content */
+    with(
+      presets: { [P in keyof PresetT]?: PresetT[P] | Binding.Type },
+      ...content: Array<UIRenderableConstructor | undefined>
+    ): ViewComponent.PresetType<PresetT, ContentPropertiesT>;
+    preset(
+      presets: PresetT,
+      ...contents: Array<UIRenderableConstructor | undefined>
+    ): Function;
+    /** Create a view component, copying all properties from given object */
+    new (values?: Partial<PresetT>): ViewComponent &
+      { [P in keyof PresetT]: PresetT[P] | undefined } &
+      { [P in ContentPropertiesT]: UIRenderable | undefined };
+  }
+  /** The result of ViewComponent.with(...), used like any other preset component constructor */
+  export type PresetType<PresetT, ContentPropertiesT extends string> = {
+    [P in keyof typeof ViewComponent]: typeof ViewComponent[P];
+  } &
+    PresetViewComponentConstructor<PresetT, ContentPropertiesT>;
+}
 
 /**
  * Represents an application component that encapsulates a view as a bound component. Bindings and event handlers in nested view components are bound to the ViewComponent instance itself, and events are propagated by default.
@@ -20,31 +48,95 @@ export class ViewComponent extends AppComponent implements UIRenderable {
   static preset(presets: object, ...View: UIRenderableConstructor[]): Function {
     if (View.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
     if (View[0]) this.presetChildView("view", View[0], true);
-    else if ("view" in presets) {
-      this.presetChildView("view", (presets as any).view, true);
-      delete (presets as any).view;
-    }
     return super.preset(presets);
   }
 
-  /** Declare a view component with given default properties, initializer, and view (child) event handler */
-  static withDefaults<PresetT extends object>(options: {
-    /** View constructor for the encapsulated view */
-    view?: UIRenderableConstructor;
-    defaults?: PresetT | (() => PresetT);
-    initialize?: (this: ViewComponent & PresetT & { content?: UIRenderable }) => void;
-    event?: (
-      this: ViewComponent & PresetT & { content?: UIRenderable },
-      event: ManagedEvent
-    ) => ManagedEvent | undefined | void;
-  }): {
-    with(
-      presets: { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
-    ): ComponentConstructor<ViewComponent & PresetT>;
-    new (values?: Partial<PresetT>): ViewComponent;
-  } {
+  // Note: the monster below makes it easier to declare view components
+  // without having to add a preset method and use JSX.tag() every time.
+  // It is NOT good practice to override the `with` method (instead of
+  // a static preset method), but the fact that the below works with JSX
+  // is probably worth it.
+
+  /** Declare a view component class with given properties and view */
+  static with<
+    T extends typeof ViewComponent,
+    PresetT = object,
+    ContentPropertiesT extends string = "content"
+  >(
+    this: T,
+    options?: {
+      /** Default values for all properties on this component */
+      defaults?: PresetT | (() => PresetT);
+      /** Content property names, if any */
+      content?: ContentPropertiesT[];
+      /** The encapsulated view */
+      view: UIRenderableConstructor | typeof Component;
+      // NOTE ^ need to be liberal here to make sure compiler does not
+      // accidentally pick the simpler override below with `object` type
+      /** View event handler */
+      event?: (e: any) => ManagedEvent | ManagedEvent[] | undefined | void;
+    }
+  ): ViewComponent.PresetType<PresetT, ContentPropertiesT>;
+  /** Declare a view component class with given preset properties */
+  static with<T extends typeof ViewComponent>(this: T, presets: ComponentPresetType<T>): T;
+  /** Declare a view component class with given preset properties and content */
+  static with<T extends typeof ViewComponent>(
+    this: T,
+    presets: ComponentPresetType<T>,
+    ...content: [UIRenderableConstructor, ...UIRenderableConstructor[]]
+  ): T;
+  /** Declare a view component class with given view or content */
+  static with<T extends typeof ViewComponent>(
+    this: T,
+    ...content: [UIRenderableConstructor, ...UIRenderableConstructor[]]
+  ): T;
+  static with(arg: any, ...rest: any[]) {
+    if (rest.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
+
+    // accept either a plain view constructor, or an object
+    let args: {
+      defaults?: any;
+      content?: string[];
+      view: UIRenderableConstructor;
+      event?: (e: any) => any;
+    };
+    if (typeof arg === "function") {
+      args = { view: arg };
+    } else {
+      // fall back to normal `with` method if no view given
+      if (!arg.view) return (Component.with as any).apply(this, arguments);
+      args = arg;
+    }
+
+    // use `content` property by default
+    if (!args.content) args.content = ["content"];
+
     // create a class that derives from the base class with added presets
     class PresetViewComponent extends this {
+      static with = Component.with;
+      static preset(
+        presets: any,
+        ...contents: Array<UIRenderableConstructor | undefined>
+      ): Function {
+        // preset view, and content if any (passed in to .with or JSX tag content)
+        if (args.view) this.presetChildView("view", args.view, true);
+        for (let i = 0; i < contents.length; i++) {
+          let propertyName = args.content![i];
+          if (propertyName && contents[i]) {
+            managedChild(this.prototype, propertyName);
+            this.presetChildView(propertyName as any, contents[i]!);
+          }
+        }
+
+        // generate defaults if a function was passed in
+        let defaults =
+          (typeof args.defaults === "function"
+            ? (args.defaults as any).call(undefined)
+            : args.defaults) || {};
+
+        // call super preset method with augmented preset object
+        return super.preset({ ...defaults, ...presets });
+      }
       constructor(values?: any) {
         super();
 
@@ -58,32 +150,11 @@ export class ViewComponent extends AppComponent implements UIRenderable {
         }
 
         // add event handler/propagation function
-        if (options.event) this.propagateChildEvents(options.event as any);
+        if (args.event) this.propagateChildEvents(args.event as any);
       }
-      static preset(presets: PresetT, Content?: UIRenderableConstructor): Function {
-        // preset content if any (passed in to .with or JSX tag content)
-        if (Content) this.presetChildView("content", Content);
-
-        // generate defaults if a function was passed in
-        let defaults =
-          (typeof options.defaults === "function"
-            ? (options.defaults as any).call(undefined)
-            : options.defaults) || {};
-
-        // call super preset method with augmented preset object
-        if (options.view) (presets as any).view = options.view;
-        let f = super.preset({ ...defaults, ...presets });
-        return function (this: ViewComponent) {
-          f.call(this);
-
-          // when done, invoke initializer if any
-          if (options.initialize) options.initialize.call(this as any);
-        };
+      protected isPresetComponent() {
+        return true;
       }
-
-      /** View content, if any (passed in to .with or JSX tag) */
-      @managedChild
-      content?: UIRenderable;
     }
     return PresetViewComponent as any;
   }
@@ -134,9 +205,13 @@ export class ViewComponent extends AppComponent implements UIRenderable {
       throw err(ERROR.ViewComponent_NoRenderCtx);
     } else {
       // render current view using new or old callback
+      this.beforeRender();
       this._renderer.render(this.view, callback);
     }
   }
+
+  /** Method that is called immediately before the view is rendered; can be overridden */
+  protected beforeRender() {}
 
   /**
    * Remove the current view output, if any.

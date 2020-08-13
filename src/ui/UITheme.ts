@@ -1,4 +1,4 @@
-import { Stringable, UIRenderableConstructor } from "./UIComponent";
+import { UIRenderableConstructor } from "./UIComponent";
 import { UICellTransition } from "./containers/UICell";
 import { UIStyle } from "./UIStyle";
 
@@ -107,12 +107,12 @@ export class UITheme {
   }
 
   /** Returns a suitable text color for given background color (mostly black, or mostly white) */
-  static getTextColor(bg: Stringable): string {
+  static getTextColor(bg: UIColor | string): string {
     return this.isBrightColor(String(bg)) ? TEXT_COLOR_B : TEXT_COLOR_W;
   }
 
   /** Returns true if the pseudo-luminance of given color (in hex format `#112233` or `#123` or rgb(a) format `rgb(255, 255, 255)` or hsl format `hsl(255, 0%, 0%)`) is greater than 55%; can be used e.g. to decide on a contrasting text color for a given background color */
-  static isBrightColor(color: Stringable) {
+  static isBrightColor(color: UIColor | string) {
     let c = String(color);
     if (c[0] === "#") {
       if (c.length === 4) {
@@ -132,7 +132,7 @@ export class UITheme {
   }
 
   /** Returns a color in rgb(a) format (e.g. `rgb(40,60,255)` `rgba(40,60,255,.5)`) that lies between given colors (in hex format `#112233` or `#123` or rgb(a) format `rgb(255, 255, 255)`) at given point (0-1, with 0 being the same as the first color, 1 being the same as the second color, and 0.5 being an equal mix) */
-  static mixColors(color1: Stringable, color2: Stringable, p: number) {
+  static mixColors(color1: UIColor | string, color2: UIColor | string, p: number) {
     function parse(color: string) {
       let result = [0, 0, 0, 1];
       if (color[0] === "#") {
@@ -182,7 +182,7 @@ export class UITheme {
    * - `@green/80%` takes the color `green` and makes it 20% (more) transparent
    * - `@green.text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
    */
-  static replaceColor(color: Stringable) {
+  static replaceColor(color: UIColor | string) {
     if (color instanceof UIColor) return String(color);
     let c = String(color);
     if (!c) return c;

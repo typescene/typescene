@@ -1,4 +1,10 @@
-import { Component, ComponentConstructor, ComponentEvent, ManagedEvent } from "../core";
+import {
+  Component,
+  ComponentConstructor,
+  ComponentEvent,
+  ManagedEvent,
+  Binding,
+} from "../core";
 import { err, ERROR } from "../errors";
 import { UIContainer } from "./containers";
 import { UIRenderContext } from "./UIRenderContext";
@@ -113,6 +119,26 @@ export abstract class UIComponent extends Component implements UIRenderable {
     delete presets.style;
     delete presets.dimensions;
     delete presets.position;
+    if (Binding.isBinding(style)) {
+      (this as any).presetBinding("style", style, UIComponent.prototype.applyStyle);
+      style = undefined;
+    }
+    if (Binding.isBinding(dimensions)) {
+      (this as any).presetBinding(
+        "dimensions",
+        dimensions,
+        UIComponent.prototype.applyDimensions
+      );
+      dimensions = undefined;
+    }
+    if (Binding.isBinding(position)) {
+      (this as any).presetBinding(
+        "position",
+        position,
+        UIComponent.prototype.applyPosition
+      );
+      position = undefined;
+    }
 
     // return preset function
     let f = super.preset(presets, ...rest);
@@ -183,9 +209,24 @@ export abstract class UIComponent extends Component implements UIRenderable {
   }
 
   /** Applies given style set to individual style objects (e.g. `UIComponent.dimensions`). This method is overridden by derived classes to copy only applicable styles */
-  protected applyStyle(style: UIStyle) {
+  protected applyStyle(style?: UIStyle) {
+    if (!style) return;
     this.dimensions = style.getStyles().dimensions;
     this.position = style.getStyles().position;
+  }
+
+  /** Apply properties from given object on top of the default `dimensions` properties from the current style set */
+  protected applyDimensions(dimensions?: Partial<UIStyle.Dimensions>) {
+    if (!dimensions) return;
+    let result = this.style.getOwnStyles().dimensions;
+    this.dimensions = { ...result, ...dimensions };
+  }
+
+  /** Apply properties from given object on top of the default `position` properties from the current style set */
+  protected applyPosition(position?: Partial<UIStyle.Position>) {
+    if (!position) return;
+    let result = this.style.getOwnStyles().position;
+    this.position = { ...result, ...position };
   }
 
   /**
