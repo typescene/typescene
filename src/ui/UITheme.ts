@@ -241,7 +241,7 @@ export class UITheme {
 
   /** Set of named style _mixins_ that can be applied to a UI component. These include default styles such as 'control', 'container', 'button', 'textfield', etc., but may also include custom styles so that they can be referenced by name. */
   styles: { [name: string]: UIStyle } = {
-    container: UIStyle.create("container", {
+    container: UIStyle.create("_container", {
       position: { gravity: "stretch" },
       dimensions: { grow: 1, shrink: 0 },
       containerLayout: {
@@ -251,17 +251,17 @@ export class UITheme {
         wrapContent: false,
       },
     }),
-    scroll: UIStyle.create("scroll", {
+    scroll: UIStyle.create("_scroll", {
       dimensions: { grow: 1, shrink: 1 },
     }),
-    cell: UIStyle.create("cell", {
+    cell: UIStyle.create("_cell", {
       containerLayout: { distribution: "space-around", gravity: "center" },
       position: { top: 0 },
     }),
-    cell_flow: UIStyle.create("cell_flow", {
+    cell_flow: UIStyle.create("_cell_flow", {
       dimensions: { grow: 0, shrink: 0 },
     }),
-    cell_cover: UIStyle.create("cell_cover", {
+    cell_cover: UIStyle.create("_cell_cover", {
       position: {
         gravity: "overlay",
         top: 0,
@@ -270,24 +270,24 @@ export class UITheme {
         right: 0,
       },
     }),
-    form: UIStyle.create("form", {
+    form: UIStyle.create("_form", {
       dimensions: { grow: 0 },
     }),
-    column: UIStyle.create("column", {
+    column: UIStyle.create("_column", {
       containerLayout: { axis: "vertical" },
       dimensions: { grow: 0, shrink: 0 },
     }),
-    row: UIStyle.create("row", {
+    row: UIStyle.create("_row", {
       containerLayout: { axis: "horizontal" },
       dimensions: { grow: 0, shrink: 0 },
     }),
-    row_opposite: UIStyle.create("row_opposite", {
+    row_opposite: UIStyle.create("_row_opposite", {
       containerLayout: { distribution: "end" },
     }),
-    row_center: UIStyle.create("row_center", {
+    row_center: UIStyle.create("_row_center", {
       containerLayout: { distribution: "center" },
     }),
-    control: UIStyle.create("control", {
+    control: UIStyle.create("_control", {
       position: { gravity: "baseline" },
       dimensions: { shrink: 1, grow: 0 },
     }),

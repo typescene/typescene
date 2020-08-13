@@ -30,12 +30,14 @@ export class UICell extends UIContainer {
   ): Function {
     let decoration = presets.decoration;
     delete presets.decoration;
+    let origDecoration: Readonly<UIStyle.Decoration> | undefined;
     if (Binding.isBinding(decoration)) {
-      (this as any).presetBinding(
-        "decoration",
-        decoration,
-        UICell.prototype.applyDecoration
-      );
+      (this as any).presetBinding("decoration", decoration, function (
+        this: UICell,
+        v: any
+      ) {
+        this.decoration = v ? { ...origDecoration!, ...v } : origDecoration;
+      });
       decoration = undefined;
     }
 
@@ -71,15 +73,8 @@ export class UICell extends UIContainer {
     this.decoration = style.getStyles().decoration;
   }
 
-  /** Apply properties from given object on top of the default `decoration` properties from the current style set */
-  protected applyDecoration(decoration?: Partial<UIStyle.Decoration>) {
-    if (!decoration) return;
-    let result = this.style.getOwnStyles().decoration;
-    this.decoration = { ...result, ...decoration };
-  }
-
   /** Options for the appearance of this cell; most of these are overridden by individual properties */
-  decoration!: UIStyle.Decoration;
+  decoration!: Readonly<UIStyle.Decoration>;
 
   /** Padding around contained elements (in dp or CSS string, or separate offset values) */
   padding?: UIStyle.Offsets;

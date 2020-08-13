@@ -110,7 +110,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
       };
     }
 
-    // remove style properties from preset object itself
+    // preset style properties, remove from preset object itself
     let style: UIStyle | undefined, styleName: string | undefined;
     if (typeof presets.style === "string") styleName = presets.style;
     else style = presets.style;
@@ -119,24 +119,31 @@ export abstract class UIComponent extends Component implements UIRenderable {
     delete presets.style;
     delete presets.dimensions;
     delete presets.position;
+    let origStyle: UIStyle | undefined;
+    let origDimensions: Readonly<UIStyle.Dimensions> | undefined;
+    let origPosition: Readonly<UIStyle.Position> | undefined;
     if (Binding.isBinding(style)) {
-      (this as any).presetBinding("style", style, UIComponent.prototype.applyStyle);
+      (this as any).presetBinding("style", style, function (this: UIComponent, v: any) {
+        this.style = v ? origStyle!.mixin(v) : origStyle!;
+      });
       style = undefined;
     }
     if (Binding.isBinding(dimensions)) {
-      (this as any).presetBinding(
-        "dimensions",
-        dimensions,
-        UIComponent.prototype.applyDimensions
-      );
+      (this as any).presetBinding("dimensions", dimensions, function (
+        this: UIComponent,
+        v: any
+      ) {
+        this.dimensions = v ? { ...origDimensions!, ...v } : origDimensions;
+      });
       dimensions = undefined;
     }
     if (Binding.isBinding(position)) {
-      (this as any).presetBinding(
-        "position",
-        position,
-        UIComponent.prototype.applyPosition
-      );
+      (this as any).presetBinding("position", position, function (
+        this: UIComponent,
+        v: any
+      ) {
+        this.position = v ? { ...origPosition!, ...v } : origPosition;
+      });
       position = undefined;
     }
 
@@ -148,9 +155,11 @@ export abstract class UIComponent extends Component implements UIRenderable {
       if (mixin) {
         if (this._style === _emptyStyle) this.style = mixin;
         else this.style = this._style.mixin(mixin);
-      }
+      } else origStyle = this.style;
       if (dimensions) this.dimensions = { ...this.dimensions, ...dimensions };
+      else origDimensions = this.dimensions;
       if (position) this.position = { ...this.position, ...position };
+      else origPosition = this.position;
     };
   }
 
@@ -215,23 +224,9 @@ export abstract class UIComponent extends Component implements UIRenderable {
     this.position = style.getStyles().position;
   }
 
-  /** Apply properties from given object on top of the default `dimensions` properties from the current style set */
-  protected applyDimensions(dimensions?: Partial<UIStyle.Dimensions>) {
-    if (!dimensions) return;
-    let result = this.style.getOwnStyles().dimensions;
-    this.dimensions = { ...result, ...dimensions };
-  }
-
-  /** Apply properties from given object on top of the default `position` properties from the current style set */
-  protected applyPosition(position?: Partial<UIStyle.Position>) {
-    if (!position) return;
-    let result = this.style.getOwnStyles().position;
-    this.position = { ...result, ...position };
-  }
-
   /**
-   * Combined style set. This can be set to an instance of `UIStyle`, which copies the individual style object properties (e.g. `UIComponent.dimensions`) to read-only objects taken from the `UIStyle` instance.
-   * @note To override individual properties, set these properties *after* setting `style`.
+   * Combined style set, as an instance of `UIStyle`; individual style object properties can be overridden, which will not affect the `style` property.
+   * @note When this property is preset (using `.with(...)`), the preset value is _mixed in_ to the current style set, rather than replacing it altogether. The result is always applied before individual style objects such as `dimensions` and `position`. However, setting this property directly on a component instance will completely remove existing styles.
    */
   get style() {
     return this._style;
@@ -244,16 +239,15 @@ export abstract class UIComponent extends Component implements UIRenderable {
     this.applyStyle((this._style = v));
   }
   private _style = _emptyStyle;
-  private _requestedFocusBefore?: boolean;
 
   /** Set to true to hide this component from view (does not stop the component from being rendered) */
   hidden?: boolean;
 
   /** Options for the dimensions of this component */
-  dimensions!: UIStyle.Dimensions;
+  dimensions!: Readonly<UIStyle.Dimensions>;
 
   /** Options for the positioning of this component within parent component(s) */
-  position!: UIStyle.Position;
+  position!: Readonly<UIStyle.Position>;
 
   /** WAI-ARIA role for this component, if applicable */
   accessibleRole?: string;
@@ -263,6 +257,8 @@ export abstract class UIComponent extends Component implements UIRenderable {
 
   /** Last rendered output, if any; set by the renderer */
   lastRenderOutput?: UIRenderContext.Output<this>;
+
+  private _requestedFocusBefore?: boolean;
 }
 
 export namespace UIComponent {
