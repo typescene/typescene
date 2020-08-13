@@ -7,6 +7,7 @@ import {
   ManagedEvent,
   Component,
   ComponentPresetType,
+  ComponentConstructor,
 } from "../core";
 import { UIComponent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
@@ -70,7 +71,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
       /** Content property names, if any */
       content?: ContentPropertiesT[];
       /** The encapsulated view */
-      view: UIRenderableConstructor | typeof Component;
+      view: ComponentConstructor<UIRenderable> | typeof Component;
       // NOTE ^ need to be liberal here to make sure compiler does not
       // accidentally pick the simpler override below with `object` type
       /** View event handler */
