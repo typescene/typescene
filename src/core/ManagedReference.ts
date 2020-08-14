@@ -96,11 +96,10 @@ export class ManagedReference<
         REF_PROP_ID,
         e => {
           // propagate the event if needed
-          if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
-            this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
-          } else if (this[util.HIDDEN_CHILD_EVENT_HANDLER]) {
-            this[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, "");
-          }
+          let f =
+            this[util.HIDDEN_NONCHILD_EVENT_HANDLER] ||
+            this[util.HIDDEN_CHILD_EVENT_HANDLER];
+          if (f) f.call(this, e, "");
         },
         () => {
           // handle target moved/destroyed

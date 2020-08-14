@@ -273,7 +273,7 @@ export class ManagedObject {
         this[util.HIDDEN_EVENT_HANDLER]!(e);
       }
       this[util.HIDDEN_REF_PROPERTY].forEach(v => {
-        if (v && v.a && v.f) v.f.call(undefined, e);
+        if (v && v.a && v.f) v.f.call(undefined, e, v.a, this);
       });
     } catch (err) {
       emitError = err;
@@ -325,7 +325,7 @@ export class ManagedObject {
     Object.defineProperty(this, util.HIDDEN_CHILD_EVENT_HANDLER, {
       configurable: true,
       enumerable: false,
-      value: (e: ManagedEvent, name: string) => {
+      value: function (e: ManagedEvent, name: string) {
         if (emitting === e || !this[util.HIDDEN_STATE_PROPERTY]) return;
 
         // limit by type, or run handler function
@@ -535,7 +535,7 @@ export class ManagedObject {
     source: T,
     target: ManagedObject,
     propId: string,
-    handleEvent?: (e: ManagedEvent) => void,
+    handleEvent?: (e: ManagedEvent, obj: T, ref: ManagedObject) => void,
     handleDestroy?: (obj: T) => void
   ) {
     let ref: util.RefLink;
@@ -732,7 +732,7 @@ export class ManagedObject {
               obj,
               target,
               propId,
-              e => {
+              (e, obj, target) => {
                 // propagate event to other handler(s)
                 topHandler(target, e, topHandler);
                 if (isChildReference && obj[util.HIDDEN_CHILD_EVENT_HANDLER]) {

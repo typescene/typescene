@@ -1,4 +1,4 @@
-import { ComponentEventHandler, managed, ManagedRecord } from "../../core";
+import { ComponentEventHandler, managed, ManagedRecord, bind } from "../../core";
 import { UIRenderableConstructor } from "../UIComponent";
 import { UICell } from "./UICell";
 import { UIRenderableController } from "../UIRenderableController";
@@ -20,7 +20,10 @@ export class UIForm extends UIRenderableController {
     delete presets.formContext;
     let CellClass = _FormCell.with(presets, ...rest);
     this.presetBoundComponent("content", CellClass).limitBindings("formContext");
-    return super.preset({ formContext: formContextPreset }, CellClass);
+    return super.preset(
+      { formContext: formContextPreset || bind("formContext") },
+      CellClass
+    );
   }
 
   /** Form state context; should be bound to a `UIFormContext` component */
