@@ -103,12 +103,11 @@ export class ViewComponent extends AppComponent implements UIRenderable {
     this: T,
     ...content: [UIRenderableConstructor, ...UIRenderableConstructor[]]
   ): T;
-  static with(arg: any, ...rest: any[]) {
+  static with(arg: any, ..._rest: any[]) {
     // fall back to normal `with` method if no view given
     if (!arg || typeof arg === "function" || !arg.view) {
       return (Component.with as any).apply(this, arguments);
     }
-    if (rest.length > 1) throw err(ERROR.ViewComponent_InvalidChild);
 
     // initialize options
     let args: {
@@ -118,6 +117,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
       event?: (e: any) => any;
     } = arg;
     if (!args.content) args.content = ["content"];
+    let defaults = args.defaults;
 
     // create a class that derives from the base class with added presets
     class PresetViewComponent extends this {
@@ -126,8 +126,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
         presets: any,
         ...contents: Array<UIRenderableConstructor | undefined>
       ): Function {
-        // preset view, and content if any (passed in to .with or JSX tag content)
-        if (args.view) this.presetChildView("view", args.view, true);
+        // preset content if any (passed in to .with or JSX tag content)
         for (let i = 0; i < contents.length; i++) {
           let propertyName = args.content![i];
           if (propertyName && contents[i]) {
@@ -135,37 +134,43 @@ export class ViewComponent extends AppComponent implements UIRenderable {
             this.presetChildView(propertyName as any, contents[i]!);
           }
         }
-
-        // generate defaults if a function was passed in
-        let defaults =
-          (typeof args.defaults === "function"
-            ? (args.defaults as any).call(undefined)
-            : args.defaults) || {};
-
-        // call super preset method with augmented preset object
-        return super.preset({ ...defaults, ...presets });
+        return super.preset(presets);
       }
       constructor(values?: any) {
         super();
 
-        // apply given values directly
-        if (values) {
-          for (let p in values) {
-            if (Object.prototype.hasOwnProperty.call(values, p)) {
-              let v = values[p];
+        // add event handler/propagation function
+        if (args.event) this.propagateChildEvents(args.event as any);
+
+        // apply defaults and given values directly
+        const apply = (o: any) => {
+          for (let p in o) {
+            if (Object.prototype.hasOwnProperty.call(o, p)) {
+              let v = o[p];
               if (v instanceof Binding) throw TypeError();
               (this as any)[p] = v;
             }
           }
-        }
-
-        // add event handler/propagation function
-        if (args.event) this.propagateChildEvents(args.event as any);
+        };
+        if (defaults) apply(defaults);
+        if (values) apply(values);
       }
       protected isPresetComponent() {
         return true;
       }
     }
+
+    // if defaults function is provided, make sure it runs before the constructor
+    if (typeof defaults === "function") {
+      let f = defaults;
+      defaults = undefined;
+      PresetViewComponent._addInitializer(() => {
+        defaults = f();
+      });
+    }
+
+    // preset view constructor and return result
+    PresetViewComponent.presetChildView("view", args.view, true);
     return PresetViewComponent as any;
   }
 

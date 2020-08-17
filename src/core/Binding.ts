@@ -64,7 +64,11 @@ export class Binding {
         if (path) {
           for (let i = 0; i < path.length && result != undefined; i++) {
             let p = path[i];
-            if (!(p in result) && typeof result.get === "function") {
+            if (
+              typeof result === "object" &&
+              !(p in result) &&
+              typeof result.get === "function"
+            ) {
               result = result.get(p);
             } else {
               result = result[p];

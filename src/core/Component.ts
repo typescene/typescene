@@ -662,11 +662,20 @@ class ManagedValueObject<T> extends ManagedObject {
 /** Helper method to update a component property with given value, with some additional logic for managed lists */
 function _applyPropertyValue(c: Component, p: string, v: any) {
   let o = (c as any)[p];
-  if (o && o instanceof ManagedList && Array.isArray(v)) {
-    // update managed lists with array items
-    o.replace(v.map(it => (it instanceof ManagedObject ? it : new ManagedValueObject(it))));
-  } else {
-    // set property value
-    (c as any)[p] = v;
+  if (o && o instanceof ManagedList) {
+    if (v === undefined) {
+      // clear array with undefined value
+      o.clear();
+      return;
+    }
+    if (Array.isArray(v)) {
+      // update managed lists with array items
+      o.replace(
+        v.map(it => (it instanceof ManagedObject ? it : new ManagedValueObject(it)))
+      );
+      return;
+    }
   }
+  // otherwise set property value normally
+  (c as any)[p] = v;
 }

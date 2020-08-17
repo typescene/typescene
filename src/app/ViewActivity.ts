@@ -69,9 +69,6 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   /** Modal shade backdrop opacity behind content (0-1), if supported by placement mode */
   modalShadeOpacity?: number;
 
-  /** True if clicking outside a modal component should close it, defaults to false */
-  modalShadeClickToClose?: boolean;
-
   /**
    * Render the view for this activity and display it, if it is not currently visible.
    * This method is called automatically after the root view component is created and/or when an application render context is made available or emits a change event, and should not be called directly.
@@ -98,7 +95,6 @@ export class ViewActivity extends AppActivity implements UIRenderable {
         if (output) {
           output.placement = placement;
           output.modalShadeOpacity = this.modalShadeOpacity;
-          output.modalShadeClickToClose = this.modalShadeClickToClose;
         }
         rootCallback = rootCallback(output as any, afterRender) as NonNullable<
           typeof callback
@@ -136,30 +132,23 @@ export class ViewActivity extends AppActivity implements UIRenderable {
    * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately.
    * @param View
    *  A view component constructor
-   * @param modalShadeClickToClose
-   *  Set to true to allow the dialog to be closed by clicking outside of it
    * @param eventHandler
-   *  A function that is invoked for all events that are emitted by the view; if no function is specified, the `CloseModal` event is handled by destroying the view activity instance.
+   *  A function that is invoked for all events that are emitted by the view; if no function is specified, only the `CloseModal` event is handled (emitted e.g. when clicking outside of the modal view area) by destroying the view activity instance.
    * @returns A promise that resolves to the view _activity_ instance after it has been activated.
+   * @note Use to the `Application.showViewActivityAsync` method to show a view that is already encapsulated in an activity instance.
    */
   showDialogAsync(
     View: UIRenderableConstructor,
-    modalShadeClickToClose?: boolean,
     eventHandler?: (this: DialogViewActivity, e: ManagedEvent) => void
   ) {
     let app = this.getApplication();
     if (!app) throw err(ERROR.ViewActivity_NoApplication);
 
     // create a singleton activity constructor with event handler
-    class SingletonActivity extends DialogViewActivity.with(
-      { modalShadeClickToClose },
-      View
-    ) {
+    class SingletonActivity extends DialogViewActivity.with(View) {
       constructor() {
         super();
-        if (eventHandler) {
-          this.propagateChildEvents(eventHandler);
-        }
+        if (eventHandler) this.propagateChildEvents(eventHandler);
       }
     }
     let activity: ViewActivity = new SingletonActivity();
@@ -196,9 +185,15 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     if (cancelButtonLabel) builder.setCancelButtonLabel(cancelButtonLabel);
     let Dialog = builder.build();
     return new Promise<boolean>(resolve => {
-      this.showDialogAsync(Dialog, !cancelButtonLabel, function (e) {
-        if (e.name === "Confirm") resolve(true), this.destroyAsync();
-        if (e.name === "CloseModal") resolve(false), this.destroyAsync();
+      this.showDialogAsync(Dialog, function (e) {
+        if (e.name === "Confirm") {
+          resolve(true);
+          this.destroyAsync();
+        }
+        if (e.name === "CloseModal" && cancelButtonLabel) {
+          resolve(false);
+          this.destroyAsync();
+        }
       });
     });
   }
@@ -264,8 +259,8 @@ export class PageViewActivity extends ViewActivity {
 }
 
 /**
- * Represents an application activity with a view that is rendered as a modal dialog (when active).
- * Use `UIComponent.position` (`UIStyle.Position`, specifically the `gravity` property) to determine the position of the dialog UI.
+ * Represents an application activity with a view that is rendered as a modal dialog (when active). The activity is destroyed automatically when a `CloseModal` event is emitted on the view instance.
+ * @note Use `UIComponent.position` (`UIStyle.Position`, specifically the `gravity` property) to determine the position of the dialog UI.
  */
 export class DialogViewActivity extends ViewActivity {
   constructor() {
@@ -285,7 +280,5 @@ export namespace ViewActivity {
     placement?: UIRenderPlacement;
     /** Modal shade backdrop opacity behind content (0-1), if supported by placement mode */
     modalShadeOpacity?: number;
-    /** True if clicking outside a modal component should close it, defaults to false */
-    modalShadeClickToClose?: boolean;
   }
 }
