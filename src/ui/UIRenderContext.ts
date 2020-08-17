@@ -83,9 +83,6 @@ export namespace UIRenderContext {
     /** Modal shade opacity behind content (0-1) */
     modalShadeOpacity?: number;
 
-    /** True if clicking on the modal shade area should emit `CloseModal` on the modal view component */
-    modalShadeClickToClose?: boolean;
-
     /** Handler function, added by a previous parent renderer (if any), to detach the visible element from the previous parent's tree structure; any other renderer should call this method before adding the element to a new parent */
     detach?: () => void;
   }

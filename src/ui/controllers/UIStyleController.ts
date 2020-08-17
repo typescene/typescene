@@ -14,13 +14,13 @@ export class UIStyleController extends UIRenderableController {
   }
 
   /** Currently selected style (string index into `UIStyleController.styles` object, or true to apply the single `style` object) */
-  state?: string;
+  state?: string | boolean;
 
   /** Style that is applied if the current `state` is not false or undefined */
   style?: UIStyle | string;
 
   /** Available styles to be applied to the content component (plain object) */
-  styles: { [name: string]: UIStyle | string | undefined } = Object.create(null);
+  styles?: { [name: string]: UIStyle | string | undefined };
 
   /** Base style (taken from the content component right after it is assigned to the `content` property) */
   baseStyle?: UIStyle;
@@ -38,7 +38,7 @@ UIStyleController.addObserver(
       if (!this.controller.baseStyle) return;
       if (this.controller.content instanceof UIComponent) {
         let baseStyle = this.controller.baseStyle;
-        let style = this.controller.styles[String(this.controller.state)];
+        let style = this.controller.styles?.[String(this.controller.state)];
         if (!style && this.controller.state) style = this.controller.style;
         if (typeof style === "string") style = UITheme.getStyle(style);
         if (style instanceof UIStyle) {
@@ -55,7 +55,7 @@ export namespace UIStyleController {
   /** UIStyleController presets type, for use with `Component.with` */
   export interface Presets {
     /** Currently selected style (string index into `UIStyleController.styles` object; or `true` to apply the single `style` object) */
-    state?: string;
+    state?: string | boolean;
     /** Style that is applied if the current `state` is not false or undefined */
     style?: UIStyle | string;
     /** Available styles to be applied to the content component (plain object) */

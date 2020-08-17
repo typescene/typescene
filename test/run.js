@@ -60,7 +60,15 @@ function runAllTests() {
             .then(() => {
               let err = testCase.getError();
               if (err) {
-                errors.push(testCase.name + ":\n" + String(err.stack || err));
+                errors.push(
+                  testCase.name +
+                    ":\n" +
+                    testCase
+                      .getLog()
+                      .map(s => s + "\n")
+                      .join("") +
+                    String(err.stack || err)
+                );
               }
               process.stdout.write(".");
             })

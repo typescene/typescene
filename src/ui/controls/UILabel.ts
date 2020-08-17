@@ -1,7 +1,7 @@
 import { Binding, strf } from "../../core";
 import { Stringable } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
-import { UITheme } from "../UITheme";
+import { UITheme, UIColor } from "../UITheme";
 import { UIControl } from "./UIControl";
 
 /** Represents a UI component that contains a piece of text */
@@ -20,7 +20,11 @@ export class UILabel extends UIControl {
   }
 
   /** Creates a preset label class with given icon *only* */
-  static withIcon(icon: string | Binding, size?: string | number, color?: Stringable) {
+  static withIcon(
+    icon: string | Binding,
+    size?: string | number,
+    color?: UIColor | string
+  ) {
     return this.with({ icon, iconSize: size, iconColor: color });
   }
 
@@ -70,7 +74,7 @@ export class UILabel extends UIControl {
   iconMargin?: string | number;
 
   /** Icon color (`UIColor` or string) */
-  iconColor?: Stringable;
+  iconColor?: UIColor | string;
 
   /** Set to true to make the icon appear after the text instead of before */
   iconAfter?: boolean;
@@ -110,7 +114,7 @@ export namespace UILabel {
     /** Margin between icon and label text (in dp or string with unit) */
     iconMargin?: string | number;
     /** Icon color (`UIColor` or string) */
-    iconColor?: Stringable;
+    iconColor?: UIColor | string;
     /** Set to true to make the icon appear after the text instead of before */
     iconAfter?: boolean;
     /** Set to true to allow this label to receive input focus using mouse, touch, or `UIComponent.requestFocus` */

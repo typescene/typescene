@@ -75,7 +75,9 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     let cur = this[util.HIDDEN_REF_PROPERTY][util.MANAGED_MAP_REF_PREFIX + String(key)];
     let target = cur && cur.b;
     if (cur && ManagedObject._discardRefLink(cur)) {
-      this.emit(ManagedObjectRemovedEvent, this, target, key);
+      if (this.managedState) {
+        this.emit(ManagedObjectRemovedEvent, this, target, key);
+      }
     }
   }
 
@@ -112,7 +114,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
       this,
       target,
       propId,
-      (_obj, _target, e) => {
+      e => {
         if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
           this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
         } else if (
@@ -124,7 +126,9 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
       },
       target => {
         // handle target moved/destroyed
-        this.emit(ManagedObjectRemovedEvent, this, target, key);
+        if (this.managedState) {
+          this.emit(ManagedObjectRemovedEvent, this, target, key);
+        }
       }
     );
 
@@ -149,7 +153,9 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         }
       }
     }
-    if (removed) this.emit(ManagedObjectRemovedEvent, this, target, key);
+    if (removed && this.managedState) {
+      this.emit(ManagedObjectRemovedEvent, this, target, key);
+    }
     return this;
   }
 

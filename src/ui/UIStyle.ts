@@ -1,16 +1,28 @@
-import { Stringable } from "./UIComponent";
+import { UIColor } from "./UITheme";
 
 /** Next UID for a `UIStyle` object */
 let _nextUID = 1;
 
 /** All mixins created, by ID */
-let _mixins: { [id: string]: UIStyle } = Object.create(null);
+const _mixins: { [id: string]: UIStyle } = Object.create(null);
+
+/** All canonical style names (without number) already in use */
+const _namesUsed: { [name: string]: string } = {};
 
 /** Inherited style object, composed from one or more other objects */
-class InheritedStyleObject<T, K extends string> {
-  constructor(base?: { [p in K]: T }, objects?: { [p in K]?: T }[], key?: K) {
+class InheritedStyleObject<T = object, K extends string = never> {
+  constructor(
+    base?: { [p in K]: T },
+    objects?: { [p in K]?: T }[],
+    key?: K,
+    parent?: UIStyle
+  ) {
     this._inherit = key && objects ? objects.map(o => o[key]).filter(a => !!a) : [];
     if (key && base && base[key]) this._inherit.unshift(base[key]);
+    this._style = parent;
+  }
+  getStyle() {
+    return this._style;
   }
   protected _value(propertyName: keyof T) {
     let value: any;
@@ -21,13 +33,15 @@ class InheritedStyleObject<T, K extends string> {
     return value;
   }
   protected _inherit: any[];
+  private _style?: UIStyle;
 }
 class InheritedDimensions extends InheritedStyleObject<UIStyle.Dimensions, "dimensions"> {
   static create(
     base?: { dimensions: UIStyle.Dimensions },
-    objects?: { dimensions?: UIStyle.Dimensions }[]
+    objects?: { dimensions?: UIStyle.Dimensions }[],
+    parent?: UIStyle
   ) {
-    let o = new this(base, objects, "dimensions");
+    let o = new this(base, objects, "dimensions", parent);
     Object.defineProperties(o, {
       width: { enumerable: true, get: o._value.bind(o, "width") },
       height: { enumerable: true, get: o._value.bind(o, "height") },
@@ -44,9 +58,10 @@ class InheritedDimensions extends InheritedStyleObject<UIStyle.Dimensions, "dime
 class InheritedPosition extends InheritedStyleObject<UIStyle.Position, "position"> {
   static create(
     base?: { position: UIStyle.Position },
-    objects?: { position?: UIStyle.Position }[]
+    objects?: { position?: UIStyle.Position }[],
+    parent?: UIStyle
   ) {
-    let o = new this(base, objects, "position");
+    let o = new this(base, objects, "position", parent);
     Object.defineProperties(o, {
       gravity: { enumerable: true, get: o._value.bind(o, "gravity") },
       top: { enumerable: true, get: o._value.bind(o, "top") },
@@ -60,9 +75,10 @@ class InheritedPosition extends InheritedStyleObject<UIStyle.Position, "position
 class InheritedTextStyle extends InheritedStyleObject<UIStyle.TextStyle, "textStyle"> {
   static create(
     base?: { textStyle: UIStyle.TextStyle },
-    objects?: { textStyle?: UIStyle.TextStyle }[]
+    objects?: { textStyle?: UIStyle.TextStyle }[],
+    parent?: UIStyle
   ) {
-    let o = new this(base, objects, "textStyle");
+    let o = new this(base, objects, "textStyle", parent);
     Object.defineProperties(o, {
       align: { enumerable: true, get: o._value.bind(o, "align") },
       color: { enumerable: true, get: o._value.bind(o, "color") },
@@ -85,13 +101,13 @@ class InheritedTextStyle extends InheritedStyleObject<UIStyle.TextStyle, "textSt
 class InheritedDecoration extends InheritedStyleObject<UIStyle.Decoration, "decoration"> {
   static create(
     base?: { decoration: UIStyle.Decoration },
-    objects?: { decoration?: UIStyle.Decoration }[]
+    objects?: { decoration?: UIStyle.Decoration }[],
+    parent?: UIStyle
   ) {
-    let o = new this(base, objects, "decoration");
+    let o = new this(base, objects, "decoration", parent);
     Object.defineProperties(o, {
       background: { enumerable: true, get: o._value.bind(o, "background") },
       textColor: { enumerable: true, get: o._value.bind(o, "textColor") },
-      border: { enumerable: true, get: o._value.bind(o, "border") },
       borderColor: { enumerable: true, get: o._value.bind(o, "borderColor") },
       borderStyle: { enumerable: true, get: o._value.bind(o, "borderStyle") },
       borderThickness: { enumerable: true, get: o._value.bind(o, "borderThickness") },
@@ -134,9 +150,10 @@ class InheritedContainerLayout extends InheritedStyleObject<
 > {
   static create(
     base?: { containerLayout: UIStyle.ContainerLayout },
-    objects?: { containerLayout?: UIStyle.ContainerLayout }[]
+    objects?: { containerLayout?: UIStyle.ContainerLayout }[],
+    parent?: UIStyle
   ) {
-    let o = new this(base, objects, "containerLayout");
+    let o = new this(base, objects, "containerLayout", parent);
     Object.defineProperties(o, {
       axis: { enumerable: true, get: o._value.bind(o, "axis") },
       distribution: { enumerable: true, get: o._value.bind(o, "distribution") },
@@ -163,17 +180,47 @@ export class UIStyle {
     return new UIStyle(name, undefined, styles || Object.create(null));
   }
 
-  /** Returns true if given object does *not* belong to an instance of `UIStyle` (i.e. overridden with a plain object) */
+  /** Create an object that contains all of the given styles and/or styles from other groups; if the object contains a property that already existed in a given group, the original style is _extended_ (see `extend()`) */
+  static group<PropertyNamesT extends string>(
+    ...styles: { [P in PropertyNamesT]?: UIStyle | Partial<UIStyle.StyleObjects> }[]
+  ): { [P in PropertyNamesT]: UIStyle } {
+    let result = Object.create(null) as { [P in PropertyNamesT]: UIStyle };
+    for (let obj of styles) {
+      for (let p in obj) {
+        let s = obj[p] as UIStyle | Partial<UIStyle.StyleObjects>;
+        if (p in result) {
+          // extend existing style
+          result[p] = result[p].extend(s instanceof UIStyle ? s.getStyles() : s!);
+        } else {
+          // include given style
+          result[p] = s instanceof UIStyle ? s : UIStyle.create(p, s);
+        }
+      }
+    }
+    return result;
+  }
+
+  /** Returns true if given object does *not* belong to given instance of `UIStyle` */
   static isStyleOverride<K extends keyof UIStyle.StyleObjects>(
-    object: UIStyle.StyleObjects[K]
+    object?: UIStyle.StyleObjects[K],
+    style?: UIStyle
   ) {
-    return object && !(object instanceof InheritedStyleObject);
+    return (
+      object &&
+      (!(object instanceof InheritedStyleObject) || (style && object.getStyle() !== style))
+    );
   }
 
   /** Create a new style set with given base style and (partial) style object(s), if any */
   constructor(name = "", base?: UIStyle, ...styles: Partial<UIStyle.StyleObjects>[]) {
     this.name = name;
-    this.id = "S_" + (name ? name.replace(/[^\w\d_\-]/g, "") + "--" : "") + _nextUID++;
+    if (name) {
+      name = name.replace(/[^\w\d_\-]/g, "");
+      this.id =
+        "S_" + (_namesUsed[name] ? name + "--" + _nextUID++ : (_namesUsed[name] = name));
+    } else {
+      this.id = "S__" + _nextUID++;
+    }
     this.ids = base ? [...base.ids, this.id] : [this.id];
     if (base) this.conditionalStyles = { ...base.conditionalStyles };
     else this.conditionalStyles = Object.create(null);
@@ -187,24 +234,24 @@ export class UIStyle {
         textStyle: _emptyStyleObject,
         decoration: _emptyStyleObject,
         containerLayout: _emptyStyleObject,
-      });
+      }) as any;
     } else {
       // merge given styles
       this.inherited = (base && [...base.inherited, base]) || [];
       let baseStyles = base && base.getStyles();
       this._styles = Object.freeze({
-        dimensions: InheritedDimensions.create(undefined, styles),
-        position: InheritedPosition.create(undefined, styles),
-        textStyle: InheritedTextStyle.create(undefined, styles),
-        decoration: InheritedDecoration.create(undefined, styles),
-        containerLayout: InheritedContainerLayout.create(undefined, styles),
+        dimensions: InheritedDimensions.create(undefined, styles, this),
+        position: InheritedPosition.create(undefined, styles, this),
+        textStyle: InheritedTextStyle.create(undefined, styles, this),
+        decoration: InheritedDecoration.create(undefined, styles, this),
+        containerLayout: InheritedContainerLayout.create(undefined, styles, this),
       });
       this._combined = Object.freeze({
-        dimensions: InheritedDimensions.create(baseStyles, styles),
-        position: InheritedPosition.create(baseStyles, styles),
-        textStyle: InheritedTextStyle.create(baseStyles, styles),
-        decoration: InheritedDecoration.create(baseStyles, styles),
-        containerLayout: InheritedContainerLayout.create(baseStyles, styles),
+        dimensions: InheritedDimensions.create(baseStyles, styles, this),
+        position: InheritedPosition.create(baseStyles, styles, this),
+        textStyle: InheritedTextStyle.create(baseStyles, styles, this),
+        decoration: InheritedDecoration.create(baseStyles, styles, this),
+        containerLayout: InheritedContainerLayout.create(baseStyles, styles, this),
       });
     }
   }
@@ -345,7 +392,7 @@ export namespace UIStyle {
     /** Text alignment (CSS) */
     align?: string;
     /** Text color (`UIColor` or string) */
-    color?: Stringable;
+    color?: UIColor | string;
     /** Font family (CSS) */
     fontFamily?: string;
     /** Font size (dp or string with unit) */
@@ -383,13 +430,11 @@ export namespace UIStyle {
   /** Options for the appearance of UI components, including miscellaneous CSS attributes and class names */
   export interface Decoration {
     /** Background style or color (`UIColor` or string) */
-    background?: Stringable;
+    background?: UIColor | string;
     /** Text color (`UIColor` or string); this may be overridden by `UIStyle.TextStyle.color` if specified on the same component or a child component */
-    textColor?: Stringable;
-    /** Border properties (CSS string) @deprecated */
-    border?: Stringable;
+    textColor?: UIColor | string;
     /** Border color (`UIColor` or string) */
-    borderColor?: Stringable;
+    borderColor?: UIColor | string;
     /** Border style (CSS), defaults to "solid" */
     borderStyle?: string;
     /** Border thickness (in dp or CSS string, or separate offset values) */
@@ -433,7 +478,7 @@ export namespace UIStyle {
     /** Separator line thickness (CSS length or dp) */
     lineThickness?: string | number;
     /** Line separator color (`UIColor` or string), defaults to `@separator` */
-    lineColor?: Stringable;
+    lineColor?: UIColor | string;
     /** Line separator margin (CSS length or dp) */
     lineMargin?: string | number;
   }

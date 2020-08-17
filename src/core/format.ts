@@ -180,6 +180,8 @@ const _filters: { [id: string]: (v: any, ...args: any[]) => any } = {
   "not?": v => !v,
   "?": v => !!v,
   "!!": v => !!v,
+  "n": v => +v,
+  "num": v => +v,
   "or": (v, alt) => v || alt,
   "then": (v, a, b) => (v && a) || b,
   "uc": _ucFilter,

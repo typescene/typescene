@@ -82,6 +82,7 @@ export class UIListCellAdapter<
 
   /** Create and emit a `UIListCellAdapterEvent` with given name and a reference to this component and its cell and object; see `Component.propagateComponentEvent` */
   propagateComponentEvent(name: string, inner?: ManagedEvent) {
+    if (!this.managedState) return;
     this.emit(UIListCellAdapterEvent, name, this, inner);
   }
 

@@ -63,9 +63,6 @@ export class UIModalController extends UIRenderableController {
   /** Modal backdrop opacity (0-1) */
   modalShadeOpacity?: number;
 
-  /** True if clicking outside the modal component should close it, defaults to true */
-  modalShadeClickToClose = true;
-
   // set on prototype
   private _ModalClass?: UIRenderableConstructor;
 }
@@ -87,9 +84,6 @@ UIModalController.addObserver(
           let callbackProxy: UIRenderContext.RenderCallback = (output, afterRender) => {
             if (!this._renderCallback) return callbackProxy;
             if (output && output.element) {
-              if (output.modalShadeClickToClose === undefined) {
-                output.modalShadeClickToClose = this.controller.modalShadeClickToClose;
-              }
               if (output.modalShadeOpacity === undefined) {
                 output.modalShadeOpacity = this.controller.modalShadeOpacity;
               }
@@ -132,7 +126,5 @@ export namespace UIModalController {
     placement?: UIRenderPlacement;
     /** Modal backdrop opacity (0-1), defaults to 0 */
     modalShadeOpacity?: number;
-    /** True if clicking outside the modal component should close it, defaults to true */
-    modalShadeClickToClose?: boolean;
   }
 }

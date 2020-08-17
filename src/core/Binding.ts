@@ -29,6 +29,7 @@ export class Binding {
   constructor(source?: string, defaultValue?: any) {
     let path: string[] | undefined;
     let propertyName = source !== undefined ? String(source) : undefined;
+    if (propertyName) this._source = source;
 
     // parse property name, path, and filters
     if (propertyName !== undefined) {
@@ -63,7 +64,11 @@ export class Binding {
         if (path) {
           for (let i = 0; i < path.length && result != undefined; i++) {
             let p = path[i];
-            if (!(p in result) && typeof result.get === "function") {
+            if (
+              typeof result === "object" &&
+              !(p in result) &&
+              typeof result.get === "function"
+            ) {
               result = result.get(p);
             } else {
               result = result[p];
@@ -151,6 +156,7 @@ export class Binding {
     binding.parent = this;
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
+    if (this._source) this._source += " and " + source;
 
     // add filter to get value from binding and AND together
     let oldFilter = this._filter;
@@ -172,6 +178,7 @@ export class Binding {
     binding.parent = this;
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
+    if (this._source) this._source += " or " + source;
 
     // add filter to get value from binding and AND together
     let oldFilter = this._filter;
@@ -184,8 +191,22 @@ export class Binding {
     return this;
   }
 
+  /** Log a message to the console whenever the value of this binding changes, for debugging purposes */
+  debuggerLog() {
+    let oldFilter = this._filter;
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
+      console.log("--- ", this._source || "?", v);
+      return v;
+    };
+    return this;
+  }
+
   /** Chained filter function, if any */
   private _filter?: (v: any, boundParent: Component) => any;
+
+  /** Binding source text */
+  private _source?: string;
 }
 
 /**
@@ -346,4 +367,3 @@ export function bind(propertyName?: string, defaultValue?: any) {
 export function bindf(format: string, ...bindings: string[]) {
   return new StringFormatBinding(format, ...bindings);
 }
-

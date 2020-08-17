@@ -20,12 +20,11 @@
   "typings": "./index.d.ts",
   "files": [
     "dist",
-    "JSX/dist",
     "index.js",
     "index.d.ts"
   ],
   "scripts": {
-    "clean": "rimraf dist && rimraf JSX/dist",
+    "clean": "rimraf dist",
     "prepublishOnly": "npm run build",
     "prebuild": "npm run clean && tsc -p src --declaration",
     "build": "tsc -p src --removeComments",
