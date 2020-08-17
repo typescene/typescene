@@ -1,4 +1,4 @@
-import { Stringable, UIRenderableConstructor } from "./UIComponent";
+import { UIRenderableConstructor, Stringable } from "./UIComponent";
 import { UICellTransition } from "./containers/UICell";
 import { UIStyle } from "./UIStyle";
 
@@ -8,13 +8,13 @@ const TEXT_COLOR_W = "rgba(255,255,255,.95)";
 /** Confirmation/alert dialog builder, platform dependent, used by `ViewActivity.showConfirmationDialogAsync` (abstract) */
 export abstract class ConfirmationDialogBuilder {
   /** Set the dialog title */
-  abstract setTitle(title: string): this;
+  abstract setTitle(title: Stringable): this;
   /** Add a block of text to be displayed as a paragraph */
-  abstract addMessage(message: string): this;
+  abstract addMessage(message: Stringable): this;
   /** Set the text label of the primary confirmation button */
-  abstract setConfirmButtonLabel(label: string): this;
+  abstract setConfirmButtonLabel(label: Stringable): this;
   /** Set the text label of the cancel button */
-  abstract setCancelButtonLabel(label: string): this;
+  abstract setCancelButtonLabel(label: Stringable): this;
   /** Build a constructor for a renderable dialog with the current options, which should emit a `CloseModal` or `Confirm` event when closing the dialog */
   abstract build(): UIRenderableConstructor;
 }
@@ -26,16 +26,16 @@ export abstract class UIMenuBuilder {
   /** Add a menu option with given key, text, icon, and hint */
   abstract addOption(
     key: string,
-    text: string,
+    text: Stringable,
     icon?: string,
-    hint?: string,
+    hint?: Stringable,
     hintIcon?: string,
     textStyle?: Partial<UIStyle.TextStyle>,
     hintStyle?: Partial<UIStyle.TextStyle>
   ): this;
   /** Add a list of selectable menu options */
   abstract addSelectionGroup(
-    options: Array<{ key: string; text: string }>,
+    options: Array<{ key: string; text: Stringable }>,
     selectedKey?: string,
     textStyle?: Partial<UIStyle.TextStyle>
   ): this;
@@ -107,12 +107,12 @@ export class UITheme {
   }
 
   /** Returns a suitable text color for given background color (mostly black, or mostly white) */
-  static getTextColor(bg: Stringable): string {
+  static getTextColor(bg: UIColor | string): string {
     return this.isBrightColor(String(bg)) ? TEXT_COLOR_B : TEXT_COLOR_W;
   }
 
   /** Returns true if the pseudo-luminance of given color (in hex format `#112233` or `#123` or rgb(a) format `rgb(255, 255, 255)` or hsl format `hsl(255, 0%, 0%)`) is greater than 55%; can be used e.g. to decide on a contrasting text color for a given background color */
-  static isBrightColor(color: Stringable) {
+  static isBrightColor(color: UIColor | string) {
     let c = String(color);
     if (c[0] === "#") {
       if (c.length === 4) {
@@ -132,7 +132,7 @@ export class UITheme {
   }
 
   /** Returns a color in rgb(a) format (e.g. `rgb(40,60,255)` `rgba(40,60,255,.5)`) that lies between given colors (in hex format `#112233` or `#123` or rgb(a) format `rgb(255, 255, 255)`) at given point (0-1, with 0 being the same as the first color, 1 being the same as the second color, and 0.5 being an equal mix) */
-  static mixColors(color1: Stringable, color2: Stringable, p: number) {
+  static mixColors(color1: UIColor | string, color2: UIColor | string, p: number) {
     function parse(color: string) {
       let result = [0, 0, 0, 1];
       if (color[0] === "#") {
@@ -180,14 +180,15 @@ export class UITheme {
    * - `@green^-20%` takes the color `green` and darkens light colors, lightens dark colors by 20%
    * - `@green^+20%` takes the color `green` and lightens light colors, darkens dark colors by 20%
    * - `@green/80%` takes the color `green` and makes it 20% (more) transparent
-   * - `@green:text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
+   * - `@green.text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
    */
-  static replaceColor(color: Stringable) {
+  static replaceColor(color: UIColor | string) {
     if (color instanceof UIColor) return String(color);
     let c = String(color);
     if (!c) return c;
+    // (Note: .text also works as :text for historical reasons)
     return c.replace(
-      /\@(\w+)(\:text)?((\^)?[\+\-]\d+\%)?(\:text)?(\/\d+\%)?(\:text)?/g,
+      /\@(\w+)([.:]text)?((\^)?[\+\-]\d+\%)?([.:]text)?(\/\d+\%)?([.:]text)?/g,
       (_str, id, txt, lum, contrast, txt2, alpha, txt3) => {
         let result = (this.current.colors as any)[id] || "rgba(1,2,3,0)";
         if (/\@\w/.test(result)) result = this.replaceColor(result);
@@ -240,7 +241,7 @@ export class UITheme {
 
   /** Set of named style _mixins_ that can be applied to a UI component. These include default styles such as 'control', 'container', 'button', 'textfield', etc., but may also include custom styles so that they can be referenced by name. */
   styles: { [name: string]: UIStyle } = {
-    container: UIStyle.create("container", {
+    container: UIStyle.create("_container", {
       position: { gravity: "stretch" },
       dimensions: { grow: 1, shrink: 0 },
       containerLayout: {
@@ -250,17 +251,17 @@ export class UITheme {
         wrapContent: false,
       },
     }),
-    scroll: UIStyle.create("scroll", {
+    scroll: UIStyle.create("_scroll", {
       dimensions: { grow: 1, shrink: 1 },
     }),
-    cell: UIStyle.create("cell", {
+    cell: UIStyle.create("_cell", {
       containerLayout: { distribution: "space-around", gravity: "center" },
       position: { top: 0 },
     }),
-    cell_flow: UIStyle.create("cell_flow", {
+    cell_flow: UIStyle.create("_cell_flow", {
       dimensions: { grow: 0, shrink: 0 },
     }),
-    cell_cover: UIStyle.create("cell_cover", {
+    cell_cover: UIStyle.create("_cell_cover", {
       position: {
         gravity: "overlay",
         top: 0,
@@ -269,24 +270,24 @@ export class UITheme {
         right: 0,
       },
     }),
-    form: UIStyle.create("form", {
+    form: UIStyle.create("_form", {
       dimensions: { grow: 0 },
     }),
-    column: UIStyle.create("column", {
+    column: UIStyle.create("_column", {
       containerLayout: { axis: "vertical" },
       dimensions: { grow: 0, shrink: 0 },
     }),
-    row: UIStyle.create("row", {
+    row: UIStyle.create("_row", {
       containerLayout: { axis: "horizontal" },
       dimensions: { grow: 0, shrink: 0 },
     }),
-    row_opposite: UIStyle.create("row_opposite", {
+    row_opposite: UIStyle.create("_row_opposite", {
       containerLayout: { distribution: "end" },
     }),
-    row_center: UIStyle.create("row_center", {
+    row_center: UIStyle.create("_row_center", {
       containerLayout: { distribution: "center" },
     }),
-    control: UIStyle.create("control", {
+    control: UIStyle.create("_control", {
       position: { gravity: "baseline" },
       dimensions: { shrink: 1, grow: 0 },
     }),

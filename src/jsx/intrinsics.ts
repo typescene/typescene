@@ -86,6 +86,7 @@ export const tags = {
   selection: UISelectionController,
   style: UIStyleController,
   view: UIViewRenderer,
+  viewcontent: UIViewRenderer.withBoundContent(),
 };
 
 export interface Elements {
@@ -129,5 +130,8 @@ export interface Elements {
   modal: ComponentPresetArgType<typeof UIModalController>;
   selection: ComponentPresetArgType<typeof UISelectionController>;
   style: ComponentPresetArgType<typeof UIStyleController>;
+  /** Renderable component that encapsulates a referenced view, see `UIViewRenderer` */
   view: ComponentPresetArgType<typeof UIViewRenderer>;
+  /** UIViewRenderer that displays a view bound to the `content` property; for use within view components */
+  viewcontent: ComponentPresetArgType<typeof UIViewRenderer>;
 }

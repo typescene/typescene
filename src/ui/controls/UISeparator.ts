@@ -1,5 +1,4 @@
-import { Stringable } from "../UIComponent";
-import { UITheme } from "../UITheme";
+import { UITheme, UIColor } from "../UITheme";
 import { UIControl } from "./UIControl";
 
 /** Control that shows a horizontal or vertical separator */
@@ -20,7 +19,7 @@ export class UISeparator extends UIControl {
   margin?: string | number;
 
   /** Separator line color (`UIColor` or string), defaults to `@separator` */
-  color: Stringable = "@separator";
+  color: UIColor | string = "@separator";
 
   /** True if separator should be vertical instead of horizontal */
   vertical?: boolean;
@@ -34,7 +33,7 @@ export namespace UISeparator {
     /** Margin in the direction perpendicular to the separator (in dp, or string with unit), defaults to 0 */
     margin: string | number;
     /** Separator line color (`UIColor` or string), defaults to `@separator` */
-    color?: Stringable;
+    color?: UIColor | string;
     /** True if separator should be vertical instead of horizontal */
     vertical?: boolean;
   }

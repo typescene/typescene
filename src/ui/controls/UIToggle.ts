@@ -1,6 +1,6 @@
 import { managed, observe } from "../../core";
 import { Stringable } from "../UIComponent";
-import { UITheme } from "../UITheme";
+import { UITheme, UIColor } from "../UITheme";
 import { UIControl } from "./UIControl";
 import { formContextBinding, UIFormContext } from "../UIFormContext";
 
@@ -36,7 +36,7 @@ export class UIToggle extends UIControl {
   label?: Stringable;
 
   /** Highlight (background) color, if any */
-  highlightColor?: Stringable;
+  highlightColor?: UIColor | string;
 
   /** Current toggle state, true for 'on' state, false for 'off' */
   state?: boolean;
@@ -75,7 +75,7 @@ export namespace UIToggle {
     /** Label text, if any */
     label?: Stringable;
     /** Highlight (background) color, if any */
-    highlightColor?: Stringable;
+    highlightColor?: UIColor | string;
     /** Toggle state */
     state?: boolean;
     /** Form state property */

@@ -1,6 +1,6 @@
 import { Binding, strf } from "../../core";
 import { Stringable } from "../UIComponent";
-import { UITheme } from "../UITheme";
+import { UITheme, UIColor } from "../UITheme";
 import { UIControl } from "./UIControl";
 
 /** Represents a button component */
@@ -27,7 +27,7 @@ export class UIButton extends UIControl {
     icon: string,
     onClick?: string,
     size?: string | number,
-    color?: Stringable
+    color?: UIColor | string
   ) {
     return this.with({ icon, iconSize: size, iconColor: color, onClick });
   }
@@ -64,7 +64,7 @@ export class UIButton extends UIControl {
   iconMargin?: string | number;
 
   /** Icon color */
-  iconColor?: Stringable;
+  iconColor?: UIColor | string;
 
   /** Set to true to make the icon appear after the text instead of before */
   iconAfter?: boolean;
@@ -106,7 +106,7 @@ export namespace UIButton {
     /** Margin between icon and text (in dp or string with unit) */
     iconMargin?: string | number;
     /** Icon color (`UIColor` or string) */
-    iconColor?: Stringable;
+    iconColor?: UIColor | string;
     /** Set to true to make the icon appear after the text instead of before */
     iconAfter?: boolean;
     /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */

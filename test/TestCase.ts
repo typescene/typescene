@@ -26,6 +26,17 @@ export class TestCase {
     });
   }
 
+  /** Add a log message, which is added to the test log if this case fails */
+  log(message: string) {
+    this._logs.push("[Log] " + message);
+  }
+
+  /** Returns the list of log messages for this run */
+  getLog() {
+    return this._logs;
+  }
+  _logs: string[] = [];
+
   /** Fails the test case immediately with given message and throws an error */
   fail(err: string): void;
   /** Fails the test case immediately with given error and throws the error */
@@ -47,9 +58,10 @@ export class TestCase {
   /** Fails the test case and throws an error if given value is not falsy; does NOT resolve the test case if the value is true */
   assert(value: any, comment?: string) {
     if (!value) {
-      this._error = Error(this._testNameToString(comment || "Assertion failed"));
+      let err = Error(this._testNameToString(comment || "Assertion failed"));
+      this._error = err;
       this._resolve();
-      throw Error("Assertion failed");
+      throw err;
     }
   }
 

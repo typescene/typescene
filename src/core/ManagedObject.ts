@@ -243,11 +243,15 @@ export class ManagedObject {
    * Use the `ManagedEvent.freeze` method to freeze event instances before emitting.
    * See `ManagedObject.addEventHandler` and `ManagedObject.addObserver` (static methods to be used on subclasses of `ManagedObject`) for ways to handle events.
    * @note There is a limit to the number of events that can be emitted recursively; avoid calling this method on the same object from _within_ an event handler.
+   * @exception Throws an error if the current state is 'destroyed'. Destroyed managed objects cannot emit events.
    */
   emit<TEvent extends ManagedEvent = ManagedEvent, TConstructorArgs extends any[] = any[]>(
     e: TEvent | (new (...args: TConstructorArgs) => TEvent) | string,
     ...constructorArgs: TConstructorArgs
   ) {
+    if (!this[util.HIDDEN_STATE_PROPERTY] && e !== ManagedCoreEvent.DESTROYED) {
+      throw err(ERROR.Object_Destroyed);
+    }
     if (typeof e === "string") e = new ManagedEvent(e).freeze() as any;
     if (typeof e === "function") e = new e(...constructorArgs).freeze();
     if (!(e instanceof ManagedEvent)) {
@@ -269,9 +273,7 @@ export class ManagedObject {
         this[util.HIDDEN_EVENT_HANDLER]!(e);
       }
       this[util.HIDDEN_REF_PROPERTY].forEach(v => {
-        let source: ManagedObject | undefined = v && v.a;
-        let f = source && v.f;
-        if (f) f(source, this, e);
+        if (v && v.a && v.f) v.f.call(undefined, e, v.a, this);
       });
     } catch (err) {
       emitError = err;
@@ -291,6 +293,7 @@ export class ManagedObject {
    * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting the same events on this object itself.
    * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its first argument, and the name of the property that references the emitting object as its second argument.
    * Core event such as `ManagedCoreEvent.ACTIVE` cannot be propagated in this way.
+   * Events are no longer propagated after the object enters the 'destroyed' state.
    * @note Calling this method a second time _replaces_ the current propagation rule/function.
    */
   protected propagateChildEvents(
@@ -303,6 +306,7 @@ export class ManagedObject {
   /**
    * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting the same events on this object itself. Only propagated events that extend given event types are propagated.
    * Core event such as `ManagedCoreEvent.ACTIVE` will not be propagated in this way.
+   * Events are no longer propagated after the object enters the 'destroyed' state.
    * @note Calling this method a second time _replaces_ the current propagation rule/function.
    */
   protected propagateChildEvents(
@@ -321,8 +325,8 @@ export class ManagedObject {
     Object.defineProperty(this, util.HIDDEN_CHILD_EVENT_HANDLER, {
       configurable: true,
       enumerable: false,
-      value: (e: ManagedEvent, name: string) => {
-        if (emitting === e) return;
+      value: function (e: ManagedEvent, name: string) {
+        if (emitting === e || !this[util.HIDDEN_STATE_PROPERTY]) return;
 
         // limit by type, or run handler function
         if (!f) {
@@ -531,7 +535,7 @@ export class ManagedObject {
     source: T,
     target: ManagedObject,
     propId: string,
-    handleEvent?: (obj: T, ref: ManagedObject, e: ManagedEvent) => void,
+    handleEvent?: (e: ManagedEvent, obj: T, ref: ManagedObject) => void,
     handleDestroy?: (obj: T) => void
   ) {
     let ref: util.RefLink;
@@ -622,7 +626,9 @@ export class ManagedObject {
           this._discardRefLink(oldParent);
           oldParent.g && oldParent.g(this);
         }
-        target.emit(ManagedParentChangeEvent, ref.a, propertyName);
+        if (target[util.HIDDEN_STATE_PROPERTY]) {
+          target.emit(ManagedParentChangeEvent, ref.a, propertyName);
+        }
       }
     }
   }
@@ -726,7 +732,7 @@ export class ManagedObject {
               obj,
               target,
               propId,
-              (obj, target, e) => {
+              (e, obj, target) => {
                 // propagate event to other handler(s)
                 topHandler(target, e, topHandler);
                 if (isChildReference && obj[util.HIDDEN_CHILD_EVENT_HANDLER]) {

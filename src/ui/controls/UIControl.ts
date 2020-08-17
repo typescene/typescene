@@ -9,53 +9,48 @@ export abstract class UIControl extends UIComponent {
     let textStyle = presets.textStyle;
     delete presets.decoration;
     delete presets.textStyle;
+    let origDecoration: Readonly<UIStyle.Decoration>;
+    let origTextStyle: Readonly<UIStyle.TextStyle>;
     if (Binding.isBinding(decoration)) {
-      (this as any).presetBinding(
-        "decoration",
-        decoration,
-        UIControl.prototype.applyDecoration
-      );
+      (this as any).presetBinding("decoration", decoration, function (
+        this: UIControl,
+        v: any
+      ) {
+        this.decoration = v ? { ...origDecoration!, ...v } : origDecoration;
+      });
       decoration = undefined;
     }
     if (Binding.isBinding(textStyle)) {
-      (this as any).presetBinding(
-        "textStyle",
-        textStyle,
-        UIControl.prototype.applyTextStyle
-      );
+      (this as any).presetBinding("textStyle", textStyle, function (
+        this: UIControl,
+        v: any
+      ) {
+        this.textStyle = v ? { ...origTextStyle!, ...v } : origTextStyle;
+      });
       textStyle = undefined;
     }
     let f = super.preset(presets);
     return function (this: UIControl) {
       f.call(this);
       if (decoration) this.decoration = { ...this.decoration, ...decoration };
+      else origDecoration = this.decoration;
       if (textStyle) this.textStyle = { ...this.textStyle, ...textStyle };
+      else origTextStyle = this.textStyle;
     };
   }
 
-  protected applyStyle(style: UIStyle) {
+  protected applyStyle(style?: UIStyle) {
+    if (!style) return;
     super.applyStyle(style);
     this.decoration = style.getStyles().decoration;
     this.textStyle = style.getStyles().textStyle;
   }
 
-  /** Apply properties from given object on top of the default `decoration` properties from the current style set */
-  protected applyDecoration(decoration: Partial<UIStyle.Decoration>) {
-    let result = this.style.getOwnStyles().decoration;
-    this.decoration = { ...result, ...decoration };
-  }
-
-  /** Apply properties from given object on top of the default `textStyle` properties from the current style set */
-  protected applyTextStyle(textStyle: Partial<UIStyle.TextStyle>) {
-    let result = this.style.getOwnStyles().textStyle;
-    this.textStyle = { ...result, ...textStyle };
-  }
-
   /** Text style options */
-  textStyle!: UIStyle.TextStyle;
+  textStyle!: Readonly<UIStyle.TextStyle>;
 
   /** Options for the appearance of this control */
-  decoration!: UIStyle.Decoration;
+  decoration!: Readonly<UIStyle.Decoration>;
 
   /** Set to true to disable this control */
   disabled?: boolean;

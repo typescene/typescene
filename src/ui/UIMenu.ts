@@ -72,7 +72,7 @@ export namespace UIMenu {
   /** UIMenu presets type, for use with `Component.with` */
   export interface Presets {
     /** List of menu options; for advanced menus use `onBuild` to build the menu dynamically */
-    options: Array<{ key: string; text: string }>;
+    options: Array<{ key: string; text: Stringable }>;
     /** Menu gravity in relation to reference component (start/stretch/end) */
     gravity: "start" | "stretch" | "end";
     /** Event handler that is invoked every time just before the menu is rendered */

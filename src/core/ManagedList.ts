@@ -124,7 +124,7 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
       this,
       target,
       propId,
-      (_obj, _target, e) => {
+      e => {
         if (this[util.HIDDEN_NONCHILD_EVENT_HANDLER]) {
           this[util.HIDDEN_NONCHILD_EVENT_HANDLER]!(e, "");
         } else if (
@@ -137,7 +137,9 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
       target => {
         // handle target moved/destroyed
         this["^count"]--;
-        this.emit(ManagedObjectRemovedEvent, this, target);
+        if (this.managedState) {
+          this.emit(ManagedObjectRemovedEvent, this, target);
+        }
       }
     );
 
@@ -181,7 +183,9 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
     if (ref && ref.b === target) {
       if (ManagedObject._discardRefLink(ref)) {
         this["^count"]--;
-        this.emit(ManagedObjectRemovedEvent, this, target);
+        if (this.managedState) {
+          this.emit(ManagedObjectRemovedEvent, this, target);
+        }
       }
     }
     return this;

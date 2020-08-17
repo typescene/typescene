@@ -10,27 +10,20 @@ export abstract class UIContainer extends UIComponent {
   ): Function {
     let layout = presets.layout;
     delete presets.layout;
+    let origLayout: Readonly<UIStyle.ContainerLayout> | undefined;
     if (Binding.isBinding(layout)) {
-      (this as any).presetBinding("layout", layout, UIContainer.prototype.applyLayout);
+      (this as any).presetBinding("layout", layout, function (this: UIContainer, v: any) {
+        this.layout = v ? { ...origLayout!, ...v } : origLayout;
+      });
       layout = undefined;
     }
     let f = super.preset(presets, ...rest);
     return function (this: UIContainer) {
       f.call(this);
       if (layout) this.layout = { ...this.layout, ...layout };
+      else origLayout = this.layout;
       if (rest.length) this.content.add(...rest.filter(C => !!C).map(C => new C!()));
     };
-  }
-
-  protected applyStyle(style: UIStyle) {
-    super.applyStyle(style);
-    this.layout = style.getStyles().containerLayout;
-  }
-
-  /** Apply properties from given object on top of the default `containerLayout` properties from the current style set */
-  protected applyLayout(layout: Partial<UIStyle.ContainerLayout>) {
-    let result = this.style.getOwnStyles().containerLayout;
-    this.layout = { ...result, ...layout };
   }
 
   /** Create a new container component */
@@ -40,6 +33,12 @@ export abstract class UIContainer extends UIComponent {
       .restrict<UIRenderable>(Component as any)
       .propagateEvents(ComponentEvent);
     if (content.length) this.content.replace(content);
+  }
+
+  protected applyStyle(style?: UIStyle) {
+    if (!style) return;
+    super.applyStyle(style);
+    this.layout = style.getStyles().containerLayout;
   }
 
   isFocusable() {
@@ -57,7 +56,7 @@ export abstract class UIContainer extends UIComponent {
   allowKeyboardFocus?: boolean;
 
   /** Options for layout of child components within this container */
-  layout!: UIStyle.ContainerLayout;
+  layout!: Readonly<UIStyle.ContainerLayout>;
 
   /** Set to true to render all child components asynchronously (results in smoother updates with slightly longer lead times) */
   asyncContentRendering?: boolean;
