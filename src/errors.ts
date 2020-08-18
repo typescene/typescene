@@ -37,7 +37,6 @@ export const enum ERROR {
   Object_PropNotManaged,
   Object_PropGetSet,
   Object_NotWritable,
-  Object_InvalidDep,
   Record_Serializable,
   Ref_Type,
   Service_NoName,
@@ -91,7 +90,6 @@ const errors: { [error: number]: string } = {
   [ERROR.Object_PropGetSet]:
     "[Object] Cannot turn properties with getters and/or setters into managed references",
   [ERROR.Object_NotWritable]: "[Object] Property is not writable",
-  [ERROR.Object_InvalidDep]: "[Object] Dependency must point to a managed object: %s",
   [ERROR.Record_Serializable]: "[Record] Property is not serializable: %s",
   [ERROR.Ref_Type]: "[Object] Existing reference is not of given type",
   [ERROR.Service_NoName]: "[Service] Missing property name",

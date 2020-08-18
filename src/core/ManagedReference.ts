@@ -1,10 +1,10 @@
 import { err, ERROR } from "../errors";
 import { ManagedChangeEvent, ManagedEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
-import * as util from "./util";
+import { HIDDEN } from "./util";
 
 /** Property ID for the single reference link used by ManagedReference */
-const REF_PROP_ID = util.PROPERTY_ID_PREFIX + "*ref";
+const REF_PROP_ID = HIDDEN.PROPERTY_ID_PREFIX + "*ref";
 
 /** Independent reference to a managed object, list, map, or other managed reference. An instance of this class behaves in the same way as a managed reference _property_ of an instance of `ManagedObject`. */
 export class ManagedReference<
@@ -34,10 +34,10 @@ export class ManagedReference<
   ): this;
   propagateEvents(): this {
     this.propagateChildEvents.apply(this, arguments as any);
-    Object.defineProperty(this, util.HIDDEN_NONCHILD_EVENT_HANDLER, {
+    Object.defineProperty(this, HIDDEN.NONCHILD_EVENT_HANDLER, {
       configurable: true,
       enumerable: false,
-      value: this[util.HIDDEN_CHILD_EVENT_HANDLER],
+      value: this[HIDDEN.CHILD_EVENT_HANDLER],
     });
     return this;
   }
@@ -61,7 +61,7 @@ export class ManagedReference<
   /** Returns the referenced object, or undefined if none */
   get(): T | undefined {
     // return referenced object
-    let ref = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
+    let ref = this[HIDDEN.REF_PROPERTY][REF_PROP_ID];
     return ref && ref.b;
   }
 
@@ -82,7 +82,7 @@ export class ManagedReference<
     ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
 
     // unlink existing reference, if any
-    let cur = this[util.HIDDEN_REF_PROPERTY][REF_PROP_ID];
+    let cur = this[HIDDEN.REF_PROPERTY][REF_PROP_ID];
     if (cur) {
       if (target && cur.b === target) return;
       ManagedObject._discardRefLink(cur);
@@ -96,9 +96,7 @@ export class ManagedReference<
         REF_PROP_ID,
         e => {
           // propagate the event if needed
-          let f =
-            this[util.HIDDEN_NONCHILD_EVENT_HANDLER] ||
-            this[util.HIDDEN_CHILD_EVENT_HANDLER];
+          let f = this[HIDDEN.NONCHILD_EVENT_HANDLER] || this[HIDDEN.CHILD_EVENT_HANDLER];
           if (f) f.call(this, e, "");
         },
         () => {
@@ -108,7 +106,7 @@ export class ManagedReference<
           }
         }
       );
-      if (this[util.HIDDEN_REF_PROPERTY].parent && !this._isWeakRef) {
+      if (this[HIDDEN.REF_PROPERTY].parent && !this._isWeakRef) {
         // set/move parent-child link on target object
         ManagedObject._makeManagedChildRefLink(ref);
       }
@@ -124,16 +122,16 @@ export class ManagedReference<
   }
 
   /** @internal Helper function that fixes an existing referenced object as a child */
-  [util.MAKE_REF_MANAGED_PARENT_FN]() {
+  [HIDDEN.MAKE_REF_MANAGED_PARENT_FN]() {
     if (this._isWeakRef) return;
-    let refs = this[util.HIDDEN_REF_PROPERTY];
+    let refs = this[HIDDEN.REF_PROPERTY];
     if (refs[REF_PROP_ID]) {
       ManagedObject._makeManagedChildRefLink(refs[REF_PROP_ID]!);
     }
   }
 
   /** @internal */
-  private [util.HIDDEN_NONCHILD_EVENT_HANDLER]: (
+  private [HIDDEN.NONCHILD_EVENT_HANDLER]: (
     e: ManagedEvent,
     name: string
   ) => void | undefined;
@@ -156,20 +154,6 @@ export class ManagedReference<
  */
 export function managed<T extends ManagedObject>(target: T, propertyKey: any) {
   ManagedObject.createManagedReferenceProperty(target, propertyKey);
-}
-
-/**
- * Managed object property decorator: amend decorated property to turn it into a managed reference to any other managed object (or managed list, map, or reference instance). This allows observers to handle events emitted by the referenced object (see `ManagedObject.addObserver`).
- *
- * This asserts a reverse dependency between the referrer and the referenced object.
- * - The reference _must_ point to an instance of `ManagedObject`, and cannot be set to `undefined`.
- * - When the referenced object is destroyed, the referrer is also destroyed.
- * - An object can contain multiple simultaneous dependencies, and there is no limit on the number of dependents of any referenced object.
- *
- * @decorator
- */
-export function managedDependency<T extends ManagedObject>(target: T, propertyKey: any) {
-  ManagedObject.createManagedReferenceProperty(target, propertyKey, false, true);
 }
 
 /**

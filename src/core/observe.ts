@@ -1,6 +1,7 @@
 import { err, ERROR } from "../errors";
 import { ManagedChangeEvent, ManagedEvent, ManagedParentChangeEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor, ManagedState } from "./ManagedObject";
+import { HIDDEN } from "./util";
 import * as util from "./util";
 
 /** Next unique ID for an observable class */
@@ -60,8 +61,8 @@ export function shadowObservable(
     if (!descriptor || !descriptor.get) {
       throw err(ERROR.Observe_ShadowGetter);
     }
-    (descriptor.get as any)[util.GETTER_SHADOW_PROP] = shadowPropertyName;
-    (descriptor.get as any)[util.GETTER_SHADOW_FORCE_ASYNC] = !!forceAsync;
+    (descriptor.get as any)[HIDDEN.GETTER_SHADOW_PROP] = shadowPropertyName;
+    (descriptor.get as any)[HIDDEN.GETTER_SHADOW_FORCE_ASYNC] = !!forceAsync;
   };
 }
 
@@ -86,7 +87,7 @@ export function onPropertyChange(...observedProperties: string[]): MethodDecorat
 }
 
 /**
- * Observer method decorator: amend decorated method to turn it into a handler for events on managed objects that are referred to by given managed reference property/ies (decorated with `@managed`, `@managedChild`, or `@managedDependency`).
+ * Observer method decorator: amend decorated method to turn it into a handler for events on managed objects that are referred to by given managed reference property/ies (decorated with `@managed` or `@managedChild`).
  * @note This decorator is intended for use on methods that are part of an observer class, see `ManagedObject.addObserver()`.
  * @decorator
  */
@@ -161,7 +162,7 @@ function _addObserverHandlers(Target: Function, Observer: { new (_instance: any)
             _defineObservable(
               Observer,
               targetProto,
-              util.HIDDEN_REFCOUNT_PROPERTY,
+              HIDDEN.REFCOUNT_PROPERTY,
               f,
               false,
               isAsync,
@@ -215,7 +216,7 @@ function _addObserverHandlers(Target: Function, Observer: { new (_instance: any)
             _defineObservable(
               Observer,
               targetProto,
-              util.HIDDEN_REFCOUNT_PROPERTY,
+              HIDDEN.REFCOUNT_PROPERTY,
               f,
               false,
               true,
@@ -226,7 +227,7 @@ function _addObserverHandlers(Target: Function, Observer: { new (_instance: any)
             _defineObservable(
               Observer,
               targetProto,
-              util.HIDDEN_REFCOUNT_PROPERTY,
+              HIDDEN.REFCOUNT_PROPERTY,
               f,
               false,
               false,
@@ -424,7 +425,7 @@ function _getObserverInstance(obj: any, Observer: { new (instance: any): any }) 
       value: true, // detect recursion below
     });
     observer = obj[OBS_UID_PROP + uid] = new Observer(obj);
-    if (obj[util.HIDDEN_STATE_PROPERTY] === ManagedState.ACTIVE) {
+    if (obj[HIDDEN.STATE_PROPERTY] === ManagedState.ACTIVE) {
       observer.onActive && observer.onActive();
     }
   } else if (observer === true) {

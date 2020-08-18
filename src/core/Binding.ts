@@ -2,7 +2,7 @@ import { err, ERROR } from "../errors";
 import { Component } from "./Component";
 import { ManagedList } from "./ManagedList";
 import { logUnhandledException } from "./UnhandledErrorEmitter";
-import * as util from "./util";
+import { HIDDEN } from "./util";
 import { formatValue } from "./format";
 import { I18nString } from "./I18nService";
 
@@ -91,7 +91,7 @@ export class Binding {
   }
 
   /** Unique ID for this binding */
-  readonly id = util.BINDING_ID_PREFIX + _nextBindingUID++;
+  readonly id = HIDDEN.BINDING_ID_PREFIX + _nextBindingUID++;
 
   /** @internal Constructor for a reader, that reads current bound and filtered values */
   Reader: new (boundParent: Component) => BoundReader;

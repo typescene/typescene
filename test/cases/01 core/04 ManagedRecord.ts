@@ -1,10 +1,4 @@
-import {
-  ManagedRecord,
-  managedChild,
-  ManagedList,
-  managed,
-  managedDependency,
-} from "../../../dist";
+import { ManagedRecord, managedChild, ManagedList, managed } from "../../../dist";
 
 consider("ManagedRecord", () => {
   it("can be created without parameters", t => {
@@ -77,28 +71,30 @@ consider("ManagedRecord", () => {
     class MyRecord extends ManagedRecord {
       a = 123;
     }
-    class MyListRecord extends ManagedRecord {
-      @managedChild list = new ManagedList().restrict(MyRecord);
-    }
     class MyOtherRecord extends ManagedRecord {
       @managed link?: MyRecord;
       @managed link2?: MyRecord;
     }
-    class MyDependent extends ManagedRecord {
-      @managedDependency ref = new MyRecord();
+    class MyListRecord extends ManagedRecord {
+      @managed list = new ManagedList().restrict(MyRecord);
     }
-    let o1 = new MyDependent();
-    let o2 = new MyOtherRecord();
-    o2.link = o1.ref;
-    o2.link2 = o1.ref;
-    let o3 = new MyListRecord();
-    o3.list.add(o1.ref);
+    class MyListParent extends ManagedRecord {
+      @managedChild list = new ManagedList().restrict(MyRecord);
+    }
+    let rec = new MyRecord();
+    let o1 = new MyOtherRecord();
+    o1.link = rec;
+    o1.link2 = rec;
+    let o2 = new MyListRecord();
+    o2.list.add(rec);
+    let o3 = new MyListParent();
+    o3.list.add(rec);
 
-    let refs = o1.ref.getReferrerRecords();
+    let refs = rec.getReferrerRecords();
     t.assert(refs.length === 3, "Correct number of refs");
-    t.assert(refs.indexOf(o1) >= 0, "Includes dependents");
+    t.assert(refs.indexOf(o1) >= 0, "Includes records");
     t.assert(refs.indexOf(o2) >= 0, "Includes records with lists");
-    t.assert(refs.indexOf(o3) >= 0, "Includes parents");
+    t.assert(refs.indexOf(o3) >= 0, "Includes parents records with lists");
     t.ok();
   });
 
