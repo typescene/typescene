@@ -14,42 +14,6 @@ import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 import { err, ERROR } from "../errors";
 
-export namespace ViewComponent {
-  /** The result of ViewComponent.with(...), used like any other preset component constructor */
-  export interface PresetViewComponentConstructor<
-    PresetT,
-    ContentPropertiesT extends string
-  > {
-    /** Declare a view component class with given preset properties and content */
-    with(
-      presets:
-        | { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
-        | { [eventName: string]: string },
-      ...content: Array<UIRenderableConstructor | undefined>
-    ): ViewComponent.PresetType<PresetT, ContentPropertiesT>;
-    preset(
-      presets: PresetT,
-      ...contents: Array<UIRenderableConstructor | undefined>
-    ): Function;
-    /**
-     * Create a view component, copying all properties from given object
-     * @note Bindings are not allowed as arguments to this constructor, but are added as a type here to allow JSX-syntax tags to include bindings.
-     */
-    new (
-      values?:
-        | { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
-        | { [eventName: string]: string }
-    ): ViewComponent &
-      { [P in keyof PresetT]?: PresetT[P] } &
-      { [P in ContentPropertiesT]?: UIRenderable };
-  }
-  /** The result of ViewComponent.with(...), used like any other preset component constructor */
-  export type PresetType<PresetT, ContentPropertiesT extends string> = {
-    [P in keyof typeof ViewComponent]: typeof ViewComponent[P];
-  } &
-    PresetViewComponentConstructor<PresetT, ContentPropertiesT>;
-}
-
 /**
  * Represents an application component that encapsulates a view as a bound component. Bindings and event handlers in nested view components are bound to the ViewComponent instance itself, and events are propagated by default.
  * @note This class is similar in functionality to `ViewActivity`, but `ViewComponent` views are created immediately, whereas view activities need to be activated first before their views are created.
@@ -262,3 +226,39 @@ ViewComponent.addObserver(
     }
   }
 );
+
+export namespace ViewComponent {
+  /** The result of ViewComponent.with(...), used like any other preset component constructor */
+  export interface PresetViewComponentConstructor<
+    PresetT,
+    ContentPropertiesT extends string
+  > {
+    /** Declare a view component class with given preset properties and content */
+    with(
+      presets:
+        | { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
+        | { [eventName: string]: string },
+      ...content: Array<UIRenderableConstructor | undefined>
+    ): ViewComponent.PresetType<PresetT, ContentPropertiesT>;
+    preset(
+      presets: PresetT,
+      ...contents: Array<UIRenderableConstructor | undefined>
+    ): Function;
+    /**
+     * Create a view component, copying all properties from given object
+     * @note Bindings are not allowed as arguments to this constructor, but are added as a type here to allow JSX-syntax tags to include bindings.
+     */
+    new (
+      values?:
+        | { [P in keyof PresetT]?: PresetT[P] | Binding.Type }
+        | { [eventName: string]: string }
+    ): ViewComponent &
+      { [P in keyof PresetT]?: PresetT[P] } &
+      { [P in ContentPropertiesT]?: UIRenderable };
+  }
+  /** The result of ViewComponent.with(...), used like any other preset component constructor */
+  export type PresetType<PresetT, ContentPropertiesT extends string> = {
+    [P in keyof typeof ViewComponent]: typeof ViewComponent[P];
+  } &
+    PresetViewComponentConstructor<PresetT, ContentPropertiesT>;
+}
