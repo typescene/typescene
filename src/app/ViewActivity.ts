@@ -243,7 +243,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
         }
       }
     }
-    onViewChange() {
+    onViewChangeAsync() {
       this.checkAndRender();
     }
     checkAndRender() {
