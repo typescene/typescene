@@ -341,7 +341,7 @@ export namespace Binding {
 }
 
 /**
- * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the bound parent component, such as the `Activity` for a view, the `Application` for an activity, or the `ViewComponent` for nested views.
+ * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with the value of an observed property on the bound parent component, such as the `AppActivity` for a view, the `Application` for an activity, or the `ViewComponent` for nested views.
  *
  * The bound property name is specified using the first argument. Nested properties are allowed (e.g. `foo.bar`), but _only_ the first property will be observed.
  *
@@ -358,7 +358,7 @@ export function bind(propertyName?: string, defaultValue?: any) {
 }
 
 /**
- * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with a string that includes property values from the bound parent component, such as the `Activity` for a view, the `Application` for an activity, or the `ViewComponent` for nested views.
+ * Returns a new binding, which can be used as a component preset (see `Component.with`) to update components dynamically with a string that includes property values from the bound parent component, such as the `AppActivity` for a view, the `Application` for an activity, or the `ViewComponent` for nested views.
  *
  * The format string may contain placeholders for bound values; as soon as the value of a binding changes, the formatted string is also updated. Bindings are specified as strings, in the same format as the argument to `bind()`, using parameters (e.g. `"foo"`) OR placeholders such as `${foo}` which add bindings as if created using `bind("foo")`.
  *
