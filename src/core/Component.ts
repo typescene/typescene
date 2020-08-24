@@ -33,32 +33,32 @@ export type ComponentConstructor<TComponent extends Component = Component> = new
   ...args: never[]
 ) => TComponent;
 
-/** Inferred partial type of the argument to `Component.with` without bindings, for a specific component constructor */
-export type ComponentPresetType<
-  TComponentCtor extends ComponentConstructor
-> = TComponentCtor extends { preset: (presets: infer TPreset) => void } ? TPreset : any;
+export namespace ComponentConstructor {
+  /** Inferred partial type of the argument to `Component.with` without bindings, for a specific component constructor */
+  export type PresetType<
+    TComponentCtor extends ComponentConstructor
+  > = TComponentCtor extends { preset: (presets: infer TPreset) => void } ? TPreset : any;
 
-/** Inferred type of the argument to `Component.with` for a specific component constructor */
-export type ComponentPresetArgType<TComponentCtor extends ComponentConstructor> = {
-  [P in keyof ComponentPresetType<TComponentCtor>]?:
-    | ComponentPresetType<TComponentCtor>[P]
-    | Binding.Type;
-} & {
-  [P: string]: any;
-};
+  /** Inferred type of the argument to `Component.with` for a specific component constructor */
+  export type PresetArgType<TComponentCtor extends ComponentConstructor> = {
+    [P in keyof PresetType<TComponentCtor>]?: PresetType<TComponentCtor>[P] | Binding.Type;
+  } & {
+    [P: string]: any;
+  };
 
-/** Inferred type of the rest arguments to `Component.with` for a specific component constructor */
-export type ComponentPresetRestType<
-  TComponentCtor extends ComponentConstructor
-> = TComponentCtor extends {
-  preset: (presets: ComponentPresetType<TComponentCtor>, ...rest: infer TRest) => void;
+  /** Inferred type of the rest arguments to `Component.with` for a specific component constructor */
+  export type PresetRestType<
+    TComponentCtor extends ComponentConstructor
+  > = TComponentCtor extends {
+    preset: (presets: PresetType<TComponentCtor>, ...rest: infer TRest) => void;
+  }
+    ? TRest
+    : never;
+
+  export type WithPresetType<
+    TComponentCtor extends ComponentConstructor
+  > = TComponentCtor & { preset(presets: PresetType<TComponentCtor>): Function };
 }
-  ? TRest
-  : never;
-
-export type ComponentCtorWithPreset<
-  TComponentCtor extends ComponentConstructor
-> = TComponentCtor & { preset(presets: ComponentPresetType<TComponentCtor>): Function };
 
 /** @internal Event that is emitted on (parent) components when a child component is added. The parent component observer responds by setting the `parentObserver` property on the child observer. */
 export class ComponentChildAddedEvent extends ManagedEvent {
@@ -97,21 +97,21 @@ export class CompositeParentChangeEvent extends ManagedEvent {
 export class Component extends ManagedObject {
   /** Create a new component constructor, which automatically initializes new instances with given properties, bindings, event handlers, and other values. */
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
-    ...rest: ComponentPresetRestType<TComponentCtor>
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
+    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
   ): TComponentCtor;
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
     presets: new () => any,
-    ...rest: ComponentPresetRestType<TComponentCtor>
+    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
   ): "INVALID_PRESET_ARGUMENT";
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
-    presets: ComponentPresetArgType<TComponentCtor>,
-    ...rest: ComponentPresetRestType<TComponentCtor>
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
+    presets: ComponentConstructor.PresetArgType<TComponentCtor>,
+    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
   ): TComponentCtor;
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
     ...presets: any[]
   ): TComponentCtor {
     // create a new class that extends the current class

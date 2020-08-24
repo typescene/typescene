@@ -2,9 +2,6 @@ import {
   Binding,
   Component,
   ComponentConstructor,
-  ComponentPresetArgType,
-  ComponentPresetRestType,
-  ComponentPresetType,
   StringFormatBinding,
   UIRenderable,
   UIRenderableConstructor,
@@ -90,13 +87,13 @@ export namespace JSX {
             with: any;
           }
         >,
-      ...rest: ComponentPresetRestType<T>
+      ...rest: ComponentConstructor.PresetRestType<T>
     ): T;
   }
 
   /** Helper to describe a JSX component factory for a standard UI component */
   export interface DefaultFactoryType<T extends typeof Component & UIRenderableConstructor>
-    extends FactoryType<T, ComponentPresetType<T>> {
+    extends FactoryType<T, ComponentConstructor.PresetType<T>> {
     // nothing here... this is a trick to simplify output types
   }
 
@@ -116,8 +113,8 @@ export namespace JSX {
   /** Returns JSX-compatible factory function for given component class */
   export function tag<T extends typeof Component & UIRenderableConstructor>(
     C: T
-  ): FactoryType<T, ComponentPresetArgType<T>> & {
-    with: FactoryType<T, ComponentPresetArgType<T>>;
+  ): FactoryType<T, ComponentConstructor.PresetArgType<T>> & {
+    with: FactoryType<T, ComponentConstructor.PresetArgType<T>>;
   } {
     function F(this: any) {
       if (this instanceof F) return new C();

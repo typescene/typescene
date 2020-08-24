@@ -7,7 +7,6 @@ import {
   ManagedEvent,
   Component,
   ComponentConstructor,
-  ComponentPresetArgType,
 } from "../core";
 import { UIComponent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
 import { AppComponent } from "./AppComponent";
@@ -54,12 +53,12 @@ export class ViewComponent extends AppComponent implements UIRenderable {
   /** Declare a view component class with given preset properties */
   static with<T extends typeof ViewComponent>(
     this: T,
-    presets: ComponentPresetArgType<T>
+    presets: ComponentConstructor.PresetArgType<T>
   ): T;
   /** Declare a view component class with given preset properties and content */
   static with<T extends typeof ViewComponent>(
     this: T,
-    presets: ComponentPresetArgType<T>,
+    presets: ComponentConstructor.PresetArgType<T>,
     ...content: [UIRenderableConstructor, ...UIRenderableConstructor[]]
   ): T;
   /** Declare a view component class with given view or content */
