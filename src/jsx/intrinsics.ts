@@ -1,4 +1,4 @@
-import { ComponentPresetArgType } from "../core";
+import { ComponentConstructor } from "../core";
 import {
   UIBorderlessButton,
   UIBorderlessTextField,
@@ -90,48 +90,48 @@ export const tags = {
 };
 
 export interface Elements {
-  cell: ComponentPresetArgType<typeof UICell>;
-  covercell: ComponentPresetArgType<typeof UICoverCell>;
-  flowcell: ComponentPresetArgType<typeof UIFlowCell>;
-  form: ComponentPresetArgType<typeof UIForm>;
-  row: ComponentPresetArgType<typeof UIRow>;
-  closerow: ComponentPresetArgType<typeof UICloseRow>;
-  centerrow: ComponentPresetArgType<typeof UICenterRow>;
-  oppositerow: ComponentPresetArgType<typeof UIOppositeRow>;
-  column: ComponentPresetArgType<typeof UIColumn>;
-  closecolumn: ComponentPresetArgType<typeof UICloseColumn>;
-  scrollcontainer: ComponentPresetArgType<typeof UIScrollContainer>;
-  button: ComponentPresetArgType<typeof UIButton>;
-  iconbutton: ComponentPresetArgType<typeof UIIconButton>;
-  largebutton: ComponentPresetArgType<typeof UILargeButton>;
-  smallbutton: ComponentPresetArgType<typeof UISmallButton>;
-  linkbutton: ComponentPresetArgType<typeof UILinkButton>;
-  outlinebutton: ComponentPresetArgType<typeof UIOutlineButton>;
-  borderlessbutton: ComponentPresetArgType<typeof UIBorderlessButton>;
-  primarybutton: ComponentPresetArgType<typeof UIPrimaryButton>;
-  label: ComponentPresetArgType<typeof UILabel>;
-  closelabel: ComponentPresetArgType<typeof UICloseLabel>;
-  expandedlabel: ComponentPresetArgType<typeof UIExpandedLabel>;
-  p: ComponentPresetArgType<typeof UIParagraph>;
-  h1: ComponentPresetArgType<typeof UIHeading1>;
-  h2: ComponentPresetArgType<typeof UIHeading2>;
-  h3: ComponentPresetArgType<typeof UIHeading3>;
-  textfield: ComponentPresetArgType<typeof UITextField>;
-  borderlesstextfield: ComponentPresetArgType<typeof UIBorderlessTextField>;
-  img: ComponentPresetArgType<typeof UIImage>;
-  toggle: ComponentPresetArgType<typeof UIToggle>;
-  separator: ComponentPresetArgType<typeof UISeparator>;
-  spacer: ComponentPresetArgType<typeof UISpacer>;
-  conditional: ComponentPresetArgType<typeof UIConditional>;
-  formcontext: ComponentPresetArgType<typeof UIFormContextController>;
-  list: ComponentPresetArgType<typeof UIListController>;
-  listcell: ComponentPresetArgType<typeof UIListCellAdapter>;
-  menu: ComponentPresetArgType<typeof UIMenu>;
-  modal: ComponentPresetArgType<typeof UIModalController>;
-  selection: ComponentPresetArgType<typeof UISelectionController>;
-  style: ComponentPresetArgType<typeof UIStyleController>;
+  cell: ComponentConstructor.PresetArgType<typeof UICell>;
+  covercell: ComponentConstructor.PresetArgType<typeof UICoverCell>;
+  flowcell: ComponentConstructor.PresetArgType<typeof UIFlowCell>;
+  form: ComponentConstructor.PresetArgType<typeof UIForm>;
+  row: ComponentConstructor.PresetArgType<typeof UIRow>;
+  closerow: ComponentConstructor.PresetArgType<typeof UICloseRow>;
+  centerrow: ComponentConstructor.PresetArgType<typeof UICenterRow>;
+  oppositerow: ComponentConstructor.PresetArgType<typeof UIOppositeRow>;
+  column: ComponentConstructor.PresetArgType<typeof UIColumn>;
+  closecolumn: ComponentConstructor.PresetArgType<typeof UICloseColumn>;
+  scrollcontainer: ComponentConstructor.PresetArgType<typeof UIScrollContainer>;
+  button: ComponentConstructor.PresetArgType<typeof UIButton>;
+  iconbutton: ComponentConstructor.PresetArgType<typeof UIIconButton>;
+  largebutton: ComponentConstructor.PresetArgType<typeof UILargeButton>;
+  smallbutton: ComponentConstructor.PresetArgType<typeof UISmallButton>;
+  linkbutton: ComponentConstructor.PresetArgType<typeof UILinkButton>;
+  outlinebutton: ComponentConstructor.PresetArgType<typeof UIOutlineButton>;
+  borderlessbutton: ComponentConstructor.PresetArgType<typeof UIBorderlessButton>;
+  primarybutton: ComponentConstructor.PresetArgType<typeof UIPrimaryButton>;
+  label: ComponentConstructor.PresetArgType<typeof UILabel>;
+  closelabel: ComponentConstructor.PresetArgType<typeof UICloseLabel>;
+  expandedlabel: ComponentConstructor.PresetArgType<typeof UIExpandedLabel>;
+  p: ComponentConstructor.PresetArgType<typeof UIParagraph>;
+  h1: ComponentConstructor.PresetArgType<typeof UIHeading1>;
+  h2: ComponentConstructor.PresetArgType<typeof UIHeading2>;
+  h3: ComponentConstructor.PresetArgType<typeof UIHeading3>;
+  textfield: ComponentConstructor.PresetArgType<typeof UITextField>;
+  borderlesstextfield: ComponentConstructor.PresetArgType<typeof UIBorderlessTextField>;
+  img: ComponentConstructor.PresetArgType<typeof UIImage>;
+  toggle: ComponentConstructor.PresetArgType<typeof UIToggle>;
+  separator: ComponentConstructor.PresetArgType<typeof UISeparator>;
+  spacer: ComponentConstructor.PresetArgType<typeof UISpacer>;
+  conditional: ComponentConstructor.PresetArgType<typeof UIConditional>;
+  formcontext: ComponentConstructor.PresetArgType<typeof UIFormContextController>;
+  list: ComponentConstructor.PresetArgType<typeof UIListController>;
+  listcell: ComponentConstructor.PresetArgType<typeof UIListCellAdapter>;
+  menu: ComponentConstructor.PresetArgType<typeof UIMenu>;
+  modal: ComponentConstructor.PresetArgType<typeof UIModalController>;
+  selection: ComponentConstructor.PresetArgType<typeof UISelectionController>;
+  style: ComponentConstructor.PresetArgType<typeof UIStyleController>;
   /** Renderable component that encapsulates a referenced view, see `UIViewRenderer` */
-  view: ComponentPresetArgType<typeof UIViewRenderer>;
+  view: ComponentConstructor.PresetArgType<typeof UIViewRenderer>;
   /** UIViewRenderer that displays a view bound to the `content` property; for use within view components */
-  viewcontent: ComponentPresetArgType<typeof UIViewRenderer>;
+  viewcontent: ComponentConstructor.PresetArgType<typeof UIViewRenderer>;
 }

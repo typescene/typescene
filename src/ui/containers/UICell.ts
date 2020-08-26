@@ -8,7 +8,7 @@ import { UITheme, UIColor } from "../UITheme";
 import { UIContainer } from "./UIContainer";
 import { Binding } from "../../core";
 
-/** Basic animated transition types, used for `UIComponent.revealTransition` and `UIComponent.exitTransition`. More transitions may be available depending on platform and cell type. */
+/** Basic animated transition types, used for `UICell.revealTransition` and `UICell.exitTransition`. More transitions may be available depending on platform and cell type. */
 export enum UICellTransition {
   right = "right",
   left = "left",

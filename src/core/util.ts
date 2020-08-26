@@ -1,46 +1,61 @@
 import { err, ERROR } from "../errors";
 
-/** @internal Arbitrary name of the hidden property containing a managed object's references */
-export const HIDDEN_REF_PROPERTY = "^-out";
+/** @internal Hidden property names, used by managed objects & friends */
+export const enum HIDDEN {
+  /** @internal Arbitrary name of the hidden property containing a managed object's references */
+  REF_PROPERTY = "^-out",
 
-/** @internal Arbitrary name of the hidden property containing the number of inward references */
-export const HIDDEN_REFCOUNT_PROPERTY = "^-in";
+  /** @internal Arbitrary name of the hidden property containing the number of inward references */
+  REFCOUNT_PROPERTY = "^-in",
 
-/** @internal Arbitrary name of the hidden property containing a managed object's state */
-export const HIDDEN_STATE_PROPERTY = "^$";
+  /** @internal Arbitrary name of the hidden property containing a managed object's state */
+  STATE_PROPERTY = "^$",
 
-/** @internal Arbitrary name of the hidden method that handles events on the same object */
-export const HIDDEN_EVENT_HANDLER = "^-ev";
+  /** @internal Arbitrary name of the hidden method that handles events on the same object */
+  EVENT_HANDLER = "^-ev",
 
-/** @internal Arbitrary name of the hidden method that handles and forwards events from referenced child objects */
-export const HIDDEN_CHILD_EVENT_HANDLER = "^-ec";
+  /** @internal Arbitrary name of the hidden method that handles and forwards events from referenced child objects */
+  CHILD_EVENT_HANDLER = "^-ec",
 
-/** @internal Arbitrary name of the hidden method that handles and forwards events from referenced non-child objects (in lists and reference objects ONLY) */
-export const HIDDEN_NONCHILD_EVENT_HANDLER = "^-en";
+  /** @internal Arbitrary name of the hidden method that handles and forwards events from referenced non-child objects (in lists and reference objects ONLY) */
+  NONCHILD_EVENT_HANDLER = "^-en",
 
-/** @internal Arbitrary name of property on property getter to contain shadow property name */
-export const GETTER_SHADOW_PROP = "-shadow";
+  /** @internal Arbitrary name of property on property getter to contain shadow property name */
+  GETTER_SHADOW_PROP = "-shadow",
 
-/** @internal Arbitrary name of flag on property getter to indicate that synchronous observer handlers should not be allowed */
-export const GETTER_SHADOW_FORCE_ASYNC = "-async";
+  /** @internal Arbitrary name of flag on property getter to indicate that synchronous observer handlers should not be allowed */
+  GETTER_SHADOW_FORCE_ASYNC = "-async",
 
-/** @internal Arbitrary name of the setter function method to get a property handler/getter pair */
-export const SETTER_CHAIN = "^-ch";
+  /** @internal Arbitrary name of the setter function method to get a property handler/getter pair */
+  SETTER_CHAIN = "^-ch",
 
-/** @internal Arbitrary prefix character for common property IDs */
-export const PROPERTY_ID_PREFIX = "P";
+  /** @internal Arbitrary prefix character for common property IDs */
+  PROPERTY_ID_PREFIX = "P",
 
-/** @internal Arbitrary prefix character for property ID of managed list elements */
-export const MANAGED_LIST_REF_PREFIX = "@";
+  /** @internal Arbitrary prefix character for property ID of managed list elements */
+  MANAGED_LIST_REF_PREFIX = "@",
 
-/** @internal Arbitrary prefix character for property ID of managed map elements */
-export const MANAGED_MAP_REF_PREFIX = "%";
+  /** @internal Arbitrary prefix character for property ID of managed map elements */
+  MANAGED_MAP_REF_PREFIX = "%",
 
-/** @internal Arbitrary name of the method on managed list and managed reference instances to fix all referenced objects as children of the list */
-export const MAKE_REF_MANAGED_PARENT_FN = "_makeRefManagedParent";
+  /** @internal Arbitrary name of the method on managed list and managed reference instances to fix all referenced objects as children of the list */
+  MAKE_REF_MANAGED_PARENT_FN = "_makeRefManagedParent",
 
-/** @internal Prefix for binding IDs, which double as names of hidden methods for updaters on component prototypes */
-export const BINDING_ID_PREFIX = "^^bind:";
+  /** @internal Prefix for binding IDs, which double as names of hidden methods for updaters on component prototypes */
+  BINDING_ID_PREFIX = "^^bind:",
+
+  /** @internal Arbitrary name of a hidden property for bindings on the Component prototype */
+  BINDINGS_PROPERTY = "^+bnd",
+
+  /** @internal Arbitrary name of a hidden property for bound-inherit components on the Component prototype */
+  BIND_INHERIT_PROPERTY = "^+bndI",
+
+  /** @internal Arbitrary name of a hidden property for bound components on the Component prototype */
+  COMPOSTN_PROPERTY = "^+bndC",
+
+  /** @internal Arbitrary name of a hidden property that references the base Component observer */
+  COMPONENT_OBSERVER_PROPERTY = "^+bndO",
+}
 
 /** @internal Reusable object that represents a single reference */
 export interface RefLink {
@@ -65,7 +80,7 @@ export interface RefLink {
   /** Event callback (for source property) */
   f?: (e: any, obj: any, ref: any) => void;
 
-  /** Destruction callback (called immediately before target is destroyed) */
+  /** Destruction callback (called immediately before target is destroyed, ignoring any exceptions) */
   g?: (obj: any) => void;
 }
 
@@ -148,17 +163,17 @@ export function defineChainableProperty<T>(
         let g = result.get;
         if (g) {
           // check getter for flags
-          if (!isAsyncHandler && (g as any)[GETTER_SHADOW_FORCE_ASYNC]) {
+          if (!isAsyncHandler && (g as any)[HIDDEN.GETTER_SHADOW_FORCE_ASYNC]) {
             throw err(ERROR.Util_NoSync);
-          } else if ((g as any)[GETTER_SHADOW_PROP]) {
+          } else if ((g as any)[HIDDEN.GETTER_SHADOW_PROP]) {
             // property has a settable shadow property
-            propertyKey = (g as any)[GETTER_SHADOW_PROP];
+            propertyKey = (g as any)[HIDDEN.GETTER_SHADOW_PROP];
             origShadowed = true;
             return findDescriptor(propertyKey, forceParent, true);
           } else if (
             !shadowed &&
             !getter &&
-            !(result.set && (result.set as any)[SETTER_CHAIN])
+            !(result.set && (result.set as any)[HIDDEN.SETTER_CHAIN])
           ) {
             // found non-chained getter method, do not override this one later
             getter = g;
@@ -172,9 +187,13 @@ export function defineChainableProperty<T>(
   // chain getter/handler using existing prototype setter if possible
   // (i.e. existing handler for exact same class)
   findDescriptor(propertyKey);
-  if (ownDescriptor && ownDescriptor.set && (ownDescriptor.set as any)[SETTER_CHAIN]) {
-    let chained = (ownDescriptor.set as any)[SETTER_CHAIN];
-    (ownDescriptor.set as any)[SETTER_CHAIN] = () => {
+  if (
+    ownDescriptor &&
+    ownDescriptor.set &&
+    (ownDescriptor.set as any)[HIDDEN.SETTER_CHAIN]
+  ) {
+    let chained = (ownDescriptor.set as any)[HIDDEN.SETTER_CHAIN];
+    (ownDescriptor.set as any)[HIDDEN.SETTER_CHAIN] = () => {
       let prev = chained();
       return {
         getter: getter || prev.getter,
@@ -190,7 +209,7 @@ export function defineChainableProperty<T>(
   // otherwise create a new prototype setter
   let protoSetter = function (this: any, v: any) {
     // use chained function to make setter
-    let prev = (protoSetter as any)[SETTER_CHAIN]();
+    let prev = (protoSetter as any)[HIDDEN.SETTER_CHAIN]();
     let handler = prev.makeHandler(this, propertyKey);
     let value: any;
     let instanceSetter = function (this: T, v: any) {
@@ -230,13 +249,13 @@ export function defineChainableProperty<T>(
   };
 
   // add chaining function to setter for use by later prototypes
-  (protoSetter as any)[SETTER_CHAIN] = () => {
+  (protoSetter as any)[HIDDEN.SETTER_CHAIN] = () => {
     let descriptor = findDescriptor(origProperty, true);
     let prev =
       descriptor &&
       descriptor.set &&
-      (descriptor.set as any)[SETTER_CHAIN] &&
-      (descriptor.set as any)[SETTER_CHAIN]();
+      (descriptor.set as any)[HIDDEN.SETTER_CHAIN] &&
+      (descriptor.set as any)[HIDDEN.SETTER_CHAIN]();
     if (prev && prev.getter && origGetter) {
       throw err(ERROR.Util_AlreadyManaged, propertyKey);
     }

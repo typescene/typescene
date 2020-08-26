@@ -1,4 +1,5 @@
 import { err, ERROR } from "../errors";
+import { HIDDEN } from "./util";
 import { Binding } from "./Binding";
 import { ManagedEvent, ManagedParentChangeEvent, ManagedCoreEvent } from "./ManagedEvent";
 import { ManagedList } from "./ManagedList";
@@ -6,18 +7,6 @@ import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 import { onPropertyChange, observe } from "./observe";
 import { logUnhandledException } from "./UnhandledErrorEmitter";
-
-/** Arbitrary name of a hidden property for bindings on the Component prototype */
-const HIDDEN_BINDINGS_PROPERTY = "^+bnd";
-
-/** Arbitrary name of a hidden property for bound-inherit components on the Component prototype */
-const HIDDEN_BIND_INHERIT_PROPERTY = "^+bndI";
-
-/** Arbitrary name of a hidden property for bound components on the Component prototype */
-const HIDDEN_COMPOSTN_PROPERTY = "^+bndC";
-
-/** Arbitrary name of a hidden property that references the base Component observer */
-const HIDDEN_OBSERVER_PROPERTY = "^+bndO";
 
 /** Event that is emitted on a particular `Component` instance, with reference to the source component as `source` */
 export class ComponentEvent<TComponent extends Component = Component> extends ManagedEvent {
@@ -44,32 +33,32 @@ export type ComponentConstructor<TComponent extends Component = Component> = new
   ...args: never[]
 ) => TComponent;
 
-/** Inferred partial type of the argument to `Component.with` without bindings, for a specific component constructor */
-export type ComponentPresetType<
-  TComponentCtor extends ComponentConstructor
-> = TComponentCtor extends { preset: (presets: infer TPreset) => void } ? TPreset : any;
+export namespace ComponentConstructor {
+  /** Inferred partial type of the argument to `Component.with` without bindings, for a specific component constructor */
+  export type PresetType<
+    TComponentCtor extends ComponentConstructor
+  > = TComponentCtor extends { preset: (presets: infer TPreset) => void } ? TPreset : any;
 
-/** Inferred type of the argument to `Component.with` for a specific component constructor */
-export type ComponentPresetArgType<TComponentCtor extends ComponentConstructor> = {
-  [P in keyof ComponentPresetType<TComponentCtor>]?:
-    | ComponentPresetType<TComponentCtor>[P]
-    | Binding.Type;
-} & {
-  [P: string]: any;
-};
+  /** Inferred type of the argument to `Component.with` for a specific component constructor */
+  export type PresetArgType<TComponentCtor extends ComponentConstructor> = {
+    [P in keyof PresetType<TComponentCtor>]?: PresetType<TComponentCtor>[P] | Binding.Type;
+  } & {
+    [P: string]: any;
+  };
 
-/** Inferred type of the rest arguments to `Component.with` for a specific component constructor */
-export type ComponentPresetRestType<
-  TComponentCtor extends ComponentConstructor
-> = TComponentCtor extends {
-  preset: (presets: ComponentPresetType<TComponentCtor>, ...rest: infer TRest) => void;
+  /** Inferred type of the rest arguments to `Component.with` for a specific component constructor */
+  export type PresetRestType<
+    TComponentCtor extends ComponentConstructor
+  > = TComponentCtor extends {
+    preset: (presets: PresetType<TComponentCtor>, ...rest: infer TRest) => void;
+  }
+    ? TRest
+    : never;
+
+  export type WithPresetType<
+    TComponentCtor extends ComponentConstructor
+  > = TComponentCtor & { preset(presets: PresetType<TComponentCtor>): Function };
 }
-  ? TRest
-  : never;
-
-export type ComponentCtorWithPreset<
-  TComponentCtor extends ComponentConstructor
-> = TComponentCtor & { preset(presets: ComponentPresetType<TComponentCtor>): Function };
 
 /** @internal Event that is emitted on (parent) components when a child component is added. The parent component observer responds by setting the `parentObserver` property on the child observer. */
 export class ComponentChildAddedEvent extends ManagedEvent {
@@ -108,21 +97,21 @@ export class CompositeParentChangeEvent extends ManagedEvent {
 export class Component extends ManagedObject {
   /** Create a new component constructor, which automatically initializes new instances with given properties, bindings, event handlers, and other values. */
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
-    ...rest: ComponentPresetRestType<TComponentCtor>
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
+    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
   ): TComponentCtor;
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
     presets: new () => any,
-    ...rest: ComponentPresetRestType<TComponentCtor>
+    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
   ): "INVALID_PRESET_ARGUMENT";
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
-    presets: ComponentPresetArgType<TComponentCtor>,
-    ...rest: ComponentPresetRestType<TComponentCtor>
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
+    presets: ComponentConstructor.PresetArgType<TComponentCtor>,
+    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
   ): TComponentCtor;
   static with<TComponentCtor extends ComponentConstructor>(
-    this: ComponentCtorWithPreset<TComponentCtor>,
+    this: ComponentConstructor.WithPresetType<TComponentCtor>,
     ...presets: any[]
   ): TComponentCtor {
     // create a new class that extends the current class
@@ -215,12 +204,12 @@ export class Component extends ManagedObject {
     applyBoundValue?: (this: TComponent, boundValue: any) => any
   ) {
     // add a reference to the binding itself
-    if (!this.prototype.hasOwnProperty(HIDDEN_BINDINGS_PROPERTY)) {
-      this.prototype[HIDDEN_BINDINGS_PROPERTY] = Object.create(
-        this.prototype[HIDDEN_BINDINGS_PROPERTY]
+    if (!this.prototype.hasOwnProperty(HIDDEN.BINDINGS_PROPERTY)) {
+      this.prototype[HIDDEN.BINDINGS_PROPERTY] = Object.create(
+        this.prototype[HIDDEN.BINDINGS_PROPERTY]
       );
     }
-    this.prototype[HIDDEN_BINDINGS_PROPERTY][propertyName] = binding;
+    this.prototype[HIDDEN.BINDINGS_PROPERTY][propertyName] = binding;
 
     // add an update function
     if (!applyBoundValue) {
@@ -236,14 +225,14 @@ export class Component extends ManagedObject {
    * @note This method must be used by a custom `preset` function if the preset component (may) have managed child objects (see `@managedChild`) of the given type and the constructor is not passed to `super.preset(...)` or `presetBoundComponent(...)`.
    */
   static presetBindingsFrom(...constructors: Array<ComponentConstructor | undefined>) {
-    if (!this.prototype.hasOwnProperty(HIDDEN_BIND_INHERIT_PROPERTY)) {
-      let a = this.prototype[HIDDEN_BIND_INHERIT_PROPERTY];
-      this.prototype[HIDDEN_BIND_INHERIT_PROPERTY] = a ? a.slice() : [];
+    if (!this.prototype.hasOwnProperty(HIDDEN.BIND_INHERIT_PROPERTY)) {
+      let a = this.prototype[HIDDEN.BIND_INHERIT_PROPERTY];
+      this.prototype[HIDDEN.BIND_INHERIT_PROPERTY] = a ? a.slice() : [];
     }
     for (const C of constructors) {
       if (C) {
         if (!C.prototype || !(C.prototype instanceof Component)) throw TypeError();
-        this.prototype[HIDDEN_BIND_INHERIT_PROPERTY].push(C);
+        this.prototype[HIDDEN.BIND_INHERIT_PROPERTY].push(C);
       }
     }
   }
@@ -257,13 +246,13 @@ export class Component extends ManagedObject {
     propertyName: string,
     ...constructors: Array<ComponentConstructor | undefined>
   ) {
-    if (!this.prototype.hasOwnProperty(HIDDEN_COMPOSTN_PROPERTY)) {
-      this.prototype[HIDDEN_COMPOSTN_PROPERTY] = {
-        ...this.prototype[HIDDEN_COMPOSTN_PROPERTY],
+    if (!this.prototype.hasOwnProperty(HIDDEN.COMPOSTN_PROPERTY)) {
+      this.prototype[HIDDEN.COMPOSTN_PROPERTY] = {
+        ...this.prototype[HIDDEN.COMPOSTN_PROPERTY],
       };
     }
     let composition = new Component.BoundComposition(this, ...constructors);
-    this.prototype[HIDDEN_COMPOSTN_PROPERTY][propertyName] = composition;
+    this.prototype[HIDDEN.COMPOSTN_PROPERTY][propertyName] = composition;
     return composition;
   }
 
@@ -288,7 +277,7 @@ export class Component extends ManagedObject {
   getBoundParentComponent<TParent extends Component>(
     ParentClass?: ComponentConstructor<TParent>
   ): TParent | undefined {
-    let obs = this[HIDDEN_OBSERVER_PROPERTY];
+    let obs = this[HIDDEN.COMPONENT_OBSERVER_PROPERTY];
     if (!ParentClass) return obs && (obs.boundParent as any);
     let cur = obs && obs.boundParent;
     while (cur && !(cur instanceof ParentClass)) {
@@ -310,28 +299,28 @@ export class Component extends ManagedObject {
   /** @internal Returns a bound binding for given instance, either bound on this component or its composite parent(s) */
   getBoundBinding(binding: Binding) {
     return (
-      this[HIDDEN_OBSERVER_PROPERTY] &&
-      this[HIDDEN_OBSERVER_PROPERTY]!.getCompositeBound(binding)
+      this[HIDDEN.COMPONENT_OBSERVER_PROPERTY] &&
+      this[HIDDEN.COMPONENT_OBSERVER_PROPERTY]!.getCompositeBound(binding)
     );
   }
 
   /** @internal Bindings that occur on this component (ONLY on prototype, do not set directly) */
-  [HIDDEN_BINDINGS_PROPERTY]!: { [propertyName: string]: Binding };
+  [HIDDEN.BINDINGS_PROPERTY]!: { [propertyName: string]: Binding };
 
   /** @internal Components for which bindings should be inherited, aka 'included' component bindings (ONLY on prototype, do not set directly) */
-  [HIDDEN_BIND_INHERIT_PROPERTY]!: ComponentConstructor[];
+  [HIDDEN.BIND_INHERIT_PROPERTY]!: ComponentConstructor[];
 
   /** @internal Bound properties and their associated observers (ONLY on prototype, do not set directly) */
-  [HIDDEN_COMPOSTN_PROPERTY]!: { [propertyName: string]: Component.BoundComposition };
+  [HIDDEN.COMPOSTN_PROPERTY]!: { [propertyName: string]: Component.BoundComposition };
 
   /** @internal ComponentObserver for this instance, includes list of currently bound bindings (hidden property) */
-  [HIDDEN_OBSERVER_PROPERTY]: Component.ComponentObserver;
+  [HIDDEN.COMPONENT_OBSERVER_PROPERTY]: Component.ComponentObserver;
 }
 
 // set default values for hidden properties
-Component.prototype[HIDDEN_BINDINGS_PROPERTY] = Object.create(null);
-Component.prototype[HIDDEN_BIND_INHERIT_PROPERTY] = [];
-Component.prototype[HIDDEN_COMPOSTN_PROPERTY] = Object.create(null);
+Component.prototype[HIDDEN.BINDINGS_PROPERTY] = Object.create(null);
+Component.prototype[HIDDEN.BIND_INHERIT_PROPERTY] = [];
+Component.prototype[HIDDEN.COMPOSTN_PROPERTY] = Object.create(null);
 
 export namespace Component {
   /** Represents the relationship between a parent component class and a bound component class, to keep track of all bindings that are found on the bound component and its child components */
@@ -378,7 +367,7 @@ export namespace Component {
           constructor(public readonly c: Component) {}
           @onPropertyChange(...propertiesToObserve)
           updatePropertyAsync(v: any, _e: any, name: string) {
-            let o = this.c[HIDDEN_OBSERVER_PROPERTY];
+            let o = this.c[HIDDEN.COMPONENT_OBSERVER_PROPERTY];
             o && o.updateCompositeBound(name, v);
           }
         }
@@ -399,15 +388,15 @@ export namespace Component {
       let addBindings = (C?: ComponentConstructor) => {
         // add own bindings
         if (!C) return;
-        let b = (C.prototype as Component)[HIDDEN_BINDINGS_PROPERTY];
+        let b = (C.prototype as Component)[HIDDEN.BINDINGS_PROPERTY];
         for (let p in b) addBinding(b[p]);
 
         // add inherited bindings
-        let i = (C.prototype as Component)[HIDDEN_BIND_INHERIT_PROPERTY];
+        let i = (C.prototype as Component)[HIDDEN.BIND_INHERIT_PROPERTY];
         for (let c of i) addBindings(c);
 
         // add unbound composite bindings
-        let c = (C.prototype as Component)[HIDDEN_COMPOSTN_PROPERTY];
+        let c = (C.prototype as Component)[HIDDEN.COMPOSTN_PROPERTY];
         for (let p in c) {
           let u = c[p]._unbound;
           if (u) {
@@ -427,7 +416,7 @@ export namespace Component {
   export class ComponentObserver {
     constructor(public readonly component: Component) {
       // set backreference on the component itself
-      Object.defineProperty(component, HIDDEN_OBSERVER_PROPERTY, {
+      Object.defineProperty(component, HIDDEN.COMPONENT_OBSERVER_PROPERTY, {
         enumerable: false,
         writable: false,
         value: this,
@@ -442,8 +431,8 @@ export namespace Component {
       return (
         (this._compositeBound && this._compositeBound.get(binding.id)) ||
         (this.boundParent &&
-          this.boundParent[HIDDEN_OBSERVER_PROPERTY] &&
-          this.boundParent[HIDDEN_OBSERVER_PROPERTY].getCompositeBound(binding))
+          this.boundParent[HIDDEN.COMPONENT_OBSERVER_PROPERTY] &&
+          this.boundParent[HIDDEN.COMPONENT_OBSERVER_PROPERTY].getCompositeBound(binding))
       );
     }
 
@@ -459,7 +448,8 @@ export namespace Component {
       } else if (e instanceof ManagedParentChangeEvent) {
         // get the new component parent, if any
         let parentComponent = this.component.getParentComponent();
-        let parentObserver = parentComponent && parentComponent[HIDDEN_OBSERVER_PROPERTY];
+        let parentObserver =
+          parentComponent && parentComponent[HIDDEN.COMPONENT_OBSERVER_PROPERTY];
         if (parentObserver === this._parentObserver) return;
 
         // unbind from current parent first, if any
@@ -479,9 +469,9 @@ export namespace Component {
           if (
             e.parent === parentComponent &&
             e.propertyName &&
-            parentComponent[HIDDEN_COMPOSTN_PROPERTY][e.propertyName]
+            parentComponent[HIDDEN.COMPOSTN_PROPERTY][e.propertyName]
           ) {
-            let composition = parentComponent[HIDDEN_COMPOSTN_PROPERTY][e.propertyName];
+            let composition = parentComponent[HIDDEN.COMPOSTN_PROPERTY][e.propertyName];
             this.boundParent = parentComponent;
             parentObserver._addCompositeBound(composition.getBindings());
           } else {
@@ -572,8 +562,8 @@ export namespace Component {
     _bind() {
       if (!this.boundParent) return;
       let component = this.component;
-      let boundObserver = this.boundParent[HIDDEN_OBSERVER_PROPERTY];
-      let bindings = component[HIDDEN_BINDINGS_PROPERTY];
+      let boundObserver = this.boundParent[HIDDEN.COMPONENT_OBSERVER_PROPERTY];
+      let bindings = component[HIDDEN.BINDINGS_PROPERTY];
 
       // bind all bindings on own component
       let o = this._ownBound || (this._ownBound = Object.create(null));

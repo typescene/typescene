@@ -225,7 +225,7 @@ export class UIListController extends UIRenderableController<UIContainer> {
   }
 
   /** True if a list update is already queued */
-  _updateQueued = false;
+  private _updateQueued = false;
 
   /** Map of current content (managed IDs to UI components) */
   private readonly _contentMap = new ManagedMap<UIRenderable>();

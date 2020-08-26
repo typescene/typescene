@@ -9,6 +9,7 @@ import {
 import { ManagedReference } from "./ManagedReference";
 import { observe } from "./observe";
 import * as util from "./util";
+import { HIDDEN } from "./util";
 
 /** Alias for Object.prototype.hasOwnProperty */
 const _hOP = Object.prototype.hasOwnProperty;
@@ -95,23 +96,23 @@ export class ManagedObject {
     // get the previous prototype and handler on same prototype
     let prevProto: typeof this.prototype;
     let prevHandler: ((this: any, e: ManagedEvent) => void) | undefined;
-    if (!_hOP.call(this.prototype, util.HIDDEN_EVENT_HANDLER)) {
+    if (!_hOP.call(this.prototype, HIDDEN.EVENT_HANDLER)) {
       // add a handler to this prototype
       prevProto = Object.getPrototypeOf(this.prototype);
-      Object.defineProperty(this.prototype, util.HIDDEN_EVENT_HANDLER, {
+      Object.defineProperty(this.prototype, HIDDEN.EVENT_HANDLER, {
         enumerable: false,
         configurable: false,
         writable: true,
       });
     } else {
       // chain with existing handler
-      prevHandler = this.prototype[util.HIDDEN_EVENT_HANDLER];
+      prevHandler = this.prototype[HIDDEN.EVENT_HANDLER];
     }
 
     // add the event handler function
-    this.prototype[util.HIDDEN_EVENT_HANDLER] = function (this: any, e: ManagedEvent) {
-      prevProto && prevProto[util.HIDDEN_EVENT_HANDLER]
-        ? prevProto[util.HIDDEN_EVENT_HANDLER]!.call(this, e)
+    this.prototype[HIDDEN.EVENT_HANDLER] = function (this: any, e: ManagedEvent) {
+      prevProto && prevProto[HIDDEN.EVENT_HANDLER]
+        ? prevProto[HIDDEN.EVENT_HANDLER]!.call(this, e)
         : prevHandler && prevHandler.call(this, e);
       try {
         handler.call(this, e);
@@ -146,20 +147,20 @@ export class ManagedObject {
   /** Creates a new managed object instance */
   constructor() {
     // override getter/setter properties to be non-enumerable
-    this[util.HIDDEN_STATE_PROPERTY] = ManagedState.CREATED;
-    Object.defineProperty(this, util.HIDDEN_STATE_PROPERTY, {
-      ...Object.getOwnPropertyDescriptor(this, util.HIDDEN_STATE_PROPERTY),
+    this[HIDDEN.STATE_PROPERTY] = ManagedState.CREATED;
+    Object.defineProperty(this, HIDDEN.STATE_PROPERTY, {
+      ...Object.getOwnPropertyDescriptor(this, HIDDEN.STATE_PROPERTY),
       writable: true,
       enumerable: false,
     });
-    this[util.HIDDEN_REFCOUNT_PROPERTY] = 0;
-    Object.defineProperty(this, util.HIDDEN_REFCOUNT_PROPERTY, {
-      ...Object.getOwnPropertyDescriptor(this, util.HIDDEN_REFCOUNT_PROPERTY),
+    this[HIDDEN.REFCOUNT_PROPERTY] = 0;
+    Object.defineProperty(this, HIDDEN.REFCOUNT_PROPERTY, {
+      ...Object.getOwnPropertyDescriptor(this, HIDDEN.REFCOUNT_PROPERTY),
       enumerable: false,
     });
 
     // intialize reflinks property to be non-enumerable as well
-    Object.defineProperty(this, util.HIDDEN_REF_PROPERTY, {
+    Object.defineProperty(this, HIDDEN.REF_PROPERTY, {
       value: [],
       writable: false,
       configurable: false,
@@ -179,7 +180,7 @@ export class ManagedObject {
    * @note This property _cannot_ be observed directly. Observer classes (see `addObserver`) should use methods such as `onActive` to observe lifecycle state.
    */
   get managedState() {
-    return this[util.HIDDEN_STATE_PROPERTY];
+    return this[HIDDEN.STATE_PROPERTY];
   }
 
   /**
@@ -187,14 +188,14 @@ export class ManagedObject {
    * @note Observers (see `addObserver`) may use an `onReferenceCountChangeAsync` method to observe this value asynchronously.
    */
   protected getReferenceCount() {
-    return this[util.HIDDEN_REFCOUNT_PROPERTY];
+    return this[HIDDEN.REFCOUNT_PROPERTY];
   }
 
-  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed`, `@managedChild`, and `@managedDependency` decorators) */
+  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed` and `@managedChild` decorators) */
   protected getManagedReferrers() {
     let seen: boolean[] = Object.create(null);
     let result: ManagedObject[] = [];
-    this[util.HIDDEN_REF_PROPERTY].forEach(reflink => {
+    this[HIDDEN.REF_PROPERTY].forEach(reflink => {
       let object: ManagedObject = reflink.a;
       if (object.managedState && !seen[object.managedId]) {
         result.push(object);
@@ -212,24 +213,24 @@ export class ManagedObject {
   protected getManagedParent<TParent extends ManagedObject = ManagedObject>(
     ParentClass?: ManagedObjectConstructor<TParent>
   ): TParent | undefined {
-    let ref = this[util.HIDDEN_REF_PROPERTY].parent;
+    let ref = this[HIDDEN.REF_PROPERTY].parent;
     let parent: ManagedObject | undefined = ref && ref.a;
 
     // if class reference given, check parents' references
     if (ParentClass && parent && !(parent instanceof <any>ParentClass)) {
-      let parentRef = parent[util.HIDDEN_REF_PROPERTY].parent;
+      let parentRef = parent[HIDDEN.REF_PROPERTY].parent;
       parent = parentRef && parentRef.a;
 
       // check again (unrolled)
       if (parent && !(parent instanceof <any>ParentClass)) {
-        parentRef = parent[util.HIDDEN_REF_PROPERTY].parent;
+        parentRef = parent[HIDDEN.REF_PROPERTY].parent;
         parent = parentRef && parentRef.a;
 
         // continue in a loop, but keep track of objects already seen
         let seen: boolean[] | undefined;
         while (parent && !(parent instanceof <any>ParentClass)) {
           (seen || (seen = Object.create(null)))[parent.managedId] = true;
-          parentRef = parent[util.HIDDEN_REF_PROPERTY].parent;
+          parentRef = parent[HIDDEN.REF_PROPERTY].parent;
           parent = parentRef && parentRef.a;
           if (parent && seen![parent.managedId]) break;
         }
@@ -249,7 +250,7 @@ export class ManagedObject {
     e: TEvent | (new (...args: TConstructorArgs) => TEvent) | string,
     ...constructorArgs: TConstructorArgs
   ) {
-    if (!this[util.HIDDEN_STATE_PROPERTY] && e !== ManagedCoreEvent.DESTROYED) {
+    if (!this[HIDDEN.STATE_PROPERTY] && e !== ManagedCoreEvent.DESTROYED) {
       throw err(ERROR.Object_Destroyed);
     }
     if (typeof e === "string") e = new ManagedEvent(e).freeze() as any;
@@ -269,10 +270,10 @@ export class ManagedObject {
     let emitError: any;
     try {
       this._emitting = this._emitting! + 1;
-      if (this[util.HIDDEN_EVENT_HANDLER]) {
-        this[util.HIDDEN_EVENT_HANDLER]!(e);
+      if (this[HIDDEN.EVENT_HANDLER]) {
+        this[HIDDEN.EVENT_HANDLER]!(e);
       }
-      this[util.HIDDEN_REF_PROPERTY].forEach(v => {
+      this[HIDDEN.REF_PROPERTY].forEach(v => {
         if (v && v.a && v.f) v.f.call(undefined, e, v.a, this);
       });
     } catch (err) {
@@ -322,11 +323,11 @@ export class ManagedObject {
       | ((this: this, e: ManagedEvent, name: string) => any)
       | undefined = firstIsFunction ? types[0] : undefined;
     let emitting: ManagedEvent | undefined;
-    Object.defineProperty(this, util.HIDDEN_CHILD_EVENT_HANDLER, {
+    Object.defineProperty(this, HIDDEN.CHILD_EVENT_HANDLER, {
       configurable: true,
       enumerable: false,
       value: function (e: ManagedEvent, name: string) {
-        if (emitting === e || !this[util.HIDDEN_STATE_PROPERTY]) return;
+        if (emitting === e || !this[HIDDEN.STATE_PROPERTY]) return;
 
         // limit by type, or run handler function
         if (!f) {
@@ -362,7 +363,7 @@ export class ManagedObject {
     return this._transitionManagedState(
       ManagedState.ACTIVE,
       async () => {
-        this[util.HIDDEN_STATE_PROPERTY] = ManagedState.ACTIVATING;
+        this[HIDDEN.STATE_PROPERTY] = ManagedState.ACTIVATING;
         await this.onManagedStateActivatingAsync();
       },
       ManagedCoreEvent.ACTIVE,
@@ -375,7 +376,7 @@ export class ManagedObject {
     await this._transitionManagedState(
       ManagedState.INACTIVE,
       async () => {
-        this[util.HIDDEN_STATE_PROPERTY] = ManagedState.DEACTIVATING;
+        this[HIDDEN.STATE_PROPERTY] = ManagedState.DEACTIVATING;
         await this.onManagedStateDeactivatingAsync();
       },
       ManagedCoreEvent.INACTIVE,
@@ -386,13 +387,12 @@ export class ManagedObject {
   /**
    * Destroy this managed object (i.e. change state to `ManagedState.DESTROYING` and then to `ManagedState.DESTROYED`, clear all managed references from and to this object, and destroy all managed children); the `onManagedStateDestroyingAsync` method is called in the process
    * @note Managed child objects are automatically destroyed when [1] their parent's reference (decorated with `@managedChild`) is cleared or otherwise changed, or [2] the child object is removed from a managed list or map that is itself a managed child, or [3] when the parent object itself is destroyed.
-   * @note Managed objects are also automatically destroyed when one or more of their own properties decorated with `@managedDependency` are cleared or changed, or the dependency object itself is destroyed.
    */
   protected async destroyManagedAsync() {
     let n = 3;
     let state: ManagedState;
     while (
-      (state = this[util.HIDDEN_STATE_PROPERTY]) === ManagedState.ACTIVE ||
+      (state = this[HIDDEN.STATE_PROPERTY]) === ManagedState.ACTIVE ||
       state === ManagedState.ACTIVATING ||
       state === ManagedState.DEACTIVATING
     ) {
@@ -403,11 +403,11 @@ export class ManagedObject {
     await this._transitionManagedState(
       ManagedState.DESTROYED,
       async () => {
-        this[util.HIDDEN_STATE_PROPERTY] = ManagedState.DESTROYING;
+        this[HIDDEN.STATE_PROPERTY] = ManagedState.DESTROYING;
         await this.onManagedStateDestroyingAsync();
 
         // remove all references, keep RefLink instances for reuse
-        let refs = this[util.HIDDEN_REF_PROPERTY];
+        let refs = this[HIDDEN.REF_PROPERTY];
         delete refs.parent;
         delete refs.head;
         delete refs.tail;
@@ -421,8 +421,12 @@ export class ManagedObject {
         }
 
         // set status early and call destruction handlers
-        this[util.HIDDEN_STATE_PROPERTY] = ManagedState.DESTROYED;
-        g.forEach(fn => fn(this));
+        this[HIDDEN.STATE_PROPERTY] = ManagedState.DESTROYED;
+        g.forEach(fn => {
+          try {
+            fn(this);
+          } catch {}
+        });
       },
       ManagedCoreEvent.DESTROYED
     );
@@ -460,20 +464,20 @@ export class ManagedObject {
 
     /** Helper function to go ahead with the actual transition */
     let doTransitionAsync = async (t: ManagedStateTransition) => {
-      let oldState = this[util.HIDDEN_STATE_PROPERTY];
+      let oldState = this[HIDDEN.STATE_PROPERTY];
       if (newState === oldState) return;
       if (!oldState) throw err(ERROR.Object_Destroyed);
       let changedState: boolean | undefined;
       this._transition = t;
       try {
         await callback.call(this);
-        this[util.HIDDEN_STATE_PROPERTY] = newState;
+        this[HIDDEN.STATE_PROPERTY] = newState;
         changedState = true;
         this.emit(event);
         callbackAfter && callbackAfter.call(this);
       } finally {
         // change back to state from before calling callback if needed
-        if (!changedState) this[util.HIDDEN_STATE_PROPERTY] = oldState;
+        if (!changedState) this[HIDDEN.STATE_PROPERTY] = oldState;
         this._transition = t.pending || undefined;
       }
     };
@@ -539,7 +543,7 @@ export class ManagedObject {
     handleDestroy?: (obj: T) => void
   ) {
     let ref: util.RefLink;
-    let targetRefs = target[util.HIDDEN_REF_PROPERTY];
+    let targetRefs = target[HIDDEN.REF_PROPERTY];
     if (_freeRefLinks.length) {
       // reuse existing instance
       ref = _freeRefLinks.pop()!;
@@ -564,17 +568,17 @@ export class ManagedObject {
       };
     }
     targetRefs.push(ref);
-    target[util.HIDDEN_REFCOUNT_PROPERTY]++;
-    source[util.HIDDEN_REF_PROPERTY][propId] = ref;
+    target[HIDDEN.REFCOUNT_PROPERTY]++;
+    source[HIDDEN.REF_PROPERTY][propId] = ref;
     return ref;
   }
 
   /** @internal Unlink given managed reference link object; returns true if unlinked, false if argument was not a RefLink instance */
   protected static _discardRefLink(ref?: util.RefLink) {
     if (!ref || !(ref.u >= 0) || !ref.a || !ref.b) return false;
-    let sourceRefs = ref.a && ref.a[util.HIDDEN_REF_PROPERTY];
+    let sourceRefs = ref.a && ref.a[HIDDEN.REF_PROPERTY];
     if (sourceRefs && sourceRefs[ref.p] === ref) {
-      if (ref.p[0] === util.MANAGED_LIST_REF_PREFIX) {
+      if (ref.p[0] === HIDDEN.MANAGED_LIST_REF_PREFIX) {
         // fix prev/next and head/tail refs in ManagedList, if applicable
         if (sourceRefs.head === ref) sourceRefs.head = ref.k;
         if (sourceRefs.tail === ref) sourceRefs.tail = ref.j;
@@ -586,10 +590,10 @@ export class ManagedObject {
         sourceRefs[ref.p] = undefined;
       }
     }
-    let targetRefs = ref.b && ref.b[util.HIDDEN_REF_PROPERTY];
+    let targetRefs = ref.b && ref.b[HIDDEN.REF_PROPERTY];
     if (targetRefs && targetRefs[ref.u] === ref) {
       // remove back reference and update reference count
-      ref.b[util.HIDDEN_REFCOUNT_PROPERTY]--;
+      ref.b[HIDDEN.REFCOUNT_PROPERTY]--;
       if (ref.u >= 0 && ref.u === targetRefs.length - 1) {
         let i = targetRefs.length - 2;
         while (i >= 0 && targetRefs[i] === undefined) i--;
@@ -611,7 +615,7 @@ export class ManagedObject {
   /** @internal Make given reference link object the (new) parent-child link for the referenced object */
   protected static _makeManagedChildRefLink(ref: util.RefLink, propertyName?: string) {
     let target: ManagedObject = ref.b;
-    let targetRefs = target[util.HIDDEN_REF_PROPERTY];
+    let targetRefs = target[HIDDEN.REF_PROPERTY];
     if (targetRefs[ref.u] === ref) {
       let oldParent = targetRefs.parent;
       if (!(oldParent && oldParent.a === ref.a)) {
@@ -620,13 +624,15 @@ export class ManagedObject {
         if (!oldParent) {
           // make sure all contained objects are child objects
           // (for lists and maps)
-          target[util.MAKE_REF_MANAGED_PARENT_FN]();
+          target[HIDDEN.MAKE_REF_MANAGED_PARENT_FN]();
         } else {
           // inform old parent that child has moved
           this._discardRefLink(oldParent);
-          oldParent.g && oldParent.g(this);
+          try {
+            oldParent.g && oldParent.g(this);
+          } catch {}
         }
-        if (target[util.HIDDEN_STATE_PROPERTY]) {
+        if (target[HIDDEN.STATE_PROPERTY]) {
           target.emit(ManagedParentChangeEvent, ref.a, propertyName);
         }
       }
@@ -636,7 +642,7 @@ export class ManagedObject {
   /** @internal Returns true if given managed reference object is a parent-child link */
   protected static _isManagedChildRefLink(ref: util.RefLink) {
     let target: ManagedObject = ref.b;
-    let targetRefs = target[util.HIDDEN_REF_PROPERTY];
+    let targetRefs = target[HIDDEN.REF_PROPERTY];
     return targetRefs.parent === ref;
   }
 
@@ -647,13 +653,13 @@ export class ManagedObject {
     ClassRestriction: ManagedObjectConstructor<any> = ManagedObject
   ) {
     if (target !== undefined) {
-      if (!source[util.HIDDEN_STATE_PROPERTY]) {
+      if (!source[HIDDEN.STATE_PROPERTY]) {
         throw err(ERROR.Object_RefDestroyed);
       }
       if (!(target instanceof ClassRestriction)) {
         throw err(ERROR.Object_InvalidRef);
       }
-      if (!target[util.HIDDEN_STATE_PROPERTY]) {
+      if (!target[HIDDEN.STATE_PROPERTY]) {
         throw err(ERROR.Object_RefDestroyed);
       }
     }
@@ -667,12 +673,6 @@ export class ManagedObject {
    *  the property to be amended
    * @param isChildReference
    *  true if this reference should be a managed parent-child reference; automatically asserts a parent-child dependency between the referencing object and referenced object(s), recursively extending to objects in referenced managed lists, maps, and reference instances
-   * @param isDependency
-   *  true if the containing object should be destroyed when a referenced object is destroyed
-   * @param preAssignHandler
-   *  an optional handler that is invoked before a new reference is actually assigned, can be used to validate the target
-   * @param eventHandler
-   *  an optional handler that is called when an event occurs on the currently referenced object
    * @param readonlyRef
    *  optionally, a read-only managed reference object; when provided, the property will not be writable, and reading it results in the _target_ of the reference object
    * @returns the newly applied property descriptor
@@ -681,9 +681,6 @@ export class ManagedObject {
     object: T,
     propertyKey: keyof T,
     isChildReference?: boolean,
-    isDependency?: boolean,
-    preAssignHandler?: (this: T, target: ManagedObject) => void,
-    eventHandler?: (this: T, event: ManagedEvent) => void,
     readonlyRef?: ManagedReference
   ) {
     if (!(object instanceof ManagedObject)) {
@@ -694,7 +691,7 @@ export class ManagedObject {
     }
 
     // (re)define property on prototype
-    let propId = util.PROPERTY_ID_PREFIX + _nextRefId++;
+    let propId = HIDDEN.PROPERTY_ID_PREFIX + _nextRefId++;
     return util.defineChainableProperty(
       object,
       propertyKey,
@@ -708,7 +705,6 @@ export class ManagedObject {
               target = readonlyRef.get()!;
             }
             next && next(target, event, topHandler);
-            if (target && eventHandler) eventHandler.call(obj, event);
             return;
           }
           if (readonlyRef && target !== readonlyRef) {
@@ -716,12 +712,8 @@ export class ManagedObject {
             throw err(ERROR.Object_NotWritable);
           }
           ManagedObject._validateReferenceAssignment(obj, target);
-          let cur = obj[util.HIDDEN_REF_PROPERTY][propId];
+          let cur = obj[HIDDEN.REF_PROPERTY][propId];
           if (cur && target && cur.b === target && !readonlyRef) return;
-          if (isDependency && !target) {
-            throw err(ERROR.Object_InvalidDep, name);
-          }
-          if (target && preAssignHandler) preAssignHandler.call(obj, target);
 
           // unlink existing reference, if any (also destroys child if needed)
           ManagedObject._discardRefLink(cur);
@@ -735,22 +727,13 @@ export class ManagedObject {
               (e, obj, target) => {
                 // propagate event to other handler(s)
                 topHandler(target, e, topHandler);
-                if (isChildReference && obj[util.HIDDEN_CHILD_EVENT_HANDLER]) {
-                  obj[util.HIDDEN_CHILD_EVENT_HANDLER]!(e, propertyKey as string);
+                if (isChildReference && obj[HIDDEN.CHILD_EVENT_HANDLER]) {
+                  obj[HIDDEN.CHILD_EVENT_HANDLER]!(e, propertyKey as string);
                 }
               },
               () => {
-                // handle target moved/destroyed
-                if (!target.managedState && isDependency) {
-                  // destroy dependent referrer immediately
-                  delete (obj as any)[name];
-                  obj.destroyManagedAsync().catch(util.exceptionHandler);
-                } else {
-                  // try to set property to undefined
-                  try {
-                    (obj as any)[name] = undefined;
-                  } catch {} // do not care about exceptions
-                }
+                // handle target moved/destroyed: set to undefined
+                (obj as any)[name] = undefined;
               }
             );
             if (isChildReference) {
@@ -763,7 +746,7 @@ export class ManagedObject {
         };
       },
       function (this: any) {
-        let ref = this[util.HIDDEN_REF_PROPERTY][propId];
+        let ref = this[HIDDEN.REF_PROPERTY][propId];
 
         // dereference read-only reference, if any
         if (readonlyRef) {
@@ -783,18 +766,18 @@ export class ManagedObject {
   }
 
   /** @internal To be overridden, to turn existing references into child objects (i.e. for lists and maps) */
-  protected [util.MAKE_REF_MANAGED_PARENT_FN]() {}
+  protected [HIDDEN.MAKE_REF_MANAGED_PARENT_FN]() {}
 
   /** @internal Reference link object map */
-  private readonly [util.HIDDEN_REF_PROPERTY]!: util.RefLinkMap;
+  private readonly [HIDDEN.REF_PROPERTY]!: util.RefLinkMap;
   /** @internal Reference count */
-  private [util.HIDDEN_REFCOUNT_PROPERTY]!: number;
+  private [HIDDEN.REFCOUNT_PROPERTY]!: number;
   /** @internal Current state value */
-  private [util.HIDDEN_STATE_PROPERTY]!: ManagedState;
+  private [HIDDEN.STATE_PROPERTY]!: ManagedState;
   /** @internal Chained event handler(s) */
-  private [util.HIDDEN_EVENT_HANDLER]: (e: ManagedEvent) => void;
+  private [HIDDEN.EVENT_HANDLER]: (e: ManagedEvent) => void;
   /** @internal Chained event handler(s) */
-  private [util.HIDDEN_CHILD_EVENT_HANDLER]: (e: ManagedEvent, name: string) => void;
+  private [HIDDEN.CHILD_EVENT_HANDLER]: (e: ManagedEvent, name: string) => void;
 
   /** True if currently emitting an event */
   private _emitting?: number;

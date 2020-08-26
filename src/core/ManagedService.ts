@@ -37,9 +37,6 @@ export function service(serviceName: string): PropertyDecorator {
       target as any,
       propertyKey as string,
       false,
-      false,
-      undefined,
-      undefined,
       ref
     );
   };

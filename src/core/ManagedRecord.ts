@@ -4,7 +4,7 @@ import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 import { ManagedReference } from "./ManagedReference";
 import { ERROR, err } from "../errors";
-import * as util from "./util";
+import { HIDDEN } from "./util";
 
 /** Generic constructor type for ManagedRecord classes */
 export type ManagedRecordConstructor<TObject extends ManagedRecord = ManagedRecord> = new (
@@ -94,7 +94,7 @@ export class ManagedRecord extends Component {
   }
 
   /**
-   * Returns an array of unique records that contain managed references to this object (see `@managed`, `@managedChild`, and `@managedDependency`). This includes records that refer directly to this object, as well as those that refer to managed list(s) or map(s) that contain this record.
+   * Returns an array of unique records that contain managed references to this object (see `@managed` and `@managedChild`). This includes records that refer directly to this object, as well as those that refer to managed list(s) or map(s) that contain this record.
    * @param FilterByClass
    *  If specified, results will only include instances of given class. Other referrers are _not_ inspected recursively.
    */
@@ -107,7 +107,7 @@ export class ManagedRecord extends Component {
 
     // use a recursive function to add all referrers
     const addRefs = (ref: ManagedObject) => {
-      ref[util.HIDDEN_REF_PROPERTY].forEach(reflink => {
+      ref[HIDDEN.REF_PROPERTY].forEach(reflink => {
         let object: ManagedObject = reflink.a;
         if (object.managedState && !seen[object.managedId]) {
           seen[object.managedId] = true;

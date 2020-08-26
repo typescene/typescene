@@ -209,6 +209,18 @@ export class UITheme {
     );
   }
 
+  clone() {
+    let result = new UITheme();
+    result.modalDialogShadeOpacity = this.modalDialogShadeOpacity;
+    result.spacing = this.spacing;
+    result.ConfirmationDialogBuilder = this.ConfirmationDialogBuilder;
+    result.MenuBuilder = this.MenuBuilder;
+    result.colors = { ...this.colors };
+    result.icons = { ...this.icons };
+    result.styles = { ...this.styles };
+    return result;
+  }
+
   /** Dialog backdrop shader opacity (for `DialogViewActivity`), defaults to 0.3 */
   modalDialogShadeOpacity = 0.3;
 
