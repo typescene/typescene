@@ -46,10 +46,12 @@ export class UIFormContext<TData = any> extends Component {
   set(name?: keyof TData, value?: any, validate?: boolean, silent?: boolean) {
     if (!name) return;
     if (typeof this._values[name] === "number") value = +value;
-    if (validate || this._values[name] !== value) {
+    if (this._values[name] !== value) {
       this._values[name] = value;
       if (validate) this.validate(name);
       if (!silent) this.emitChange();
+    } else if (validate) {
+      this.validate(name);
     }
   }
 
