@@ -1,13 +1,9 @@
 {
   "name": "typescene",
-  "version": "0.0.0",
-  "private": true,
+  "version": "3.0.0",
   "description": "Typescene framework",
   "author": "Jelmer Cormont",
   "license": "MIT",
-  "publishConfig": {
-    "tag": "next"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/typescene/typescene.git"
