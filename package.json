@@ -39,6 +39,6 @@
   "devDependencies": {
     "esm": "^3.2.25",
     "rimraf": "^3.0.2",
-    "typescript": "3.9.7"
+    "typescript": "4.0"
   }
 }
