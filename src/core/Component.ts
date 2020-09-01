@@ -201,7 +201,7 @@ export class Component extends ManagedObject {
     this: ComponentConstructor<TComponent>,
     propertyName: string,
     binding: Binding,
-    applyBoundValue?: (this: TComponent, boundValue: any) => any
+    applyBoundValue?: (this: TComponent, boundValue: any, oldValue?: any) => any
   ) {
     // add a reference to the binding itself
     if (!this.prototype.hasOwnProperty(HIDDEN.BINDINGS_PROPERTY)) {
@@ -213,8 +213,8 @@ export class Component extends ManagedObject {
 
     // add an update function
     if (!applyBoundValue) {
-      applyBoundValue = function (this: Component, v: any) {
-        _applyPropertyValue(this, propertyName, v);
+      applyBoundValue = function (this: Component, v: any, o: any) {
+        _applyPropertyValue(this, propertyName, v, o);
       };
     }
     this.prototype[binding.id] = applyBoundValue;
@@ -650,22 +650,23 @@ class ManagedValueObject<T> extends ManagedObject {
 }
 
 /** Helper method to update a component property with given value, with some additional logic for managed lists */
-function _applyPropertyValue(c: Component, p: string, v: any) {
-  let o = (c as any)[p];
-  if (o && o instanceof ManagedList) {
-    if (v === undefined) {
-      // clear array with undefined value
-      o.clear();
+function _applyPropertyValue(c: Component, p: string, value: any, old?: any) {
+  let cur = (c as any)[p];
+  if (cur && cur instanceof ManagedList) {
+    if (Array.isArray(value)) {
+      // update managed lists with array items
+      cur.replace(
+        value.map(it => (it instanceof ManagedObject ? it : new ManagedValueObject(it)))
+      );
       return;
     }
-    if (Array.isArray(v)) {
-      // update managed lists with array items
-      o.replace(
-        v.map(it => (it instanceof ManagedObject ? it : new ManagedValueObject(it)))
-      );
+    if (value === undefined && old !== cur) {
+      // clear array with undefined value
+      cur.clear();
       return;
     }
   }
   // otherwise set property value normally
-  (c as any)[p] = v;
+  (c as any)[p] = value;
 }
+
