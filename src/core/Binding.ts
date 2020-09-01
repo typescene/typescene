@@ -310,6 +310,7 @@ export namespace Binding {
       let value = this._reader.getValue(...arguments); // _v if given
       if (!this._updatedValue || this._lastValue !== value) {
         this._updatedValue = true;
+        let oldValue = this._lastValue;
         this._lastValue = value;
         if (this.parent) {
           // update parent instead
@@ -324,7 +325,7 @@ export namespace Binding {
             if (typeof component[id] !== "function") {
               throw err(ERROR.Binding_NoComponent);
             }
-            component[id](value);
+            component[id](value, oldValue);
           } catch (err) {
             logUnhandledException(err);
           }
