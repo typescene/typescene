@@ -315,9 +315,9 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
 
   /** Returns true if given object is currently included in this list */
   includes(target: T) {
+    let managedId = target && target.managedId;
     let ref =
-      target instanceof ManagedObject &&
-      this[HIDDEN.REF_PROPERTY][HIDDEN.MANAGED_LIST_REF_PREFIX + target.managedId];
+      managedId && this[HIDDEN.REF_PROPERTY][HIDDEN.MANAGED_LIST_REF_PREFIX + managedId];
     return !!ref && ref.b === target;
   }
 

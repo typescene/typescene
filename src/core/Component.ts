@@ -571,7 +571,7 @@ export namespace Component {
         if (!o[p]) {
           let binding = bindings[p];
           let bound = boundObserver.getCompositeBound(binding);
-          if (bound) o[p] = bound.add(component);
+          if (bound && !bound.includes(component)) o[p] = bound.add(component);
         }
       }
 
@@ -669,4 +669,3 @@ function _applyPropertyValue(c: Component, p: string, value: any, old?: any) {
   // otherwise set property value normally
   (c as any)[p] = value;
 }
-
