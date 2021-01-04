@@ -12,9 +12,9 @@ Typescene is a robust front end library written in TypeScript: strongly typed, n
 
 ## Documentation
 
-All documentation for Typescene can be found on the website: [https://typescene.dev/docs/](https://typescene.dev/docs/).
+All documentation for Typescene can be found on the website: [https://typescene.dev/docs](https://typescene.dev/docs).
 
-The online docs include an [overview](https://typescene.dev/docs/introduction/overview) as well as other guides, and [reference documentation](https://typescene.dev/docs/).
+The online docs include an [overview](https://typescene.dev/docs/introduction/overview) as well as other guides, and [reference documentation](https://typescene.dev/docs).
 
 ## Getting Started
 
