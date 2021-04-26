@@ -2,6 +2,7 @@ import { err, ERROR } from "../errors";
 import { ManagedChangeEvent, ManagedEvent } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import { HIDDEN } from "./util";
+import * as util from "./util";
 
 /** Property ID for the single reference link used by ManagedReference */
 const REF_PROP_ID = HIDDEN.PROPERTY_ID_PREFIX + "*ref";
@@ -17,7 +18,7 @@ export class ManagedReference<
   }
 
   /**
-   * Propagate events from referenced objects by emitting the same events on the reference instance itself.
+   * Propagate events from referenced objects by emitting the same events on the `ManagedReference` instance itself.
    * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its only argument.
    * @note Calling this method a second time _replaces_ the current propagation rule/function.
    */
@@ -25,20 +26,15 @@ export class ManagedReference<
     f?: (this: this, e: ManagedEvent) => ManagedEvent | ManagedEvent[] | undefined | void
   ): this;
   /**
-   * Propagate events from referenced objects by emitting the same events on the reference instance itself.
+   * Propagate events from referenced objects by emitting the same events on the `ManagedReference` instance itself.
    * If one or more event classes are specified, only events that extend given event types are propagated.
    * @note Calling this method a second time _replaces_ the current propagation rule/function.
    */
   propagateEvents(
     ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
   ): this;
-  propagateEvents(): this {
-    this.propagateChildEvents.apply(this, arguments as any);
-    Object.defineProperty(this, HIDDEN.NONCHILD_EVENT_HANDLER, {
-      configurable: true,
-      enumerable: false,
-      value: this[HIDDEN.CHILD_EVENT_HANDLER],
-    });
+  propagateEvents(...types: any[]) {
+    util.propagateEvents(this, false, ...types);
     return this;
   }
 

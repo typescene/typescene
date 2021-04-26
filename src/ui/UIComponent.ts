@@ -35,7 +35,7 @@ export class UIComponentEvent<
   readonly event?: any;
 }
 
-/** Event that is emitted on a particular UI component before it is fist rendered, __only once__. Should not be propagated. */
+/** Event that is emitted on a particular UI component before it is fist rendered, __only once__. Instances should not be reused. */
 export class UIBeforeRenderEvent<TSource extends UIComponent> extends ManagedEvent {
   /** Create a new event to be emitted before given component is rendered */
   constructor(source: TSource) {
@@ -47,7 +47,7 @@ export class UIBeforeRenderEvent<TSource extends UIComponent> extends ManagedEve
   readonly source: TSource;
 }
 
-/** Event that is emitted on a particular UI component when it is rendered, to be handled by a platform specific renderer (observer). Should not be propagated. */
+/** Event that is emitted on a particular UI component when it is rendered, to be handled by a platform specific renderer (observer). Instances should not be reused. */
 export class UIRenderEvent<TSource extends UIComponent> extends ManagedEvent {
   /** Create a new event that encapsulates given render callback (from the application level `UIRenderContext`, or from a containing UI component) */
   constructor(source: TSource, renderCallback: UIRenderContext.RenderCallback) {
@@ -70,7 +70,7 @@ export enum UIFocusRequestType {
   REVERSE = -1,
 }
 
-/** Event that is emitted on a particular UI component when it requests focus for itself or a sibling component; handled by the component renderer if possible. Should not be propagated. */
+/** Event that is emitted on a particular UI component when it requests focus for itself or a sibling component; handled by the component renderer if possible. Instances should not be reused or re-emitted. */
 export class UIFocusRequestEvent<TSource extends UIComponent> extends ManagedEvent {
   /** Create a new event for a focus request for given component and/or direction (self/reverse/forward, defaults to self) */
   constructor(source: TSource, direction: UIFocusRequestType = UIFocusRequestType.SELF) {
@@ -129,21 +129,23 @@ export abstract class UIComponent extends Component implements UIRenderable {
       style = undefined;
     }
     if (Binding.isBinding(dimensions)) {
-      (this as any).presetBinding("dimensions", dimensions, function (
-        this: UIComponent,
-        v: any
-      ) {
-        this.dimensions = v ? { ...origDimensions!, ...v } : origDimensions;
-      });
+      (this as any).presetBinding(
+        "dimensions",
+        dimensions,
+        function (this: UIComponent, v: any) {
+          this.dimensions = v ? { ...origDimensions!, ...v } : origDimensions;
+        }
+      );
       dimensions = undefined;
     }
     if (Binding.isBinding(position)) {
-      (this as any).presetBinding("position", position, function (
-        this: UIComponent,
-        v: any
-      ) {
-        this.position = v ? { ...origPosition!, ...v } : origPosition;
-      });
+      (this as any).presetBinding(
+        "position",
+        position,
+        function (this: UIComponent, v: any) {
+          this.position = v ? { ...origPosition!, ...v } : origPosition;
+        }
+      );
       position = undefined;
     }
 
@@ -163,19 +165,22 @@ export abstract class UIComponent extends Component implements UIRenderable {
     };
   }
 
-  /** Create a new UI component */
-  protected constructor() {
-    super();
-    this.propagateChildEvents(ComponentEvent);
-  }
-
-  /** Create and emit a UI event with given name and a reference to this component, as well as an optional platform event; see `Component.propagateComponentEvent` */
+  /** Create and emit a UI event with given name and a reference to this component, as well as an optional platform event.
+   * @deprecated in v3.1 */
   propagateComponentEvent(name: string, inner?: ManagedEvent, event?: any) {
     if (!this.managedState) return;
     if (!event && inner instanceof UIComponentEvent) {
       event = inner.event;
     }
     this.emit(UIComponentEvent, name, this, inner, event);
+  }
+
+  /** Override event delegation, to _also_ propagate events of type `UIComponentEvent` */
+  protected delegateEvent(e: ManagedEvent, propertyName: string) {
+    if (super.delegateEvent(e, propertyName) !== true && e instanceof UIComponentEvent) {
+      this.emit(e);
+      return true;
+    }
   }
 
   /** Trigger asynchronous rendering for this component, and all contained components (if any). Rendered output is passed to given callback (from the application level `UIRenderContext`, or from a containing UI component). */

@@ -1,7 +1,12 @@
 import { err, ERROR } from "../errors";
+import { ManagedCoreEvent, ManagedEvent } from "./ManagedEvent";
+import type { ManagedObject } from "./ManagedObject";
 
 /** @internal Hidden property names, used by managed objects & friends */
 export const enum HIDDEN {
+  /** @internal Method on prototype of ManagedObject for initializer chain */
+  PROTO_INSTANCE_INIT = "^-new",
+
   /** @internal Arbitrary name of the hidden property containing a managed object's references */
   REF_PROPERTY = "^-out",
 
@@ -193,6 +198,13 @@ export function defineChainableProperty<T>(
     (ownDescriptor.set as any)[HIDDEN.SETTER_CHAIN]
   ) {
     let chained = (ownDescriptor.set as any)[HIDDEN.SETTER_CHAIN];
+    if (getter) {
+      // override getter if given (but don't override setter)
+      Object.defineProperty(targetPrototype, propertyKey, {
+        ...ownDescriptor,
+        get: getter,
+      });
+    }
     (ownDescriptor.set as any)[HIDDEN.SETTER_CHAIN] = () => {
       let prev = chained();
       return {
@@ -276,6 +288,67 @@ export function defineChainableProperty<T>(
     get: protoGetter,
     set: protoSetter,
   });
+}
+
+/**
+ * Propagate events on given object, from referenced managed (child) objects.
+ * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its first argument, and the name of the property that references the emitting object as its second argument.
+ * Core event such as `ManagedCoreEvent.ACTIVE` cannot be propagated in this way, and events are no longer propagated after the object enters the 'destroyed' state. Calling this method a second time _replaces_ the current propagation rule/function.
+ * @note This function is used by the _deprecated_ method `ManagedObject.propagateChildEvents()`, but also still by `propagateEvents()` methods on `ManagedList`, `ManagedMap`, and `ManagedReference` which will not be deprecated.
+ */
+export function propagateEvents(obj: ManagedObject, childOnly?: boolean, ...types: any[]) {
+  let firstIsFunction =
+    types[0] &&
+    typeof types[0] === "function" &&
+    !(types[0].prototype instanceof ManagedEvent) &&
+    types[0] !== ManagedEvent;
+  let f:
+    | ((this: typeof obj, e: ManagedEvent, name: string) => any)
+    | undefined = firstIsFunction ? types[0] : undefined;
+  let emitting: ManagedEvent | undefined;
+  const handler = f
+    ? function (this: typeof obj, e: ManagedEvent, name: string) {
+        if (emitting === e || !this[HIDDEN.STATE_PROPERTY]) return;
+        let eventOrEvents = f!.call(this, e, name);
+        if (eventOrEvents) {
+          if (Array.isArray(eventOrEvents)) {
+            eventOrEvents.forEach(propagated => {
+              if (!ManagedCoreEvent.isCoreEvent(propagated)) {
+                this.emit((emitting = propagated));
+              }
+            });
+          } else if (!ManagedCoreEvent.isCoreEvent(eventOrEvents)) {
+            this.emit((emitting = eventOrEvents));
+          }
+          emitting = undefined;
+        }
+      }
+    : function (this: typeof obj, e: ManagedEvent) {
+        if (emitting === e || !this[HIDDEN.STATE_PROPERTY]) return;
+        if (
+          types.length &&
+          !types.some((t: any) => e === t || (typeof t === "function" && e instanceof t))
+        )
+          return;
+        if (!ManagedCoreEvent.isCoreEvent(e)) {
+          this.emit((emitting = e));
+          emitting = undefined;
+        }
+      };
+
+  // set handler function as hidden property/ies:
+  Object.defineProperty(obj, HIDDEN.CHILD_EVENT_HANDLER, {
+    configurable: true,
+    enumerable: false,
+    value: handler,
+  });
+  if (!childOnly) {
+    Object.defineProperty(obj, HIDDEN.NONCHILD_EVENT_HANDLER, {
+      configurable: true,
+      enumerable: false,
+      value: handler,
+    });
+  }
 }
 
 /** @internal Reference to `UnhandledErrorEmitter.emitError` (to break circular dependency) */

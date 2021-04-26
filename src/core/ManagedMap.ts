@@ -6,6 +6,7 @@ import {
 } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import { HIDDEN } from "./util";
+import * as util from "./util";
 
 /** Represents an _unordered_ list of managed objects that are indexed using unique key strings */
 export class ManagedMap<T extends ManagedObject = ManagedObject> extends ManagedObject {
@@ -30,13 +31,8 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
   propagateEvents(
     ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
   ): this;
-  propagateEvents() {
-    this.propagateChildEvents.apply(this, arguments as any);
-    Object.defineProperty(this, HIDDEN.NONCHILD_EVENT_HANDLER, {
-      configurable: true,
-      enumerable: false,
-      value: this[HIDDEN.CHILD_EVENT_HANDLER],
-    });
+  propagateEvents(...types: any[]) {
+    util.propagateEvents(this, false, ...types);
     return this;
   }
 

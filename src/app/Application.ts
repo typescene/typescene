@@ -6,6 +6,7 @@ import {
   ManagedList,
   ManagedService,
   ManagedCoreEvent,
+  delegateEvents,
 } from "../core";
 import { UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
@@ -69,6 +70,7 @@ export class Application extends Component {
   readonly name: string = "Application";
 
   /** List of root activities, as child components */
+  @delegateEvents
   @managedChild
   activities?: AppActivityList;
 

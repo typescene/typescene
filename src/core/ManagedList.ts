@@ -7,8 +7,8 @@ import {
 } from "./ManagedEvent";
 import { ManagedObject, ManagedObjectConstructor } from "./ManagedObject";
 import { shadowObservable } from "./observe";
-import * as util from "./util";
 import { HIDDEN } from "./util";
+import * as util from "./util";
 
 // really simple shim for Symbol.iterator in older browsers, only good for ManagedList below
 if (typeof Symbol !== "function") {
@@ -50,13 +50,8 @@ export class ManagedList<T extends ManagedObject = ManagedObject> extends Manage
   propagateEvents(
     ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
   ): this;
-  propagateEvents() {
-    this.propagateChildEvents.apply(this, arguments as any);
-    Object.defineProperty(this, HIDDEN.NONCHILD_EVENT_HANDLER, {
-      configurable: true,
-      enumerable: false,
-      value: this[HIDDEN.CHILD_EVENT_HANDLER],
-    });
+  propagateEvents(...types: any[]) {
+    util.propagateEvents(this, false, ...types);
     return this;
   }
 

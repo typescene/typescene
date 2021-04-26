@@ -267,7 +267,7 @@ export class UITheme {
       dimensions: { grow: 1, shrink: 1 },
     }),
     cell: UIStyle.create("_cell", {
-      containerLayout: { distribution: "space-around", gravity: "center" },
+      containerLayout: { distribution: "center", gravity: "center" },
       position: { top: 0 },
     }),
     cell_flow: UIStyle.create("_cell_flow", {
