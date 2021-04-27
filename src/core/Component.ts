@@ -293,7 +293,7 @@ export class Component extends ManagedObject {
    * This method is used as a default handler for `@delegateEvents`. It can be overridden if events should be handled differently in specific cases. A return value other than `true` indicates that the event is neither handled by a method that returned `true` itself, nor propagated.
    * @note In case the event name starts with a lowercase letter (a-z), the handler method should still include a capital letter (e.g. `onDoSomething()` for an event named 'doSomething'). However, it is _not_ recommended to use event names that start with lowercase letters.
    */
-  protected delegateEvent(e: ManagedEvent, propertyName: string): true | void {
+  protected delegateEvent(e: ManagedEvent, propertyName: string): boolean | void {
     let method = (this as any)[_makeMethodName(e.name)];
     let handled = typeof method === "function" && method.call(this, e, propertyName);
     if (handled === true) return true;

@@ -9,7 +9,7 @@ import {
   observe,
 } from "../../core";
 import { UICell } from "../containers/UICell";
-import { UIRenderableConstructor } from "../UIComponent";
+import { UIComponentEvent, UIRenderableConstructor } from "../UIComponent";
 import { UIRenderableController } from "../UIRenderableController";
 
 /** Action event that is emitted on a particular `UIListCellAdapter`. */
@@ -95,9 +95,12 @@ export class UIListCellAdapter<
     this.emit(event.freeze());
   }
 
-  /** Override event delegation, to delegate events of type `UIListCellAdapterEvent` instead of `ActionEvent`, if not already wrapped; other events are handled as normal */
+  /** Override event delegation, to delegate events of type `UIListCellAdapterEvent`, if not already wrapped */
   protected delegateEvent(e: ManagedEvent, propertyName: string) {
-    if (e instanceof ActionEvent && !(e instanceof UIListCellAdapterEvent)) {
+    if (
+      (e instanceof ActionEvent && !(e instanceof UIListCellAdapterEvent)) ||
+      e instanceof UIComponentEvent
+    ) {
       e = new UIListCellAdapterEvent(e.name, this, e);
     }
     return super.delegateEvent(e, propertyName);

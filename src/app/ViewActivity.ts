@@ -145,7 +145,9 @@ export class ViewActivity extends AppActivity implements UIRenderable {
 
     // create a singleton activity constructor with event handler
     class SingletonActivity extends DialogViewActivity.with(View) {}
-    if (eventHandler) SingletonActivity.addEventHandler(eventHandler);
+    if (eventHandler) {
+      SingletonActivity.prototype.delegateEvent = eventHandler;
+    }
     let activity: ViewActivity = new SingletonActivity();
     return app.showViewActivityAsync(activity);
   }
