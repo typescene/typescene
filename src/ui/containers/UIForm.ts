@@ -16,14 +16,11 @@ export class UIForm extends UIRenderableController {
     presets: UIForm.Presets,
     ...rest: Array<UIRenderableConstructor | undefined>
   ) {
-    let formContextPreset = presets.formContext;
+    let formContextPreset = presets.formContext || bind("formContext");
     delete presets.formContext;
     let CellClass = _FormCell.with(presets, ...rest);
     this.presetBoundComponent("content", CellClass).limitBindings("formContext");
-    return super.preset(
-      { formContext: formContextPreset || bind("formContext") },
-      CellClass
-    );
+    return super.preset({ formContext: formContextPreset }, CellClass);
   }
 
   /** Form state context; should be bound to a `UIFormContext` component */
@@ -34,7 +31,7 @@ export class UIForm extends UIRenderableController {
 export namespace UIForm {
   /** UIForm presets type, for use with `Component.with` */
   export interface Presets extends UICell.Presets {
-    /** Form state context; should be bound to a `UIFormContext` component */
+    /** Form state context; should be bound to a `UIFormContext` component. If not set, automatically binds to a 'formContext' property on the bound parent component */
     formContext?: ManagedRecord;
     /** Event handler for form submissions */
     onSubmit: ComponentEventHandler<UIForm>;

@@ -1,5 +1,10 @@
-import { Component, ComponentEvent, managed, managedChild } from "../core";
-import { UIComponent, UIRenderable, UIRenderableConstructor } from "./UIComponent";
+import { Component, delegateEvents, managed, managedChild, ManagedEvent } from "../core";
+import {
+  UIComponent,
+  UIComponentEvent,
+  UIRenderable,
+  UIRenderableConstructor,
+} from "./UIComponent";
 import { renderContextBinding, UIRenderContext } from "./UIRenderContext";
 
 /** Base class for a controller that encapsulates a single renderable component, without producing any output of its own */
@@ -16,7 +21,6 @@ export class UIRenderableController<TContent extends UIRenderable = UIRenderable
   /** Create a new controller with given content */
   constructor(content?: TContent) {
     super();
-    this.propagateChildEvents(ComponentEvent);
     this.content = content
       ? content
       : this._ContentClass
@@ -29,8 +33,17 @@ export class UIRenderableController<TContent extends UIRenderable = UIRenderable
   renderContext?: UIRenderContext;
 
   /** Renderable content, as a managed child reference */
+  @delegateEvents
   @managedChild
   content?: TContent;
+
+  /** Override event delegation, to _also_ propagate events of type `UIComponentEvent` */
+  protected delegateEvent(e: ManagedEvent, propertyName: string) {
+    if (super.delegateEvent(e, propertyName) !== true && e instanceof UIComponentEvent) {
+      this.emit(e);
+      return true;
+    }
+  }
 
   render(callback?: UIRenderContext.RenderCallback) {
     this._renderer.render(this.content, callback);

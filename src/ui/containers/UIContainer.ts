@@ -1,4 +1,11 @@
-import { Binding, Component, ComponentEvent, managedChild, ManagedList } from "../../core";
+import {
+  Binding,
+  Component,
+  ComponentEvent,
+  delegateEvents,
+  managedChild,
+  ManagedList,
+} from "../../core";
 import { UIComponent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIStyle } from "../UIStyle";
 
@@ -68,6 +75,7 @@ export abstract class UIContainer extends UIComponent {
   animatedContentRenderingVelocity?: number;
 
   /** Content components list */
+  @delegateEvents
   @managedChild
   readonly content: ManagedList<UIRenderable>;
 }

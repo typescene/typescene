@@ -4,6 +4,8 @@ import {
   bind,
   ComponentConstructor,
   ManagedList,
+  managed,
+  delegateEvents,
 } from "../../../dist";
 
 consider("Component", () => {
@@ -163,5 +165,49 @@ consider("Component", () => {
         t.test(c.seeThrough.child.a === 2 && c.seeThrough.child.s === "OK");
       });
     });
+  });
+
+  it("can delegate events", t => {
+    class B extends Component {}
+    class A extends Component {
+      @managed
+      @delegateEvents
+      b = new B();
+      onOK() {
+        t.ok();
+      }
+    }
+    new A().b.emit("OK");
+  });
+
+  it("can delegate events (reverse)", t => {
+    class B extends Component {}
+    class A extends Component {
+      @delegateEvents
+      @managed
+      b = new B();
+      onOK() {
+        t.ok();
+      }
+    }
+    new A().b.emit("OK");
+  });
+
+  it("propagates action events", t => {
+    class C extends Component {}
+    class B extends Component {
+      @managed
+      @delegateEvents
+      c = new C();
+    }
+    class A extends Component {
+      @managed
+      @delegateEvents
+      b = new B();
+      onOK() {
+        t.ok();
+      }
+    }
+    new A().b.c.emitAction("OK");
   });
 });

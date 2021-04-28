@@ -1,3 +1,4 @@
+import { Binding } from "../../core";
 import {
   UIComponentEventHandler,
   UIRenderable,
@@ -6,7 +7,6 @@ import {
 import { UIStyle } from "../UIStyle";
 import { UITheme, UIColor } from "../UITheme";
 import { UIContainer } from "./UIContainer";
-import { Binding } from "../../core";
 
 /** Basic animated transition types, used for `UICell.revealTransition` and `UICell.exitTransition`. More transitions may be available depending on platform and cell type. */
 export enum UICellTransition {
@@ -32,19 +32,20 @@ export class UICell extends UIContainer {
     delete presets.decoration;
     let origDecoration: Readonly<UIStyle.Decoration> | undefined;
     if (Binding.isBinding(decoration)) {
-      (this as any).presetBinding("decoration", decoration, function (
-        this: UICell,
-        v: any
-      ) {
-        this.decoration = v ? { ...origDecoration!, ...v } : origDecoration;
-      });
+      (this as any).presetBinding(
+        "decoration",
+        decoration,
+        function (this: UICell, v: any) {
+          this.decoration = v ? { ...origDecoration!, ...v } : origDecoration;
+        }
+      );
       decoration = undefined;
     }
 
     if (presets.allowKeyboardFocus) presets.allowFocus = presets.allowKeyboardFocus;
     if (presets.selectOnFocus) {
       presets.allowFocus = true;
-      presets.onFocusIn = "+Select";
+      presets.onFocusIn = "Select";
       delete presets.selectOnFocus;
     }
     let f = super.preset(presets, ...rest);
@@ -151,7 +152,7 @@ export namespace UICell {
     /** Opacity (0-1) */
     opacity?: number;
 
-    /** Set to true to select cells on focus (or click), implies allowFocus as well */
+    /** Set to true to select cells on focus, implies allowFocus as well */
     selectOnFocus?: boolean;
     /** Set to true to allow this cell *itself* to receive input focus using mouse, touch, or `UIComponent.requestFocus` */
     allowFocus?: boolean;

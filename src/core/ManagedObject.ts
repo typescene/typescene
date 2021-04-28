@@ -6,7 +6,7 @@ import {
   ManagedChangeEvent,
   CHANGE,
 } from "./ManagedEvent";
-import { ManagedReference } from "./ManagedReference";
+import type { ManagedReference } from "./ManagedReference";
 import { observe } from "./observe";
 import * as util from "./util";
 import { HIDDEN } from "./util";
@@ -74,6 +74,13 @@ export type ManagedObjectConstructor<TObject extends ManagedObject = ManagedObje
 export class ManagedObject {
   /**
    * Add an observer to _all instances_ of this class and derived classes. The observer class is instantiated for each instance of this (observed) class, and its methods are automatically called when an event or property change occurs on the observed instance.
+   * Methods of the observer class may be decorated using `@onPropertyChange` or `@onPropertyEvent`, or method names may be in the following format:
+   * - `onExamplePropertyChange()` -- called when the value of `exampleProperty` changes, or if a Change event is emitted on a managed object referenced by this (managed) property
+   * - `onExamplePropertyChangeAsync()` -- idem, but called asynchronously, and only once if multiple changes occurred before this method was called
+   * - `onExampleEventName()` -- called when an event with name `ExampleEventName` is emitted on the object; as an exception, `onChange()` is called when _any_ event that derives from `MangedChangeEvent` is emitted
+   * - `onExampleEventNameAsync()` -- idem, but called asynchronously
+   * - `onEvent()` -- called when _any_ event is emitted on the object
+   * - `onEventAsync()` -- idem, but called asynchronously
    * @note Observer classes may be nested inside of the observed class, which provides access to private and protected methods; see `@observe`
    */
   static addObserver<T extends ManagedObject>(
@@ -124,20 +131,22 @@ export class ManagedObject {
   }
 
   /** @internal Method that can be overridden on the class _prototype_ to be invoked for every new instance */
-  private ["_@@"]() {}
+  private [HIDDEN.PROTO_INSTANCE_INIT]() {}
 
   /** @internal Override the method that is run for every new instance, calling the previous method first, if any */
   static _addInitializer(f: () => void) {
-    let fp = _hOP.call(this.prototype, "_@@") && this.prototype["_@@"];
+    let fp =
+      _hOP.call(this.prototype, HIDDEN.PROTO_INSTANCE_INIT) &&
+      this.prototype[HIDDEN.PROTO_INSTANCE_INIT];
     if (fp) {
-      this.prototype["_@@"] = function () {
+      this.prototype[HIDDEN.PROTO_INSTANCE_INIT] = function () {
         (fp as Function).call(this);
         f.call(this);
       };
     } else {
       let up = Object.getPrototypeOf(this.prototype);
-      this.prototype["_@@"] = function () {
-        let fpp = up["_@@"];
+      this.prototype[HIDDEN.PROTO_INSTANCE_INIT] = function () {
+        let fpp = up[HIDDEN.PROTO_INSTANCE_INIT];
         fpp && fpp.call(this);
         f.call(this);
       };
@@ -168,7 +177,7 @@ export class ManagedObject {
     });
 
     // run callbacks, if any
-    this["_@@"]();
+    this[HIDDEN.PROTO_INSTANCE_INIT]();
   }
 
   /** Unique ID of this managed object (read only) */
@@ -241,10 +250,9 @@ export class ManagedObject {
 
   /**
    * Emit an event. If an event constructor is given, a new instance is created using given constructor arguments (rest parameters). If an event name (string) is given, a new plain event is created with given name.
-   * Use the `ManagedEvent.freeze` method to freeze event instances before emitting.
-   * See `ManagedObject.addEventHandler` and `ManagedObject.addObserver` (static methods to be used on subclasses of `ManagedObject`) for ways to handle events.
-   * @note There is a limit to the number of events that can be emitted recursively; avoid calling this method on the same object from _within_ an event handler.
-   * @exception Throws an error if the current state is 'destroyed'. Destroyed managed objects cannot emit events.
+   * For ways to handle events, see `@delegateEvents` (for events that are emitted by referenced objects) or `ManagedObject.addEventHandler` and `ManagedObject.addObserver` (static methods for class-based event handling).
+   * @note There is a limit to the number of events that can be emitted recursively; avoid calling this method on the same object from _within_ a synchronous event handler.
+   * @exception Throws an error if the current state is 'destroyed'. Managed objects in this state cannot emit events anymore.
    */
   emit<TEvent extends ManagedEvent = ManagedEvent, TConstructorArgs extends any[] = any[]>(
     e: TEvent | (new (...args: TConstructorArgs) => TEvent) | string,
@@ -292,69 +300,12 @@ export class ManagedObject {
 
   /**
    * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting the same events on this object itself.
-   * If a function is specified, the function can be used to transform one event to one or more others, or stop propagation if the function returns undefined. The function is called with the event itself as its first argument, and the name of the property that references the emitting object as its second argument.
-   * Core event such as `ManagedCoreEvent.ACTIVE` cannot be propagated in this way.
-   * Events are no longer propagated after the object enters the 'destroyed' state.
-   * @note Calling this method a second time _replaces_ the current propagation rule/function.
+   * @deprecated in favor of `@delegateEvents` since version 3.1
    */
   protected propagateChildEvents(
-    f?: (
-      this: this,
-      e: ManagedEvent,
-      propertyName: string
-    ) => ManagedEvent | ManagedEvent[] | undefined | void
-  ): this;
-  /**
-   * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting the same events on this object itself. Only propagated events that extend given event types are propagated.
-   * Core event such as `ManagedCoreEvent.ACTIVE` will not be propagated in this way.
-   * Events are no longer propagated after the object enters the 'destroyed' state.
-   * @note Calling this method a second time _replaces_ the current propagation rule/function.
-   */
-  protected propagateChildEvents(
-    ...types: Array<ManagedEvent | { new (...args: any[]): ManagedEvent }>
-  ): this;
-  protected propagateChildEvents(...types: any[]) {
-    let firstIsFunction =
-      types[0] &&
-      typeof types[0] === "function" &&
-      !(types[0].prototype instanceof ManagedEvent) &&
-      types[0] !== ManagedEvent;
-    let f:
-      | ((this: this, e: ManagedEvent, name: string) => any)
-      | undefined = firstIsFunction ? types[0] : undefined;
-    let emitting: ManagedEvent | undefined;
-    Object.defineProperty(this, HIDDEN.CHILD_EVENT_HANDLER, {
-      configurable: true,
-      enumerable: false,
-      value: function (e: ManagedEvent, name: string) {
-        if (emitting === e || !this[HIDDEN.STATE_PROPERTY]) return;
-
-        // limit by type, or run handler function
-        if (!f) {
-          if (
-            types.length &&
-            !types.some((t: any) => e === t || (typeof t === "function" && e instanceof t))
-          )
-            return;
-          if (!ManagedCoreEvent.isCoreEvent(e)) {
-            this.emit((emitting = e));
-            emitting = undefined;
-          }
-        } else {
-          let eventOrEvents = f.call(this, e, name);
-          if (Array.isArray(eventOrEvents)) {
-            eventOrEvents.forEach(propagated => {
-              if (!ManagedCoreEvent.isCoreEvent(propagated)) {
-                this.emit((emitting = propagated));
-              }
-            });
-          } else if (eventOrEvents) {
-            this.emit((emitting = eventOrEvents));
-          }
-          emitting = undefined;
-        }
-      },
-    });
+    ...types: ({ new (...args: any[]): ManagedEvent } | ((e: ManagedEvent) => any))[]
+  ) {
+    util.propagateEvents(this, true, ...types);
     return this;
   }
 
@@ -686,7 +637,10 @@ export class ManagedObject {
     if (!(object instanceof ManagedObject)) {
       throw err(ERROR.Object_PropNotManaged);
     }
-    if (Object.getOwnPropertyDescriptor(object, propertyKey)) {
+
+    // check if descriptor already defined and cannot chain
+    let chain = Object.getOwnPropertyDescriptor(object, propertyKey);
+    if (chain && (!chain.set || !(chain.set as any)[HIDDEN.SETTER_CHAIN])) {
       throw err(ERROR.Object_PropGetSet);
     }
 
@@ -776,7 +730,7 @@ export class ManagedObject {
   private [HIDDEN.STATE_PROPERTY]!: ManagedState;
   /** @internal Chained event handler(s) */
   private [HIDDEN.EVENT_HANDLER]: (e: ManagedEvent) => void;
-  /** @internal Chained event handler(s) */
+  /** @internal Child event handler (not chained) */
   private [HIDDEN.CHILD_EVENT_HANDLER]: (e: ManagedEvent, name: string) => void;
 
   /** True if currently emitting an event */

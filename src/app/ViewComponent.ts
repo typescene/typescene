@@ -1,21 +1,27 @@
 import {
-  ComponentEvent,
   logUnhandledException,
   managedChild,
   ManagedState,
   Binding,
-  ManagedEvent,
   Component,
   ComponentConstructor,
+  delegateEvents,
+  ManagedEvent,
 } from "../core";
-import { UIComponent, UIRenderable, UIRenderableConstructor, UIRenderContext } from "../ui";
+import {
+  UIComponent,
+  UIComponentEvent,
+  UIRenderable,
+  UIRenderableConstructor,
+  UIRenderContext,
+} from "../ui";
 import { AppComponent } from "./AppComponent";
 import { ViewActivity } from "./ViewActivity";
 import { err, ERROR } from "../errors";
 
 /**
- * Represents an application component that encapsulates a view as a bound component. Bindings and event handlers in nested view components are bound to the ViewComponent instance itself, and events are propagated by default.
- * @note This class is similar in functionality to `ViewActivity`, but `ViewComponent` views are created immediately, whereas view activities need to be activated first before their views are created.
+ * Represents an application component that encapsulates a view as a bound component. Bindings in nested view components are bound to the ViewComponent instance itself.
+ * @note This class is similar in functionality to `ViewActivity`, but `ViewComponent` views are created immediately, whereas view activities need to be activated first before their views are created. View components also propagate (re-emit) events of type `UIComponentEvent` for user interactions such as 'Click', 'FocusIn', etc.
  */
 export class ViewComponent extends AppComponent implements UIRenderable {
   static preset(presets: object, ...View: UIRenderableConstructor[]): Function {
@@ -46,8 +52,6 @@ export class ViewComponent extends AppComponent implements UIRenderable {
       view: ComponentConstructor<UIRenderable> | typeof Component;
       // NOTE ^ need to be liberal here to make sure compiler does not
       // accidentally pick the simpler override below with `object` type
-      /** View event handler */
-      event?: (e: any) => ManagedEvent | ManagedEvent[] | undefined | void;
     }
   ): ViewComponent.PresetType<PresetT, ContentPropertiesT>;
   /** Declare a view component class with given preset properties */
@@ -77,7 +81,6 @@ export class ViewComponent extends AppComponent implements UIRenderable {
       defaults?: any;
       content?: string[];
       view: UIRenderableConstructor;
-      event?: (e: any) => any;
     } = arg;
     if (!args.content) args.content = ["content"];
     let defaults = args.defaults;
@@ -101,9 +104,6 @@ export class ViewComponent extends AppComponent implements UIRenderable {
       }
       constructor(values?: any) {
         super();
-
-        // add event handler/propagation function
-        if (args.event) this.propagateChildEvents(args.event as any);
 
         // apply defaults and given values directly
         const apply = (o: any) => {
@@ -140,7 +140,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
   /**
    * Create a child view of given type automatically for each instance of the view component. Bindings for given properties are bound to the ViewComponent instance, others are ignored so that their values will be taken from the containing bound parent instead of the ViewComponent itself.
    * @param propertyName
-   *  The property that will be set. This property must _already_ be a designated managed child property (see `@managedChild`).
+   *  The property that will be set. This property must _already_ be a managed child property, decorated using `@managedChild` and optionally `@delegateEvents` for event handling.
    * @param View
    *  The (preset) constructor for the child view. This constructor will be used to create a child component for each `ViewComponent` instance.
    * @param boundProperties
@@ -164,7 +164,6 @@ export class ViewComponent extends AppComponent implements UIRenderable {
 
   constructor() {
     super();
-    this.propagateChildEvents(ComponentEvent);
     if (this._Views) {
       for (let p in this._Views) {
         (this as any)[p] = new this._Views[p]();
@@ -172,9 +171,18 @@ export class ViewComponent extends AppComponent implements UIRenderable {
     }
   }
 
-  /** The root component that makes up the content for this view, bound to the `ViewComponent` itself */
+  /** The root component that makes up the content for this view, as a managed child reference */
+  @delegateEvents
   @managedChild
   view?: UIRenderable;
+
+  /** Override event delegation, to _also_ propagate events of type `UIComponentEvent` */
+  protected delegateEvent(e: ManagedEvent, propertyName: string) {
+    if (super.delegateEvent(e, propertyName) !== true && e instanceof UIComponentEvent) {
+      this.emit(e);
+      return true;
+    }
+  }
 
   /** Render the encapsulated view for this component. This method should not be called directly; it is called automatically based on changes to the application render context. */
   render(callback?: UIRenderContext.RenderCallback) {

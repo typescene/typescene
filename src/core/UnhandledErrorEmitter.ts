@@ -15,7 +15,7 @@ export class UnhandledErrorEvent extends ManagedEvent {
 
 /**
  * Singleton managed object class that logs errors and emits an `UnhandledErrorEvent` for otherwise unhandled exceptions.
- * The (single) instance of this class can be observed to capture errors as `UnhandledErrorEvent` events, to handle errors in different ways
+ * This class can be observed to capture errors, e.g. using `ManagedObject.addEventHandler()`.
  */
 export class UnhandledErrorEmitter extends ManagedObject {
   /** Log and emit given error */

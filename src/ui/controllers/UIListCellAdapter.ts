@@ -1,4 +1,5 @@
 import {
+  ActionEvent,
   ComponentEvent,
   ComponentEventHandler,
   managed,
@@ -8,16 +9,19 @@ import {
   observe,
 } from "../../core";
 import { UICell } from "../containers/UICell";
-import { UIRenderableConstructor } from "../UIComponent";
+import { UIComponentEvent, UIRenderableConstructor } from "../UIComponent";
 import { UIRenderableController } from "../UIRenderableController";
 
-/** Event that is emitted on a particular `UIListCellAdapter`. */
+/** Action event that is emitted on a particular `UIListCellAdapter`. */
 export class UIListCellAdapterEvent<
   TObject extends ManagedObject = ManagedObject
-> extends ComponentEvent {
+> extends ActionEvent {
   constructor(name: string, source: UIListCellAdapter<TObject>, inner?: ManagedEvent) {
     super(name, source, inner);
     if (!source.content) throw TypeError();
+    this.context = source.object;
+
+    // set UIListCellAdapter specific properties
     this.object = source.object;
     this.cell = source.content;
     this.value = source.value;
@@ -33,7 +37,11 @@ export class UIListCellAdapterEvent<
   readonly value?: any;
 }
 
-/** Component that can be used as an adapter to render items in a `UIListController`. Instances are constructed using a single argument (a managed object from `UIListController.items`), and encapsulate a `UICell` component. The static `with` method takes the same arguments as `UICell` itself along with additional properties to manage display of selected and focused cells. Encapsulated content can include bindings to the `object`, `value`, `selected`, and `hovered` properties. */
+/**
+ * Component that can be used as an adapter to render items in a `UIListController`. Instances are constructed using a single argument (a managed object from `UIListController.items`), and encapsulate a `UICell` component.
+ * Encapsulated content can include bindings to the `object`, `value`, `selected`, and `hovered` properties.
+ * Events of type `ActionEvent` are wrapped in an event of type `UIListCellAdapterEvent`, which contains references to the cell and current list item object or value. Events that are already of type `UIListCellAdapterEvent` are not wrapped a second time, i.e. event properties are specific to the innermost adapter.
+ */
 export class UIListCellAdapter<
   TObject extends ManagedObject = ManagedObject
 > extends UIRenderableController<UICell> {
@@ -64,13 +72,6 @@ export class UIListCellAdapter<
     super();
     this.object = object;
     this.value = object.valueOf();
-
-    // propagate events as `UIListCellAdapterEvent`
-    this.propagateChildEvents(e => {
-      if (e instanceof ComponentEvent) {
-        return new UIListCellAdapterEvent(e.name, this, e);
-      }
-    });
   }
 
   /** The encapsulated object */
@@ -80,19 +81,38 @@ export class UIListCellAdapter<
   /** The intrinsic value of the encapsulated object (result of `valueOf()` called on the original object) */
   readonly value: any;
 
-  /** Create and emit a `UIListCellAdapterEvent` with given name and a reference to this component and its cell and object; see `Component.propagateComponentEvent` */
+  /** Create and emit a `UIListCellAdapterEvent` with given name and a reference to this component and its cell and object
+   * @deprecated in v3.1 */
   propagateComponentEvent(name: string, inner?: ManagedEvent) {
     if (!this.managedState) return;
     this.emit(UIListCellAdapterEvent, name, this, inner);
   }
 
-  /** True if the cell is currently selected (based on `Select` and `Deselect` events) */
+  /** Emit an an action event (overridden from `Component.emitAction`, to emit `UIListCellAdapterEvent` instead) */
+  emitAction(name: string, inner?: ManagedEvent, context?: ManagedObject) {
+    let event = new UIListCellAdapterEvent(name, this, inner);
+    event.context = context;
+    this.emit(event.freeze());
+  }
+
+  /** Override event delegation, to delegate events of type `UIListCellAdapterEvent`, if not already wrapped */
+  protected delegateEvent(e: ManagedEvent, propertyName: string) {
+    if (
+      (e instanceof ActionEvent && !(e instanceof UIListCellAdapterEvent)) ||
+      e instanceof UIComponentEvent
+    ) {
+      e = new UIListCellAdapterEvent(e.name, this, e);
+    }
+    return super.delegateEvent(e, propertyName);
+  }
+
+  /** True if the cell is currently selected (based on `Select` and `Deselect` events; read-only) */
   @shadowObservable("_selected")
   get selected() {
     return this._selected;
   }
 
-  /** True if the cell is currently hovered over using the mouse cursor (based on `MouseEnter` and `MouseLeave` events) */
+  /** True if the cell is currently hovered over using the mouse cursor (based on `MouseEnter` and `MouseLeave` events; read-only) */
   @shadowObservable("_hovered")
   get hovered() {
     return this._hovered;

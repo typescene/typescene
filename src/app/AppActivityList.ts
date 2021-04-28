@@ -1,7 +1,14 @@
-import { Component, ComponentConstructor } from "../core/Component";
-import { CHANGE, ManagedCoreEvent } from "../core/ManagedEvent";
-import { ManagedList } from "../core/ManagedList";
-import { managedChild } from "../core/ManagedReference";
+import {
+  Component,
+  ComponentConstructor,
+  CHANGE,
+  ManagedEvent,
+  ManagedCoreEvent,
+  ManagedList,
+  managedChild,
+  delegateEvents,
+  ActionEvent,
+} from "../core";
 import { AppActivity } from "./AppActivity";
 
 /** Component that encapsulates a list of child activities; emits change events when the list changes (propagated from `ManagedList`) and when one of the activities becomes active or inactive */
@@ -21,9 +28,10 @@ export class AppActivityList extends Component {
     super();
     this.$list = new ManagedList().restrict(AppActivity);
 
-    // propagate list events, active/inactive
-    this.propagateChildEvents();
+    // propagate events from components in the list to the list itself,
+    // so that they can be delegated from there
     this.$list.propagateEvents(e => {
+      if (e instanceof ActionEvent) return e;
       if (e === ManagedCoreEvent.ACTIVE || e === ManagedCoreEvent.INACTIVE) {
         return CHANGE;
       }
@@ -71,7 +79,13 @@ export class AppActivityList extends Component {
     return this.$list.toArray();
   }
 
+  /** Re-emits given event on this component; called for each event that is emitted by the encapsulated list (which also propagates events of type `ActionEvent` from all contained activities) */
+  delegateEvent(e: ManagedEvent) {
+    this.emit(e);
+  }
+
   /** The encapsulated list itself */
+  @delegateEvents
   @managedChild
   private $list!: ManagedList<AppActivity>;
 }

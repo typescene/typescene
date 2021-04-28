@@ -1,4 +1,6 @@
 import {
+  ComponentEvent,
+  delegateEvents,
   logUnhandledException,
   managed,
   managedChild,
@@ -8,7 +10,6 @@ import {
 import { err, ERROR } from "../errors";
 import {
   UIComponent,
-  UIComponentEvent,
   UIRenderable,
   UIRenderableConstructor,
   UIRenderContext,
@@ -48,18 +49,8 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     return super.preset(presets);
   }
 
-  /** Create a new (inactive) view activity with given name and path */
-  constructor(name?: string, path?: string) {
-    super(name, path);
-    this.propagateChildEvents(e => {
-      if (e instanceof UIComponentEvent && e.name === "FocusIn") {
-        if (!this.firstFocused) this.firstFocused = e.source;
-        this.lastFocused = e.source;
-      }
-    });
-  }
-
   /** The root component that makes up the content for this view, as a child component */
+  @delegateEvents
   @managedChild
   view?: UIRenderable;
 
@@ -120,6 +111,14 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     else this.lastFocused && this.lastFocused.requestFocus();
   }
 
+  /** Handle FocusIn UI event, remember first/last focused component */
+  protected onFocusIn(e: ComponentEvent) {
+    if (e.source instanceof UIComponent) {
+      if (!this.firstFocused) this.firstFocused = e.source;
+      this.lastFocused = e.source;
+    }
+  }
+
   /** The UI component that was focused first, if any */
   @managed
   firstFocused?: UIComponent;
@@ -129,13 +128,13 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   lastFocused?: UIComponent;
 
   /**
-   * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately.
+   * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately. The activity responds to the CloseModal event by destroying the activity, which removes the view as well.
    * @param View
    *  A view component constructor
    * @param eventHandler
-   *  A function that is invoked for all events that are emitted by the view; if no function is specified, only the `CloseModal` event is handled (emitted e.g. when clicking outside of the modal view area) by destroying the view activity instance.
+   *  A function that is invoked for all events that are emitted by the view
    * @returns A promise that resolves to the view _activity_ instance after it has been activated.
-   * @note Use to the `Application.showViewActivityAsync` method to show a view that is already encapsulated in an activity instance.
+   * @note Use the `Application.showViewActivityAsync` method, or reference an activity using a managed child property to show a view that is already encapsulated in an activity.
    */
   showDialogAsync(
     View: UIRenderableConstructor,
@@ -145,11 +144,9 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     if (!app) throw err(ERROR.ViewActivity_NoApplication);
 
     // create a singleton activity constructor with event handler
-    class SingletonActivity extends DialogViewActivity.with(View) {
-      constructor() {
-        super();
-        if (eventHandler) this.propagateChildEvents(eventHandler);
-      }
+    class SingletonActivity extends DialogViewActivity.with(View) {}
+    if (eventHandler) {
+      SingletonActivity.prototype.delegateEvent = eventHandler;
     }
     let activity: ViewActivity = new SingletonActivity();
     return app.showViewActivityAsync(activity);
@@ -267,9 +264,12 @@ export class DialogViewActivity extends ViewActivity {
     super();
     this.placement = UIRenderPlacement.DIALOG;
     this.modalShadeOpacity = UITheme.current.modalDialogShadeOpacity;
-    this.propagateChildEvents(e => {
-      if (e.name === "CloseModal") this.destroyAsync();
-    });
+  }
+
+  /** Handle CloseModal event by destroying this activity; stops propagation of the event */
+  protected onCloseModal() {
+    this.destroyAsync();
+    return true;
   }
 }
 
