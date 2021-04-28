@@ -39,7 +39,7 @@ export function formatValue(format: string, value: any): any {
   if (format[0] === "{") format = format.slice(1, -1);
 
   // parse formatting spec or use formatter function
-  let match = format.match(/^([-0+ ]+)?(\d+)?(\.\d+)?([%diufFeEgGxXsc])$/);
+  let match = format.match(/^([-0+ ]+)?(\d+)?(\.\d+)?([%ndiufFeEgGxXsc])$/);
   if (!match) {
     // use formatter function from lookup table
     let split = format.split(":");
@@ -83,22 +83,25 @@ export function formatValue(format: string, value: any): any {
           positivePrefix,
           padPrefix
         );
+      case "n":
+      case "N":
+        let sn = Math.abs(+value).toFixed(p ?? 6);
+        if (sn.length) sn = sn.replace(/\.?0+$/, "");
+        return _alignFmtNum(sn, value < 0, w, leftAlign, positivePrefix, padPrefix);
       case "f":
       case "F":
-        s = _alignFmtNum(
-          Math.abs(+value).toFixed(p),
+        return _alignFmtNum(
+          Math.abs(+value).toFixed(p ?? 6),
           value < 0,
           w,
           leftAlign,
           positivePrefix,
           padPrefix
         );
-        if (p === undefined) s = s.replace(/0+$/, "0");
-        return type === "F" ? s.toUpperCase() : s;
       case "e":
       case "E":
         s = _alignFmtNum(
-          Math.abs(+value).toExponential(p),
+          Math.abs(+value).toExponential(p ?? 6),
           value < 0,
           w,
           leftAlign,
@@ -108,14 +111,15 @@ export function formatValue(format: string, value: any): any {
         return type === "E" ? s.toUpperCase() : s;
       case "g":
       case "G":
-        s = _alignFmtNum(
-          Math.abs(+value).toString(),
-          value < 0,
-          w,
-          leftAlign,
-          positivePrefix,
-          padPrefix
-        );
+        let sg = Math.abs(+value)
+          .toExponential(p ?? 6)
+          .replace(/\.?0+e/, "e");
+        let gExp = +sg.split("e")[1] || 0;
+        if (gExp >= -4 && gExp <= (p ?? 6)) {
+          sg = Math.abs(+value).toFixed(p ?? 6);
+          if (sg.length) sg = sg.replace(/\.?0+$/, "");
+        }
+        s = _alignFmtNum(sg, value < 0, w, leftAlign, positivePrefix, padPrefix);
         return type === "G" ? s.toUpperCase() : s;
       case "x":
       case "X":

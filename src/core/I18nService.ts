@@ -123,10 +123,11 @@ export class I18nString {
 
       // replace plural placeholders
       let text = this.text.replace(
-        /\#\{([^}]*)\}/g,
+        /\#(?:(\d+)\$)?\{([^}]*)\}/g,
         (i18n = i18n || _currentRef.get())
-          ? (_s, opts) => i18n!.getPlural(+values[0] || 0, opts.split("/"))
-          : (_s, opts) => opts.split("/")[values[0] == 1 ? 0 : 1]
+          ? (_s, pos, opts) =>
+              i18n!.getPlural(+values[pos ? pos - 1 : 0] || 0, opts.split("/"))
+          : (_s, pos, opts) => opts.split("/")[values[pos ? pos - 1 : 0] == 1 ? 0 : 1]
       );
 
       // use sprintf to format result
@@ -141,6 +142,7 @@ export class I18nString {
  * Placeholders in the format string are compatible with C-style _sprintf_, e.g. %s, %+8i, %.5f, etc. as well as the following custom placeholders:
  * - `***{comments}***` which are removed
  * - `#{a/b}`, `#{a/b/c}` to select an option based on the numeric value of the _first_ value in the parameter list, for pluralization (e.g. `strf("%i file#{/s}", n)`)
+ * - `#n${a/b}`, `#n${a/b/c}` to select an option based on the numeric value of the parameter at position _n_ (1-based index), for pluralization (e.g. `strf("User %s has %i message#2${/s}", userName, nMessages)`)
  * - `%{_}` to insert nothing at all (blank string)
  * - `%{uc}`, %{lc}` for uppercase and lowercase strings
  * - `%{?}` for true or false (boolean) and `%{!}` for negation
@@ -150,6 +152,7 @@ export class I18nString {
  * - `%{local:...}` for I18n-formatted values; the type part(s) are variable, and will need to be implemented by the `I18nService.format` method of the currently registered I18n service, e.g. `strf("%{local:date}", new Date())`.
  * @note Asterisks (`*`) anywhere in a placeholder are replaced by the next value in the parameter list (_before_ the value being represented itself), e.g. in `strf("%.*f", precision, number)` and `strf("%{local:currency:*}", currency, number)`.
  * @note Floating point numbers are formatted using the decimal separator specified by the `I18nService.decimalSeparator` property of the currently registered I18n service, if any. Number grouping separators are not supported, and if necessary numbers will need to be formatted using %{local:...}.
+ * @note Use position specifiers (i.e. `n$`) to change the order of parameters used, e.g. `strf("A is %i and B is %i, so %1$i + %2$i equals %i", i1, i2, i1 + i2)`. This is also helpful for translations where the position of words or numbers must be reversed.
  */
 export function strf(format: string | { toString(): string }, ...values: any[]) {
   if (format instanceof I18nString) {
