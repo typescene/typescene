@@ -74,6 +74,26 @@ export class AppActivityList extends Component {
     return this.$list.includes(activity);
   }
 
+  /**
+   * Iterates over the activities in this list and invokes given callback for each activity
+   * @param callback
+   *  the function to be called, with a single activity as the only argument
+   * @see `ManagedList.forEach()`
+   */
+  forEach(callback: (target: AppActivity) => void) {
+    this.$list.forEach(callback);
+  }
+
+  /**
+   * Iterates over the activities in this list and invokes given callback for each activity, then returns an array with all callback return values.
+   * @param callback
+   *  the function to be called, with a single activity as the only argument
+   * @note The behavior of this method is undefined if the activity list is changed while running.
+   */
+  map<TResult>(callback: (target: AppActivity) => TResult): TResult[] {
+    return this.$list.map(callback);
+  }
+
   /** Returns an array with all activities currently in this list */
   toArray() {
     return this.$list.toArray();
