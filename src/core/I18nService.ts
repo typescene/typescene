@@ -143,6 +143,7 @@ export class I18nString {
  * - `***{comments}***` which are removed
  * - `#{a/b}`, `#{a/b/c}` to select an option based on the numeric value of the _first_ value in the parameter list, for pluralization (e.g. `strf("%i file#{/s}", n)`)
  * - `#n${a/b}`, `#n${a/b/c}` to select an option based on the numeric value of the parameter at position _n_ (1-based index), for pluralization (e.g. `strf("User %s has %i message#2${/s}", userName, nMessages)`)
+ * - `%n` (non-standard) general-purpose number format, never results in exponential notation
  * - `%{_}` to insert nothing at all (blank string)
  * - `%{uc}`, %{lc}` for uppercase and lowercase strings
  * - `%{?}` for true or false (boolean) and `%{!}` for negation
