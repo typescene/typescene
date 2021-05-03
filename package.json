@@ -27,7 +27,7 @@
     "index.d.ts"
   ],
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist dist-es6 dist-es8",
     "prepublishOnly": "npm run build",
     "prebuild": "npm run clean && tsc -p src --declaration",
     "build-es8": "tsc -p src --target es2017 --outDir dist-es8 --removeComments",
