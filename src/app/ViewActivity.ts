@@ -18,34 +18,45 @@ import {
   Stringable,
 } from "../ui";
 import { AppActivity } from "./AppActivity";
+import { Application } from "./Application";
 
 /**
  * View activity base class. Represents an application activity with content that can be rendered when activated.
  * @note Nothing is rendered if the `placement` property is undefined (default). Make sure this property is set to a `UIRenderPlacement` value before rendering, or use a specific view activity class such as `PageViewActivity`.
  */
 export class ViewActivity extends AppActivity implements UIRenderable {
+  /**
+   * Register this activity class with the application auto-update handler (for automatic reload/hot module update). When possible, updates to the module trigger updates to any existing activity instances, with new methods and a new view instance.
+   * @param module
+   *  Reference to the module that should be watched for updates (build system-specific)
+   */
+  static autoUpdate(module: any) {
+    Application.registerAutoUpdate(module, this, "@reload");
+  }
+
+  /** @internal Update prototype for given class with newer prototype */
+  static ["@reload"](Old: typeof ViewActivity, Updated: typeof ViewActivity) {
+    if (Old.prototype._OrigClass) Old = Old.prototype._OrigClass;
+    Updated.prototype._OrigClass = Old;
+    let desc = (Object as any).getOwnPropertyDescriptors(Updated.prototype);
+    for (let p in desc) Object.defineProperty(Old.prototype, p, desc[p]);
+    let View = (Old.prototype._ViewClass = Updated.prototype._ViewClass);
+    if (View && Old.prototype._PresetClass) {
+      Old.prototype._PresetClass.presetBoundComponent("view", View, AppActivity);
+      for (var id in Old.prototype._allActive) {
+        var activity = Old.prototype._allActive[id];
+        if (activity.isActive()) activity.view = new View();
+      }
+    }
+  }
+
   static preset(presets: ViewActivity.Presets, View?: UIRenderableConstructor): Function {
-    let addViewComponent = (View: UIRenderableConstructor) => {
+    if (View) {
       this.presetBoundComponent("view", View, AppActivity);
-      if (this.prototype._allActive) {
-        if (this.prototype._ViewClass) {
-          // this exact activity class was previously bound to a different view,
-          // go through all active instances to replace the view now
-          for (let id in this.prototype._allActive) {
-            let activity = this.prototype._allActive[id];
-            if (activity.isActive()) activity.view = new View();
-          }
-        }
-      } else {
-        this.prototype._allActive = Object.create(null);
-      }
+      if (!this.prototype._allActive) this.prototype._allActive = Object.create(null);
       this.prototype._ViewClass = View;
-      if (!Object.prototype.hasOwnProperty.call(View, "preset")) {
-        // add a callback for 'hot' reload to update the view class
-        (View as any)["@updateActivity"] = addViewComponent;
-      }
-    };
-    if (View) addViewComponent(View);
+      this.prototype._PresetClass = this;
+    }
     return super.preset(presets);
   }
 
@@ -199,9 +210,11 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   private _cbContext?: UIRenderContext;
   private _renderer = new UIComponent.DynamicRendererWrapper();
 
-  // these two references are set on the prototype instead (by static `preset()`):
+  // these references are set on the prototype instead (by static `preset()`):
   private _allActive?: { [managedId: string]: ViewActivity };
   private _ViewClass?: UIRenderableConstructor;
+  private _PresetClass?: typeof ViewActivity;
+  private _OrigClass?: typeof ViewActivity;
 
   /** @internal Observe view activities to create views and render when needed */
   @observe
