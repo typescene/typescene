@@ -20,8 +20,8 @@ const OBS_UID_PROP = "^o:uid";
 const RESOLVED = Promise.resolve();
 
 /**
- * Add the decorated observer to _all instances_ of the target class and derived classes. A new observer (instance of given observer class) is created for each target instance, and observed properties are amended with dynamic setters to trigger observer methods.
- * @note See `ManagedObject.addEventHandler` for another way to handle events emitted directly by instances of a managed object class.
+ * Static property decorator: add the decorated observer to _all instances_ of the target class and derived classes.
+ * @see `ManagedObject.addObserver`
  * @decorator
  */
 export function observe<C extends ManagedObjectConstructor>(

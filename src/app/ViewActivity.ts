@@ -1,4 +1,6 @@
 import {
+  ComponentEvent,
+  delegateEvents,
   logUnhandledException,
   managed,
   managedChild,
@@ -8,7 +10,6 @@ import {
 import { err, ERROR } from "../errors";
 import {
   UIComponent,
-  UIComponentEvent,
   UIRenderable,
   UIRenderableConstructor,
   UIRenderContext,
@@ -17,49 +18,50 @@ import {
   Stringable,
 } from "../ui";
 import { AppActivity } from "./AppActivity";
+import { Application } from "./Application";
 
 /**
  * View activity base class. Represents an application activity with content that can be rendered when activated.
  * @note Nothing is rendered if the `placement` property is undefined (default). Make sure this property is set to a `UIRenderPlacement` value before rendering, or use a specific view activity class such as `PageViewActivity`.
  */
 export class ViewActivity extends AppActivity implements UIRenderable {
+  /**
+   * Register this activity class with the application auto-update handler (for automatic reload/hot module update). When possible, updates to the module trigger updates to any existing activity instances, with new methods and a new view instance.
+   * @param module
+   *  Reference to the module that should be watched for updates (build system-specific)
+   */
+  static autoUpdate(module: any) {
+    Application.registerAutoUpdate(module, this, "@reload");
+  }
+
+  /** @internal Update prototype for given class with newer prototype */
+  static ["@reload"](Old: typeof ViewActivity, Updated: typeof ViewActivity) {
+    if (Old.prototype._OrigClass) Old = Old.prototype._OrigClass;
+    Updated.prototype._OrigClass = Old;
+    let desc = (Object as any).getOwnPropertyDescriptors(Updated.prototype);
+    for (let p in desc) Object.defineProperty(Old.prototype, p, desc[p]);
+    let View = (Old.prototype._ViewClass = Updated.prototype._ViewClass);
+    if (View && Old.prototype._PresetClass) {
+      Old.prototype._PresetClass.presetBoundComponent("view", View, AppActivity);
+      for (var id in Old.prototype._allActive) {
+        var activity = Old.prototype._allActive[id];
+        if (activity.isActive()) activity.view = new View();
+      }
+    }
+  }
+
   static preset(presets: ViewActivity.Presets, View?: UIRenderableConstructor): Function {
-    let addViewComponent = (View: UIRenderableConstructor) => {
+    if (View) {
       this.presetBoundComponent("view", View, AppActivity);
-      if (this.prototype._allActive) {
-        if (this.prototype._ViewClass) {
-          // this exact activity class was previously bound to a different view,
-          // go through all active instances to replace the view now
-          for (let id in this.prototype._allActive) {
-            let activity = this.prototype._allActive[id];
-            if (activity.isActive()) activity.view = new View();
-          }
-        }
-      } else {
-        this.prototype._allActive = Object.create(null);
-      }
+      if (!this.prototype._allActive) this.prototype._allActive = Object.create(null);
       this.prototype._ViewClass = View;
-      if (!Object.prototype.hasOwnProperty.call(View, "preset")) {
-        // add a callback for 'hot' reload to update the view class
-        (View as any)["@updateActivity"] = addViewComponent;
-      }
-    };
-    if (View) addViewComponent(View);
+      this.prototype._PresetClass = this;
+    }
     return super.preset(presets);
   }
 
-  /** Create a new (inactive) view activity with given name and path */
-  constructor(name?: string, path?: string) {
-    super(name, path);
-    this.propagateChildEvents(e => {
-      if (e instanceof UIComponentEvent && e.name === "FocusIn") {
-        if (!this.firstFocused) this.firstFocused = e.source;
-        this.lastFocused = e.source;
-      }
-    });
-  }
-
   /** The root component that makes up the content for this view, as a child component */
+  @delegateEvents
   @managedChild
   view?: UIRenderable;
 
@@ -120,6 +122,14 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     else this.lastFocused && this.lastFocused.requestFocus();
   }
 
+  /** Handle FocusIn UI event, remember first/last focused component */
+  protected onFocusIn(e: ComponentEvent) {
+    if (e.source instanceof UIComponent) {
+      if (!this.firstFocused) this.firstFocused = e.source;
+      this.lastFocused = e.source;
+    }
+  }
+
   /** The UI component that was focused first, if any */
   @managed
   firstFocused?: UIComponent;
@@ -129,13 +139,13 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   lastFocused?: UIComponent;
 
   /**
-   * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately.
+   * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately. The activity responds to the CloseModal event by destroying the activity, which removes the view as well.
    * @param View
    *  A view component constructor
    * @param eventHandler
-   *  A function that is invoked for all events that are emitted by the view; if no function is specified, only the `CloseModal` event is handled (emitted e.g. when clicking outside of the modal view area) by destroying the view activity instance.
+   *  A function that is invoked for all events that are emitted by the view
    * @returns A promise that resolves to the view _activity_ instance after it has been activated.
-   * @note Use to the `Application.showViewActivityAsync` method to show a view that is already encapsulated in an activity instance.
+   * @note Use the `Application.showViewActivityAsync` method, or reference an activity using a managed child property to show a view that is already encapsulated in an activity.
    */
   showDialogAsync(
     View: UIRenderableConstructor,
@@ -145,11 +155,9 @@ export class ViewActivity extends AppActivity implements UIRenderable {
     if (!app) throw err(ERROR.ViewActivity_NoApplication);
 
     // create a singleton activity constructor with event handler
-    class SingletonActivity extends DialogViewActivity.with(View) {
-      constructor() {
-        super();
-        if (eventHandler) this.propagateChildEvents(eventHandler);
-      }
+    class SingletonActivity extends DialogViewActivity.with(View) {}
+    if (eventHandler) {
+      SingletonActivity.prototype.delegateEvent = eventHandler;
     }
     let activity: ViewActivity = new SingletonActivity();
     return app.showViewActivityAsync(activity);
@@ -202,9 +210,11 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   private _cbContext?: UIRenderContext;
   private _renderer = new UIComponent.DynamicRendererWrapper();
 
-  // these two references are set on the prototype instead (by static `preset()`):
+  // these references are set on the prototype instead (by static `preset()`):
   private _allActive?: { [managedId: string]: ViewActivity };
   private _ViewClass?: UIRenderableConstructor;
+  private _PresetClass?: typeof ViewActivity;
+  private _OrigClass?: typeof ViewActivity;
 
   /** @internal Observe view activities to create views and render when needed */
   @observe
@@ -267,9 +277,12 @@ export class DialogViewActivity extends ViewActivity {
     super();
     this.placement = UIRenderPlacement.DIALOG;
     this.modalShadeOpacity = UITheme.current.modalDialogShadeOpacity;
-    this.propagateChildEvents(e => {
-      if (e.name === "CloseModal") this.destroyAsync();
-    });
+  }
+
+  /** Handle CloseModal event by destroying this activity; stops propagation of the event */
+  protected onCloseModal() {
+    this.destroyAsync();
+    return true;
   }
 }
 

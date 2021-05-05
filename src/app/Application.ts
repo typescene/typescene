@@ -6,11 +6,15 @@ import {
   ManagedList,
   ManagedService,
   ManagedCoreEvent,
+  delegateEvents,
 } from "../core";
 import { UIRenderContext } from "../ui";
 import { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
 import { AppActivityList } from "./AppActivityList";
+
+/** Handler that is used for automatic class updates (e.g. hot module reload) */
+let _autoUpdateHandler: undefined | Function;
 
 /**
  * Represents the application itself, encapsulates activities (`AppActivity` components) and contexts for rendering and activation using URL-like paths.
@@ -19,7 +23,7 @@ import { AppActivityList } from "./AppActivityList";
  */
 export class Application extends Component {
   /**
-   * Create an application that includes given activities, and start it immediately.
+   * Create an application that includes given activities, and start it immediately. If none of the activities has a `path` property, then all activities are activated immediately; otherwise each activity will activate itself using the current `activationContect`.
    * @returns the application instance
    * @note Calling this method directly on `Application` creates an application without any context (i.e. `activationContext` and `renderContext`). Instead, use a constructor that is meant for a specific platform (e.g. `BrowserApplication`).
    */
@@ -58,17 +62,48 @@ export class Application extends Component {
       this.presetBoundComponent("activities", L, AppActivity);
       this.addEventHandler(function (e) {
         // toggle property based on activation state
-        if (e === ManagedCoreEvent.ACTIVE) this.activities = new L();
-        if (e === ManagedCoreEvent.INACTIVE) this.activities = undefined;
+        if (e === ManagedCoreEvent.INACTIVE) {
+          this.activities = undefined;
+        }
+        if (e === ManagedCoreEvent.ACTIVE) {
+          this.activities = new L();
+
+          // if none of the activities has a path, activate all of them now
+          let paths = this.activities.map(a => a.path).filter(s => !!s);
+          if (!paths.length) {
+            this.activities.forEach(a => {
+              a.activateAsync().catch(logUnhandledException);
+            });
+          }
+        }
       });
     }
     return super.preset(presets);
+  }
+
+  /** Set a handler that is used to register classes and modules for automatic update/reload; this method is used by e.g. `@typescene/webapp` to support Hot Module Reload */
+  static setAutoUpdateHandler<T extends ComponentConstructor>(
+    f: (module: any, C: T, methodName: string & keyof T) => void
+  ) {
+    _autoUpdateHandler = f;
+  }
+
+  /** Register given class and module for automatic update/reload; this method is used by e.g. `ViewActivity` and should not be used on its own */
+  static registerAutoUpdate<T extends ComponentConstructor>(
+    module: any,
+    C: T,
+    methodName: string & keyof T
+  ) {
+    setTimeout(() => {
+      if (_autoUpdateHandler) _autoUpdateHandler(module, C, methodName as string);
+    }, 10);
   }
 
   /** The application name */
   readonly name: string = "Application";
 
   /** List of root activities, as child components */
+  @delegateEvents
   @managedChild
   activities?: AppActivityList;
 

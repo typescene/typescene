@@ -1,5 +1,5 @@
 import { Application } from "../../app";
-import { Binding, ComponentConstructor, ComponentEvent, managedChild } from "../../core";
+import { Binding, ComponentConstructor, delegateEvents, managedChild } from "../../core";
 import { err, ERROR } from "../../errors";
 import { UIComponent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIRenderableController } from "../UIRenderableController";
@@ -27,20 +27,16 @@ export class UIModalController extends UIRenderableController {
     return super.preset(presets, Content);
   }
 
-  constructor() {
-    super();
-    this.propagateChildEvents(e => {
-      if (e instanceof ComponentEvent) {
-        if (e.name === "ShowModal") {
-          this.showModal();
-          return;
-        } else if (e.name === "CloseModal") {
-          this.closeModal();
-          return;
-        }
-        return e;
-      }
-    });
+  /** Handle 'ShowModal' events delegated from content components, by creating the modal component */
+  onShowModal() {
+    this.showModal();
+    return true;
+  }
+
+  /** Handle 'CloseModal' events delegated from content or modal components, by removing the modal component */
+  onCloseModal() {
+    this.closeModal();
+    return true;
   }
 
   /** Show the (preset) modal component */
@@ -54,6 +50,7 @@ export class UIModalController extends UIRenderableController {
   }
 
   /** The current modal component to be displayed, as a managed child reference, or undefined if the modal component is currently not displayed */
+  @delegateEvents
   @managedChild
   modal?: UIRenderable;
 

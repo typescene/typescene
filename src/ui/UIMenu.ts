@@ -1,4 +1,4 @@
-import { Component, ComponentEvent, ComponentEventHandler, managedChild } from "../core";
+import { Component, ComponentEventHandler, delegateEvents, managedChild } from "../core";
 import { err, ERROR } from "../errors";
 import { Stringable, UIComponent, UIComponentEvent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
@@ -27,17 +27,9 @@ export class UIMenu extends Component implements UIRenderable {
       throw err(ERROR.UIMenu_NoBuilder);
     }
     this.builder = new UITheme.current.MenuBuilder();
-    this.propagateChildEvents(e => {
-      if (e instanceof ComponentEvent) {
-        if (e instanceof UIMenuItemSelectedEvent) {
-          this.selected = e.key;
-        }
-        return e;
-      }
-    });
   }
 
-  /** Menu builder, can be used to build up the menu before it is displayed */
+  /** Menu builder, can be used to build up the menu before it is displayed, e.g. when handing the Build event */
   readonly builder: UIMenuBuilder;
 
   /** Build the current menu and render it using `UIMenu.builder` */
@@ -49,12 +41,20 @@ export class UIMenu extends Component implements UIRenderable {
       }
     }
     if (this.gravity) this.builder.setGravity(this.gravity);
-    this.propagateComponentEvent("Build");
+    this.emitAction("Build");
     let Menu = this.builder.build();
     (this.menu = new Menu()).render(callback);
   }
 
+  /** Handle SelectMenuItem events by setting the `selected` property to the key of the selected item, and then propagating the event on this component itself. */
+  protected onSelectMenuItem(e: UIMenuItemSelectedEvent) {
+    this.selected = e.key;
+    this.emit(e);
+    return true;
+  }
+
   /** The last menu that was built, as a child object */
+  @delegateEvents
   @managedChild
   menu?: UIRenderable;
 

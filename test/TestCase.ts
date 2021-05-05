@@ -21,7 +21,7 @@ export class TestCase {
         if (this._failTimer) {
           clearTimeout(this._failTimer);
         }
-        resolve();
+        resolve(undefined);
       };
     });
   }
@@ -43,7 +43,7 @@ export class TestCase {
   fail(err?: any): void;
   fail(err?: any) {
     if (typeof err === "string") {
-      err = Error(this._testNameToString("Failure"));
+      err = Error(this._testNameToString(err));
     }
     this._error = err || new Error(this._testNameToString("Failure"));
     this._resolve();
@@ -125,7 +125,7 @@ export class TestCase {
     );
   }
 
-  private async _goAsync(callback?: (t: this) => void) {
+  private async _goAsync(callback?: (t: this) => void | Promise<void>) {
     try {
       if (callback) await callback(this);
       else this._resolve();

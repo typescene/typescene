@@ -127,6 +127,31 @@ export class Binding {
     return this;
   }
 
+  /** Add a boolean transform to this binding: use the given value _instead_ of the bound value if that is equal to true (according to the `==` operator) */
+  then(trueValue: any) {
+    // store new chained filter
+    let oldFilter = this._filter;
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
+      return v ? trueValue : v;
+    };
+    return this;
+  }
+
+  /**
+   * Add a boolean transform to this binding: use the given value _instead_ of the bound value if that is equal to false (according to the `==` operator)
+   * @note Alternatively, use the `defaultValue` argument to `bind()` to specify a default value without an extra step.
+   */
+  else(falseValue: any) {
+    // store new chained filter
+    let oldFilter = this._filter;
+    this._filter = (v, boundParent) => {
+      if (oldFilter) v = oldFilter(v, boundParent);
+      return v ? v : falseValue;
+    };
+    return this;
+  }
+
   /** Add a filter to this binding to compare the bound value to the given value(s), the result is always either `true` (at least one match) or `false` (none match) */
   match(...values: any[]) {
     let oldFilter = this._filter;
@@ -148,44 +173,48 @@ export class Binding {
   }
 
   /**
-   * Add an 'and' term to this binding (i.e. logical and, like `&&` operator); the argument(s) are used to construct another binding using the `bind()` function.
+   * Add an 'and' term to this binding (i.e. logical and, like `&&` operator).
    * @note The combined binding can only be bound to a single component, e.g. within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
    */
-  and(source: string, defaultValue?: any) {
-    let binding = new Binding(source, defaultValue);
+  and(source: Binding): this;
+  and(source: string, defaultValue?: any): this;
+  and(source: string | Binding, defaultValue?: any) {
+    let binding = source instanceof Binding ? source : new Binding(source, defaultValue);
     binding.parent = this;
+    if (this._source) this._source += " and " + String(source);
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
-    if (this._source) this._source += " and " + source;
 
     // add filter to get value from binding and AND together
     let oldFilter = this._filter;
     this._filter = (v, boundParent) => {
       if (oldFilter) v = oldFilter(v, boundParent);
       let bound = boundParent.getBoundBinding(binding);
-      if (!bound) throw err(ERROR.Binding_NotFound, source);
+      if (!bound) throw err(ERROR.Binding_NotFound, this.toString());
       return v && bound.value;
     };
     return this;
   }
 
   /**
-   * Add an 'or' term to this binding (i.e. logical or, like `||` operator); the argument(s) are used to construct another binding using the `bind()` function.
+   * Add an 'or' term to this binding (i.e. logical or, like `||` operator).
    * @note The combined binding can only be bound to a single component, e.g. within a list view cell, bindings targeting both the list element and the activity can **not** be combined using this method.
    */
-  or(source: string, defaultValue?: any) {
-    let binding = new Binding(source, defaultValue);
+  or(source: Binding): this;
+  or(source: string, defaultValue?: any): this;
+  or(source: string | Binding, defaultValue?: any) {
+    let binding = source instanceof Binding ? source : new Binding(source, defaultValue);
     binding.parent = this;
+    if (this._source) this._source += " or " + String(source);
     if (!this._bindings) this._bindings = [];
     this._bindings.push(binding);
-    if (this._source) this._source += " or " + source;
 
     // add filter to get value from binding and AND together
     let oldFilter = this._filter;
     this._filter = (v, boundParent) => {
       if (oldFilter) v = oldFilter(v, boundParent);
       let bound = boundParent.getBoundBinding(binding);
-      if (!bound) throw err(ERROR.Binding_NotFound, source);
+      if (!bound) throw err(ERROR.Binding_NotFound, this.toString());
       return v || bound.value;
     };
     return this;
@@ -196,10 +225,15 @@ export class Binding {
     let oldFilter = this._filter;
     this._filter = (v, boundParent) => {
       if (oldFilter) v = oldFilter(v, boundParent);
-      console.log("--- ", this._source || "?", v);
+      console.log("--- ", this.toString(), v);
       return v;
     };
     return this;
+  }
+
+  /** Return a string representation of this binding, for error messages and debug logging */
+  toString() {
+    return "bind(" + (this._source || "") + ")";
   }
 
   /** Chained filter function, if any */
@@ -217,6 +251,7 @@ export class StringFormatBinding extends Binding {
   /** Creates a new binding for given format string and bindings. See `bindf`. */
   constructor(format: string, ...args: Array<string | Binding>) {
     super(undefined);
+    this._format = format;
 
     // add bindings that are specified inline as ${...}
     if (!args.length) {
@@ -253,6 +288,12 @@ export class StringFormatBinding extends Binding {
         return super.getValue(result);
       }
     };
+  }
+
+  private _format: string;
+
+  toString() {
+    return "bindf(" + JSON.stringify(this._format) + ")";
   }
 }
 

@@ -80,93 +80,100 @@ export class UIScrollContainer extends UIContainer {
 
   /** True if horizontal scrolling should be enabled, defaults to true */
   horizontalScrollEnabled = true;
-}
 
-// Use an observer to watch for scroll events and emit snap events
-UIScrollContainer.addObserver(
-  class {
-    constructor(public container: UIScrollContainer) {}
-    onScroll(e: UIScrollEvent) {
-      if (!this.container.horizontalSnap && !this.container.verticalSnap) return;
+  /** Handle given scroll event to snap scroll position to content components; called automatically when the container is scrolled, but may be overridden */
+  public handleScrollSnap(e: UIScrollEvent) {
+    if (this.horizontalSnap || this.verticalSnap) {
       let vert = this._vertScrollState;
       let horz = this._horzScrollState;
       if (e.name === "ScrollEnd") {
+        // reset all values
         vert.up = vert.down = false;
         horz.left = horz.right = false;
         vert.high = 0;
         horz.high = 0;
-        return;
-      }
-      if ((e.scrolledUp && vert.up) || (e.scrolledDown && vert.down)) {
-        if (e.verticalVelocity >= vert.velocity) {
+      } else {
+        // update vertical state
+        if ((e.scrolledUp && vert.up) || (e.scrolledDown && vert.down)) {
+          if (e.verticalVelocity >= vert.velocity) {
+            vert.slowing = 0;
+            if (e.verticalVelocity > vert.high) vert.high = e.verticalVelocity;
+          } else {
+            vert.slowing++;
+
+            // emit ScrollSnap* events which are picked up by the renderer
+            // together with ScrollEnd to snap up/down
+            if (vert.slowing > 1 && e.verticalVelocity < vert.high * SNAP_SLOWDOWN) {
+              vert.slowing = vert.high = 0;
+              if (vert.up && this.verticalSnap === "start") {
+                this.emitAction("ScrollSnapUp", e);
+              }
+              if (vert.down && this.verticalSnap === "end") {
+                this.emitAction("ScrollSnapDown", e);
+              }
+            }
+          }
+        } else {
           vert.slowing = 0;
-          if (e.verticalVelocity > vert.high) vert.high = e.verticalVelocity;
-        } else {
-          vert.slowing++;
+          vert.high = 0;
+        }
+        vert.up = !!e.scrolledUp;
+        vert.down = !!e.scrolledDown;
+        vert.velocity = e.verticalVelocity;
 
-          // emit ScrollSnap* events which are picked up by the renderer
-          // together with ScrollEnd to snap up/down
-          if (vert.slowing > 1 && e.verticalVelocity < vert.high * SNAP_SLOWDOWN) {
-            vert.slowing = vert.high = 0;
-            if (vert.up && this.container.verticalSnap === "start") {
-              this.container.propagateComponentEvent("ScrollSnapUp", e);
-            }
-            if (vert.down && this.container.verticalSnap === "end") {
-              this.container.propagateComponentEvent("ScrollSnapDown", e);
+        // update horizontal state
+        if ((e.scrolledLeft && horz.left) || (e.scrolledRight && horz.right)) {
+          if (e.horizontalVelocity >= horz.velocity) {
+            horz.slowing = 0;
+            if (e.horizontalVelocity > horz.high) horz.high = e.horizontalVelocity;
+          } else {
+            horz.slowing++;
+
+            // emit ScrollSnap* events which are picked up by the renderer
+            // together with ScrollEnd to snap left/right
+            if (horz.slowing > 1 && e.horizontalVelocity < horz.high * SNAP_SLOWDOWN) {
+              horz.slowing = horz.high = 0;
+              // TODO: localize for RTL containers (?)
+              if (horz.left && this.horizontalSnap === "start") {
+                this.emitAction("ScrollSnapLeft", e);
+              }
+              if (horz.right && this.horizontalSnap === "end") {
+                this.emitAction("ScrollSnapRight", e);
+              }
             }
           }
-        }
-      } else {
-        vert.slowing = 0;
-        vert.high = 0;
-      }
-      if ((e.scrolledLeft && horz.left) || (e.scrolledRight && horz.right)) {
-        if (e.horizontalVelocity >= horz.velocity) {
+        } else {
           horz.slowing = 0;
-          if (e.horizontalVelocity > horz.high) horz.high = e.horizontalVelocity;
-        } else {
-          horz.slowing++;
-
-          // emit ScrollSnap* events which are picked up by the renderer
-          // together with ScrollEnd to snap left/right
-          if (horz.slowing > 1 && e.horizontalVelocity < horz.high * SNAP_SLOWDOWN) {
-            horz.slowing = horz.high = 0;
-            // TODO: localize for RTL containers (?)
-            if (horz.left && this.container.horizontalSnap === "start") {
-              this.container.propagateComponentEvent("ScrollSnapLeft", e);
-            }
-            if (horz.right && this.container.horizontalSnap === "end") {
-              this.container.propagateComponentEvent("ScrollSnapRight", e);
-            }
-          }
+          horz.high = 0;
         }
-      } else {
-        horz.slowing = 0;
-        horz.high = 0;
+        horz.left = !!e.scrolledLeft;
+        horz.right = !!e.scrolledRight;
+        horz.velocity = e.horizontalVelocity;
       }
-      vert.up = !!e.scrolledUp;
-      vert.down = !!e.scrolledDown;
-      vert.velocity = e.verticalVelocity;
-      horz.left = !!e.scrolledLeft;
-      horz.right = !!e.scrolledRight;
-      horz.velocity = e.horizontalVelocity;
     }
-    private _vertScrollState = {
-      up: false,
-      down: false,
-      slowing: 0,
-      high: 0,
-      velocity: 0,
-    };
-    private _horzScrollState = {
-      left: false,
-      right: false,
-      slowing: 0,
-      high: 0,
-      velocity: 0,
-    };
   }
-);
+
+  // keep track of scroll states, used above
+  private _vertScrollState = {
+    up: false,
+    down: false,
+    slowing: 0,
+    high: 0,
+    velocity: 0,
+  };
+  private _horzScrollState = {
+    left: false,
+    right: false,
+    slowing: 0,
+    high: 0,
+    velocity: 0,
+  };
+}
+
+// handle scroll snap using an event handler and the implementation method
+UIScrollContainer.addEventHandler(function (e) {
+  if (e instanceof UIScrollEvent) this.handleScrollSnap(e);
+});
 
 export namespace UIScrollContainer {
   /** UIScrollContainer presets type, for use with `Component.with` */

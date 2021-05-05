@@ -6,12 +6,13 @@ import {
   ManagedMap,
   onPropertyChange,
   bind,
+  delegateEvents,
+  ManagedEvent,
 } from "../core";
-import { UIComponent, UIRenderable } from "./UIComponent";
+import { UIComponent, UIComponentEvent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
 
 /** Renderable component that encapsulates a referenced view (view component or activity), which is _not_ a child component of the component itself. The view may be selected from a bound list and/or map, using a (bound or assigned) index.
- * @note Because the rendered view is not a child component, events (including UI events such as 'Clicked') never propagate up to the containing component(s).
  */
 export class UIViewRenderer extends Component implements UIRenderable {
   static preset(presets: UIViewRenderer.Presets): Function {
@@ -34,9 +35,18 @@ export class UIViewRenderer extends Component implements UIRenderable {
   /** Index of the view to be rendered from `managedList` (if number) or `managedMap` (if string), defaults to 0 */
   index: number | string = 0;
 
-  /** The current view (or view activity) to be rendered, can be bound, or automatically selected using `managedList` or `managedMap` and `index` properties; _not_ a child component */
+  /** The current view (or view activity) to be rendered, can be bound, or automatically selected using `managedList` or `managedMap` and `index` properties; _not_ a child component, so not destroyed automatically when changed. */
+  @delegateEvents
   @managed
   view?: UIRenderable;
+
+  /** Override event delegation, to _also_ propagate events of type `UIComponentEvent` */
+  protected delegateEvent(e: ManagedEvent, propertyName: string) {
+    if (super.delegateEvent(e, propertyName) !== true && e instanceof UIComponentEvent) {
+      this.emit(e);
+      return true;
+    }
+  }
 
   render(callback?: UIRenderContext.RenderCallback) {
     // skip extra rendering if view didn't actually change

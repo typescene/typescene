@@ -1,5 +1,5 @@
 import { err, ERROR } from "../errors";
-import { HIDDEN } from "./util";
+import { HIDDEN, defineChainableProperty, exceptionHandler } from "./util";
 import { Binding } from "./Binding";
 import { ManagedEvent, ManagedParentChangeEvent, ManagedCoreEvent } from "./ManagedEvent";
 import { ManagedList } from "./ManagedList";
@@ -19,7 +19,7 @@ export class ComponentEvent<TComponent extends Component = Component> extends Ma
   /** Source component */
   source: TComponent;
 
-  /** Encapsulated event (i.e. propagated event if this event was emitted by `Component.propagateComponentEvent`) */
+  /** Encapsulated event, if the event was originally of a different type */
   inner?: ManagedEvent;
 }
 
@@ -27,6 +27,18 @@ export class ComponentEvent<TComponent extends Component = Component> extends Ma
 export type ComponentEventHandler<TComponent = Component, TEvent = ComponentEvent> =
   | string
   | ((this: TComponent, e: TEvent) => void);
+
+/**
+ * Component-specific event that represents the result of a user action, with reference to the source component and optional additional context. Actions are intended to be handled by parent components, or propagated further up the component hierarchy by re-emitting them (default behavior for `Component.delegateEvent`).
+ * @note This event type is used when handling events using _preset_ components, using e.g. `{ "onClick": "EventName" }`. The method `Component.emitAction()` can also be used to emit action events.
+ */
+export class ActionEvent<
+  TComponent extends Component = Component,
+  TContext extends ManagedObject = ManagedObject
+> extends ComponentEvent<TComponent> {
+  /** Action context (if different from `source` component) */
+  context?: TContext;
+}
 
 /** Generic constructor type for Component classes */
 export type ComponentConstructor<TComponent extends Component = Component> = new (
@@ -142,12 +154,13 @@ export class Component extends ManagedObject {
   }
 
   /**
-   * Add bindings, components, and event handlers from given presets to the current component constructor. This method is called by `Component.with` with the same arguments.
+   * Add bindings, components, and event handlers from given presets to the current component constructor. This method is called by `Component.with` with the same arguments, and should not be called directly.
    * Component classes may override this method and return the result of `super.preset(...)`, to add further presets and bindings using static methods on this component class.
    * @returns A function (*must* be typed as `Function` even in derived classes) that is called by the constructor for each new instance, to apply remaining values from the preset object to the component object that is passed through `this`.
    */
   static preset(presets: object, ...rest: unknown[]): Function {
     // take and apply bindings and components to the constructor already
+    let eventActions: { [eventName: string]: string } | undefined;
     let eventHandlers:
       | { [eventName: string]: (this: Component, e: any) => void }
       | undefined;
@@ -157,16 +170,18 @@ export class Component extends ManagedObject {
         // add binding to constructor and remove from presets
         this.presetBinding(p, v);
         delete (presets as any)[p];
-      } else if (
-        v &&
-        p[0] === "o" &&
-        p[1] === "n" &&
-        (p.charCodeAt(2) < 97 || p.charCodeAt(2) > 122)
-      ) {
-        // add event handlers to object
-        if (!eventHandlers) eventHandlers = Object.create(null);
-        eventHandlers![p.slice(2)] =
-          typeof v === "function" ? v : _makeEventHandler(String(v));
+      } else if (v && p[0] === "o" && p[1] === "n" && (p[2] < "a" || p[2] > "z")) {
+        // add action to propagate (event name starting with capital letter)
+        if (typeof v === "string" && (v[0] < "a" || v[0] > "z")) {
+          if (v[0] === "+") v = v.slice(1);
+          if (!eventActions) eventActions = Object.create(null);
+          eventActions![p.slice(2)] = v;
+        } else {
+          // add event handler directly
+          if (!eventHandlers) eventHandlers = Object.create(null);
+          eventHandlers![p.slice(2)] =
+            typeof v === "function" ? v : _makeEventHandler(String(v));
+        }
         delete (presets as any)[p];
       } else if (typeof v === "function" && v.prototype instanceof Component) {
         // add bindings for component constructor
@@ -177,6 +192,12 @@ export class Component extends ManagedObject {
     if (rest.length) this.presetBindingsFrom(...(rest as any));
 
     // add event handlers, if any
+    if (eventActions) {
+      this.addEventHandler(function (e) {
+        let actionName = eventActions![e.name];
+        if (actionName) this.emitAction(actionName);
+      });
+    }
     if (eventHandlers) {
       this.addEventHandler(function (e) {
         let h = eventHandlers![e.name];
@@ -266,6 +287,22 @@ export class Component extends ManagedObject {
     return false;
   }
 
+  /**
+   * Delegate given event by invoking a matching handler method, prefixing the event name with 'on'. For example, events with name 'Submit' can be handled by a method named `onSubmit()`. The handler method is called with the same arguments as this method, and should return `true` if the event has been handled.
+   * Additionally, if the event is of type `ActionEvent`, and if a handler method was not found, or if it did not return `true`, then the event is re-emitted on the component itself (also known as 'propagated') -- allowing it to be handled by other components, usually by a parent component.
+   * This method is used as a default handler for `@delegateEvents`. It can be overridden if events should be handled differently in specific cases. A return value other than `true` indicates that the event is neither handled by a method that returned `true` itself, nor propagated.
+   * @note In case the event name starts with a lowercase letter (a-z), the handler method should still include a capital letter (e.g. `onDoSomething()` for an event named 'doSomething'). However, it is _not_ recommended to use event names that start with lowercase letters.
+   */
+  protected delegateEvent(e: ManagedEvent, propertyName: string): boolean | void {
+    let method = (this as any)[_makeMethodName(e.name)];
+    let handled = typeof method === "function" && method.call(this, e, propertyName);
+    if (handled === true) return true;
+    if (e instanceof ActionEvent) {
+      this.emit(e);
+      return true;
+    }
+  }
+
   /** Returns the current parent component. If a class reference is specified, finds the nearest parent of given type. See `@managedChild` decorator. */
   getParentComponent<TParent extends Component = Component>(
     ParentClass?: ComponentConstructor<TParent>
@@ -287,9 +324,21 @@ export class Component extends ManagedObject {
   }
 
   /**
+   * Emit an action event (see `ActionEvent`), to signal the result of a user action that should be handled by a parent component.
+   * @note The event is frozen using `ManagedEvent.freeze()` so that its properties cannot be modified even if the event is reused by parent component(s).
+   */
+  emitAction(name: string, inner?: ManagedEvent, context?: ManagedObject) {
+    let event = new ActionEvent(name, this, inner);
+    event.context = context;
+    this.emit(event.freeze());
+  }
+
+  /**
+   * @deprecated in v3.1
+   * NOTE: This method will be deprecated in favor of calling `emit` directly. Its name is confusing and after streamlining other parts it will serve no further purpose.
    * Create and emit an event with given name, a reference to this component, and an optional inner (propagated) event. The base implementation emits a plain `ComponentEvent`, but this method may be overridden to emit other events.
    * @note If the component is already in the 'destroyed' state (see `ManagedObject.managedState`), then no event is emitted and this method returns immediately.
-   * @note This method is used by classes created using `Component.with` if an event handler is specified using the `{ ... onEventName: "+OtherEvent" }` pattern.
+   * @note This method is used by classes created using `Component.with` if an event handler is specified using the `{ ... onEventName: "OtherEvent" }` pattern.
    */
   propagateComponentEvent(name: string, inner?: ManagedEvent) {
     if (!this.managedState) return;
@@ -616,10 +665,12 @@ export namespace Component {
   Component.addObserver(ComponentObserver);
 }
 
-/** Helper function to make an event handler from a preset string property */
-function _makeEventHandler(handler: string) {
-  if (handler.slice(-2) === "()") {
-    let callMethodName = handler.slice(0, -2);
+/** Helper function to make an event handler from a preset string property -- DEPRECATED use only */
+function _makeEventHandler(name: string) {
+  if (name.slice(-2) === "()") {
+    // Invoking event handlers on bound parent components by name
+    // was a bad idea and will not be supported anymore.
+    let callMethodName = name.slice(0, -2);
     return function (this: Component, e: ManagedEvent) {
       let composite: Component | undefined = this.getBoundParentComponent();
       while (composite) {
@@ -629,14 +680,8 @@ function _makeEventHandler(handler: string) {
       }
       throw err(ERROR.Component_NotAHandler, callMethodName);
     };
-  } else if (handler[0] === "+") {
-    let emitName = handler.slice(1);
-    return function (this: Component, e: ManagedEvent) {
-      this.propagateComponentEvent(emitName, e);
-    };
-  } else {
-    throw err(ERROR.Component_InvalidEventHandler, handler);
   }
+  throw err(ERROR.Component_InvalidEventHandler, name);
 }
 
 /** Simple ManagedObject class that encapsulates a single value, used below */
@@ -649,7 +694,35 @@ class ManagedValueObject<T> extends ManagedObject {
   }
 }
 
-/** Helper method to update a component property with given value, with some additional logic for managed lists */
+/** Property decorator: observe events on objects that are referenced by this property. For each event, the `delegateEvent()` method is invoked on the containing component. A default implementation is provided as `Component.delegateEvent`, but this method can be overridden by each subclass.
+ * @note This decorator _must_ be combined with either `@managed`, `@managedChild`, or `@service`
+ * @decorator
+ */
+export function delegateEvents(targetPrototype: Component, propertyKey: string) {
+  defineChainableProperty(
+    targetPrototype,
+    propertyKey as string,
+    false,
+    (obj: any, _name, next) => {
+      let handling: ManagedEvent | undefined;
+      return (value, event, topHandler) => {
+        next && next(value, event, topHandler);
+        if (event) {
+          // received an event from the referenced object, delegate synchronously
+          if (handling === event || !obj[HIDDEN.STATE_PROPERTY]) return;
+          try {
+            obj.delegateEvent((handling = event), propertyKey);
+            handling = undefined;
+          } catch (err) {
+            exceptionHandler(err);
+          }
+        }
+      };
+    }
+  );
+}
+
+/** Helper function to update a component property with given value, with some additional logic for managed lists */
 function _applyPropertyValue(c: Component, p: string, value: any, old?: any) {
   let cur = (c as any)[p];
   if (cur && cur instanceof ManagedList) {
@@ -668,4 +741,14 @@ function _applyPropertyValue(c: Component, p: string, value: any, old?: any) {
   }
   // otherwise set property value normally
   (c as any)[p] = value;
+}
+
+/** Helper function to compose a handler method name from an event name, possibly capitalizing its first letter */
+function _makeMethodName(name: string) {
+  return (
+    "on" +
+    (name[0] < "a" || name[0] > "z"
+      ? name
+      : String.fromCharCode(name.charCodeAt(0) - (97 /* a */ - 65) /* A */) + name.slice(1))
+  );
 }

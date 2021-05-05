@@ -1,6 +1,6 @@
-import { ManagedList } from "./ManagedList";
-import { ManagedMap } from "./ManagedMap";
-import { ManagedObject } from "./ManagedObject";
+import type { ManagedList } from "./ManagedList";
+import type { ManagedMap } from "./ManagedMap";
+import type { ManagedObject } from "./ManagedObject";
 
 /**
  * Event that can be emitted on a managed object, component, list/map, or reference, and can be handled by observers or by objects that reference the emitting object.
@@ -24,7 +24,7 @@ export class ManagedEvent {
   }
 }
 
-/** Core event that is _not propagated_ by default (see `ManagedObject.propagateChildEvents`) */
+/** Status events, specific to a single object */
 export class ManagedCoreEvent extends ManagedEvent {
   /** Returns true if given event is a core event */
   static isCoreEvent(event: ManagedEvent): event is ManagedCoreEvent {

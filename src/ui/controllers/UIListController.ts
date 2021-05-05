@@ -12,10 +12,10 @@ import {
 } from "../../core";
 import { UICloseColumn } from "../containers/UIColumn";
 import { UIContainer } from "../containers/UIContainer";
-import { UIComponentEvent, UIRenderable } from "../UIComponent";
+import { UIComponentEvent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIRenderableController } from "../UIRenderableController";
 
-/** Generic type definition for a component constructor that accepts a single object argument, and constructs a renderable component; used for creating each component in a list (see `UIListController`) */
+/** Generic type definition for a component constructor that accepts a single object argument, and constructs a renderable component; used for creating each component in a list (see `UIListController`). An implementation that uses `UICell` containers is provided by `UIListCellAdapter`. */
 export interface UIListItemAdapter<TObject extends ManagedObject = ManagedObject> {
   new (object: TObject): UIRenderable;
 }
@@ -36,9 +36,10 @@ export class UIListController extends UIRenderableController<UIContainer> {
       | UIListItemAdapter
       | ((instance: UIListController) => UIListItemAdapter),
     Container: ComponentConstructor<UIContainer> &
-      (new () => UIContainer) = _defaultContainer
+      (new () => UIContainer) = _defaultContainer,
+    BookEnd?: UIRenderableConstructor
   ): Function {
-    this.presetBindingsFrom(ListItemAdapter as any);
+    this.presetBindingsFrom(ListItemAdapter as any, BookEnd);
     this.addObserver(
       class {
         constructor(public controller: UIListController) {
@@ -46,8 +47,10 @@ export class UIListController extends UIRenderableController<UIContainer> {
           if (this.Adapter && !(this.Adapter.prototype instanceof ManagedObject)) {
             this.Adapter = (this.Adapter as any)(this);
           }
+          this.BookEnd = BookEnd;
         }
         Adapter?: UIListItemAdapter;
+        BookEnd?: UIRenderableConstructor;
 
         onFocusIn(e: UIComponentEvent) {
           if (e.source !== this.controller.content) {
@@ -61,16 +64,16 @@ export class UIListController extends UIRenderableController<UIContainer> {
         }
 
         onFirstIndexChangeAsync() {
-          return this.controller._doUpdateAsync(this.Adapter);
+          return this.controller._doUpdateAsync(this.Adapter, this.BookEnd);
         }
 
         onMaxItemsChangeAsync() {
-          return this.controller._doUpdateAsync(this.Adapter);
+          return this.controller._doUpdateAsync(this.Adapter, this.BookEnd);
         }
 
         onItemsChange(_v?: any, e?: ManagedEvent) {
           if (!e || e instanceof ManagedListChangeEvent) {
-            this.controller._doUpdateAsync(this.Adapter);
+            this.controller._doUpdateAsync(this.Adapter, this.BookEnd);
           }
         }
       }
@@ -78,33 +81,41 @@ export class UIListController extends UIRenderableController<UIContainer> {
     return super.preset(presets, Container);
   }
 
-  /** Create a new list controller for given container */
-  constructor(container?: UIContainer) {
-    super(container);
-    this.propagateChildEvents(e => {
-      if (e instanceof ComponentEvent) {
-        if (e.name === "FocusIn") {
-          if (e.source !== this.content) {
-            // store focus index
-            let idx = this.getIndexOfComponent(e.source);
-            this.lastFocusedIndex = Math.max(0, idx);
-          } else {
-            // focus appropriate item
-            this.restoreFocus();
-          }
-        } else if (e.name === "ArrowUpKeyPress") {
-          if (this.focusPreviousItem()) return;
-          let parentList = this.getParentComponent(UIListController);
-          parentList && parentList.enableArrowKeyFocus && parentList.restoreFocus();
-        } else if (e.name === "ArrowDownKeyPress") {
-          if (this.focusNextItem()) return;
-          let parentList = this.getParentComponent(UIListController);
-          if (parentList && parentList.enableArrowKeyFocus) return e;
-        } else {
-          return e;
-        }
+  /** Handle FocusIn events, saving the index of the focused item or restoring focus on the item that was focused last */
+  protected onFocusIn(e: ComponentEvent) {
+    if (e.source !== this.content) {
+      // store focus index
+      let idx = this.getIndexOfComponent(e.source);
+      this.lastFocusedIndex = Math.max(0, idx);
+    } else {
+      // focus appropriate item
+      this.restoreFocus();
+    }
+    return true;
+  }
+
+  /** Handle ArrowUpKeyPress events, focusing the previous list item */
+  protected onArrowUpKeyPress() {
+    if (!this.focusPreviousItem()) {
+      let parentList = this.getParentComponent(UIListController);
+      if (parentList && parentList.enableArrowKeyFocus) {
+        // restore parent item instead
+        parentList.restoreFocus();
       }
-    });
+    }
+    return true;
+  }
+
+  /** Handle ArrowDownKeyPress events, focusing the next list item */
+  protected onArrowDownKeyPress() {
+    if (!this.focusNextItem()) {
+      let parentList = this.getParentComponent(UIListController);
+      if (parentList && parentList.enableArrowKeyFocus) {
+        // let parent list have this one
+        return false;
+      }
+    }
+    return true;
   }
 
   /** Set to true to enable selection (focus movement) using up/down arrow keys */
@@ -167,7 +178,10 @@ export class UIListController extends UIRenderableController<UIContainer> {
   }
 
   /** Update the container with (existing or new) components, one for each list item */
-  private async _doUpdateAsync(Adapter?: UIListItemAdapter) {
+  private async _doUpdateAsync(
+    Adapter?: UIListItemAdapter,
+    BookEnd?: UIRenderableConstructor
+  ) {
     if (this._updateQueued) return;
     this._updateQueued = true;
     await RESOLVED;
@@ -208,6 +222,13 @@ export class UIListController extends UIRenderableController<UIContainer> {
       }
       components.push(component);
     }
+    if (BookEnd) {
+      if (content.last() instanceof BookEnd) {
+        components.push(content.last()!);
+      } else {
+        components.push(new BookEnd());
+      }
+    }
     content.replace(components);
 
     // delete components that should no longer be in the list
@@ -221,7 +242,7 @@ export class UIListController extends UIRenderableController<UIContainer> {
     }
 
     // emit an event specific to this UIListController
-    this.propagateComponentEvent("ListItemsChange");
+    if (this.managedState) this.emitAction("ListItemsChange");
   }
 
   /** True if a list update is already queued */

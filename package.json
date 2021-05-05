@@ -17,16 +17,20 @@
   "typings": "./index.d.ts",
   "files": [
     "dist",
+    "dist-es6",
+    "dist-es8",
     "index.js",
     "index.d.ts"
   ],
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist dist-es6 dist-es8",
     "prepublishOnly": "npm run build",
     "prebuild": "npm run clean && tsc -p src --declaration",
-    "build": "tsc -p src --removeComments",
+    "build-es8": "tsc -p src --target es2017 --outDir dist-es8 --removeComments",
+    "build-es6": "tsc -p src --target es2015 --outDir dist-es6 --removeComments",
+    "build-es5": "tsc -p src --removeComments",
+    "build": "npm run build-es5 && npm run build-es6 && npm run build-es8",
     "postbuild": "node test/run",
-    "watch": "tsc -p src -w",
     "test": "node test/run"
   },
   "dependencies": {
@@ -35,6 +39,6 @@
   "devDependencies": {
     "esm": "^3.2.25",
     "rimraf": "^3.0.2",
-    "typescript": "4.0"
+    "typescript": "*"
   }
 }
