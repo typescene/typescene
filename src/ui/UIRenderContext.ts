@@ -5,6 +5,9 @@ import { UIComponent, UIRenderable } from "./UIComponent";
 /** @internal Render context binding, can be reused to avoid creating new bindings */
 export const renderContextBinding = bind("renderContext");
 
+/** @internal Viewport context binding, can be reused */
+export const viewportContextBinding = bind("renderContext.viewportContext");
+
 /** Global view placement modes */
 export enum UIRenderPlacement {
   NONE,
@@ -21,6 +24,9 @@ export enum UIRenderPlacement {
 
 /** Base application render context, to be extended with platform specific render implementation. */
 export abstract class UIRenderContext extends ManagedObject {
+  /** Observable viewport data; propagated to `AppActivity` and `ViewComponent` so that it can be used by bindings within view components */
+  abstract viewportContext: any;
+
   /** Emit a change event for this context, e.g. when the viewport orientation or current locale changes. This will trigger all views to re-render if needed. */
   emitRenderChange() {
     this.emitChange();

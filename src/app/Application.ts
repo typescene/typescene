@@ -13,6 +13,9 @@ import { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
 import { AppActivityList } from "./AppActivityList";
 
+/** Handler that is used for automatic class updates (e.g. hot module reload) */
+let _autoUpdateHandler: undefined | Function;
+
 /**
  * Represents the application itself, encapsulates activities (`AppActivity` components) and contexts for rendering and activation using URL-like paths.
  * Use the static `run` method to create and activate an application using a set of activity constructors, or create an application class that includes activities as (preset) bound components.
@@ -76,6 +79,24 @@ export class Application extends Component {
       });
     }
     return super.preset(presets);
+  }
+
+  /** Set a handler that is used to register classes and modules for automatic update/reload; this method is used by e.g. `@typescene/webapp` to support Hot Module Reload */
+  static setAutoUpdateHandler<T extends ComponentConstructor>(
+    f: (module: any, C: T, methodName: string & keyof T) => void
+  ) {
+    _autoUpdateHandler = f;
+  }
+
+  /** Register given class and module for automatic update/reload; this method is used by e.g. `ViewActivity` and should not be used on its own */
+  static registerAutoUpdate<T extends ComponentConstructor>(
+    module: any,
+    C: T,
+    methodName: string & keyof T
+  ) {
+    setTimeout(() => {
+      if (_autoUpdateHandler) _autoUpdateHandler(module, C, methodName as string);
+    }, 10);
   }
 
   /** The application name */

@@ -1,4 +1,6 @@
 import { ComponentConstructor } from "../../core";
+import { UICell, UIContainer } from "../containers";
+import { UIControl } from "../controls";
 import { UIComponent } from "../UIComponent";
 import { UIRenderableController } from "../UIRenderableController";
 import { UIStyle } from "../UIStyle";
@@ -28,23 +30,60 @@ export class UIStyleController extends UIRenderableController {
 UIStyleController.addObserver(
   class {
     constructor(public controller: UIStyleController) {}
+    private _initial = true;
     onContentChange() {
-      if (this.controller.content instanceof UIComponent) {
-        this.controller.baseStyle = this.controller.content.style;
+      let content = this.controller.content;
+      if (content instanceof UIComponent) {
+        let baseStyle = content.style;
+        let overrides: Partial<UIStyle.StyleObjects> = Object.create(null);
+        let overridden = 0;
+        if (UIStyle.isStyleOverride(content.dimensions, baseStyle)) {
+          overrides.dimensions = content.dimensions;
+          overridden++;
+        }
+        if (UIStyle.isStyleOverride(content.position, baseStyle)) {
+          overrides.position = content.position;
+          overridden++;
+        }
+        if (content instanceof UIContainer) {
+          if (UIStyle.isStyleOverride(content.layout, baseStyle)) {
+            overrides.containerLayout = content.layout;
+            overridden++;
+          }
+          if (content instanceof UICell) {
+            if (UIStyle.isStyleOverride(content.decoration, baseStyle)) {
+              overrides.decoration = content.decoration;
+              overridden++;
+            }
+          }
+        }
+        if (content instanceof UIControl) {
+          if (UIStyle.isStyleOverride(content.decoration, baseStyle)) {
+            overrides.decoration = content.decoration;
+            overridden++;
+          }
+          if (UIStyle.isStyleOverride(content.textStyle, baseStyle)) {
+            overrides.textStyle = content.textStyle;
+            overridden++;
+          }
+        }
+        this.controller.baseStyle = overridden ? baseStyle.extend(overrides) : baseStyle;
         this.onStateChange();
       }
     }
     onStateChange() {
-      if (!this.controller.baseStyle) return;
-      if (this.controller.content instanceof UIComponent) {
-        let baseStyle = this.controller.baseStyle;
-        let style = this.controller.styles?.[String(this.controller.state)];
-        if (!style && this.controller.state) style = this.controller.style;
+      let controller = this.controller;
+      if (!controller.baseStyle) return;
+      if (controller.content instanceof UIComponent) {
+        let baseStyle = controller.baseStyle;
+        let style = controller.styles?.[String(controller.state)];
+        if (!style && controller.state) style = controller.style;
         if (typeof style === "string") style = UITheme.getStyle(style);
         if (style instanceof UIStyle) {
-          this.controller.content.style = baseStyle.mixin(style);
-        } else {
-          this.controller.content.style = baseStyle;
+          this._initial = false;
+          controller.content.style = baseStyle.mixin(style);
+        } else if (!this._initial) {
+          controller.content.style = baseStyle;
         }
       }
     }

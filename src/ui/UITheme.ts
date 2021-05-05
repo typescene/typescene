@@ -53,9 +53,37 @@ export abstract class UIMenuBuilder {
 
 /** Represents a single color (read-only) */
 export class UIColor {
+  static readonly Black = new UIColor("black");
+  static readonly DarkerGray = new UIColor("darkerGray");
+  static readonly DarkGray = new UIColor("darkGray");
+  static readonly Gray = new UIColor("gray");
+  static readonly LightGray = new UIColor("lightGray");
+  static readonly White = new UIColor("white");
+  static readonly Slate = new UIColor("slate");
+  static readonly Red = new UIColor("red");
+  static readonly Orange = new UIColor("orange");
+  static readonly Yellow = new UIColor("yellow");
+  static readonly Lime = new UIColor("lime");
+  static readonly Green = new UIColor("green");
+  static readonly Turquoise = new UIColor("turquoise");
+  static readonly Cyan = new UIColor("cyan");
+  static readonly Blue = new UIColor("blue");
+  static readonly Violet = new UIColor("violet");
+  static readonly Purple = new UIColor("purple");
+  static readonly Magenta = new UIColor("magenta");
+  static readonly Primary = new UIColor("primary");
+  static readonly Accent = new UIColor("accent");
+  static readonly Background = new UIColor("background");
+  static readonly Text = new UIColor("text");
+
   constructor(colorName?: string) {
     if (colorName) {
-      this._f = () => (UITheme.current && UITheme.current.colors[colorName]) || colorName;
+      this._f = () => {
+        let color = String(
+          (UITheme.current && UITheme.current.colors[colorName]) || colorName
+        );
+        return color[0] === "@" ? UITheme.replaceColor(color) : color;
+      };
     }
   }
 
@@ -183,9 +211,8 @@ export class UITheme {
    * - `@green.text` is substituted with a contrasting text color (mostly-opaque white or black) that is readable on the color `green`.
    */
   static replaceColor(color: UIColor | string) {
-    if (color instanceof UIColor) return String(color);
     let c = String(color);
-    if (!c) return c;
+    if (!c || color instanceof UIColor) return c;
     // (Note: .text also works as :text for historical reasons)
     return c.replace(
       /\@(\w+)([.:]text)?((\^)?[\+\-]\d+\%)?([.:]text)?(\/\d+\%)?([.:]text)?/g,
@@ -235,15 +262,28 @@ export class UITheme {
 
   /** Set of predefined colors */
   colors: { [name: string]: string } = {
-    red: "#f00",
-    green: "#0f0",
-    blue: "#00f",
-    black: "#000",
-    white: "#fff",
+    black: "#000000",
+    darkerGray: "#333333",
+    darkGray: "#777777",
+    gray: "#aaaaaa",
+    lightGray: "#dddddd",
+    white: "#ffffff",
+    slate: "#667788",
+    red: "#ff0000",
+    orange: "#ee9933",
+    yellow: "#ffff00",
+    lime: "#77ff00",
+    green: "#007700",
+    turquoise: "#33aa99",
+    cyan: "#00ffff",
+    blue: "#0000ff",
+    violet: "#ee77cc",
+    purple: "#aa3399",
+    magenta: "#ff00ff",
     primary: "@blue",
-    accent: "@red",
+    accent: "@purple",
     background: "@white",
-    text: "@background:text",
+    text: "@background.text",
     separator: "@background^-50%/20%",
     modalShade: "@black",
   };
@@ -286,11 +326,11 @@ export class UITheme {
       dimensions: { grow: 0 },
     }),
     column: UIStyle.create("_column", {
-      containerLayout: { axis: "vertical" },
+      containerLayout: { axis: "vertical", gravity: "start" },
       dimensions: { grow: 0, shrink: 0 },
     }),
     row: UIStyle.create("_row", {
-      containerLayout: { axis: "horizontal" },
+      containerLayout: { axis: "horizontal", gravity: "center" },
       dimensions: { grow: 0, shrink: 0 },
     }),
     row_opposite: UIStyle.create("_row_opposite", {
@@ -300,7 +340,6 @@ export class UITheme {
       containerLayout: { distribution: "center" },
     }),
     control: UIStyle.create("_control", {
-      position: { gravity: "baseline" },
       dimensions: { shrink: 1, grow: 0 },
     }),
   };

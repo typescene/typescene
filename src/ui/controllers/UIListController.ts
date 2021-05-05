@@ -12,7 +12,7 @@ import {
 } from "../../core";
 import { UICloseColumn } from "../containers/UIColumn";
 import { UIContainer } from "../containers/UIContainer";
-import { UIComponentEvent, UIRenderable } from "../UIComponent";
+import { UIComponentEvent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
 import { UIRenderableController } from "../UIRenderableController";
 
 /** Generic type definition for a component constructor that accepts a single object argument, and constructs a renderable component; used for creating each component in a list (see `UIListController`). An implementation that uses `UICell` containers is provided by `UIListCellAdapter`. */
@@ -36,9 +36,10 @@ export class UIListController extends UIRenderableController<UIContainer> {
       | UIListItemAdapter
       | ((instance: UIListController) => UIListItemAdapter),
     Container: ComponentConstructor<UIContainer> &
-      (new () => UIContainer) = _defaultContainer
+      (new () => UIContainer) = _defaultContainer,
+    BookEnd?: UIRenderableConstructor
   ): Function {
-    this.presetBindingsFrom(ListItemAdapter as any);
+    this.presetBindingsFrom(ListItemAdapter as any, BookEnd);
     this.addObserver(
       class {
         constructor(public controller: UIListController) {
@@ -46,8 +47,10 @@ export class UIListController extends UIRenderableController<UIContainer> {
           if (this.Adapter && !(this.Adapter.prototype instanceof ManagedObject)) {
             this.Adapter = (this.Adapter as any)(this);
           }
+          this.BookEnd = BookEnd;
         }
         Adapter?: UIListItemAdapter;
+        BookEnd?: UIRenderableConstructor;
 
         onFocusIn(e: UIComponentEvent) {
           if (e.source !== this.controller.content) {
@@ -61,16 +64,16 @@ export class UIListController extends UIRenderableController<UIContainer> {
         }
 
         onFirstIndexChangeAsync() {
-          return this.controller._doUpdateAsync(this.Adapter);
+          return this.controller._doUpdateAsync(this.Adapter, this.BookEnd);
         }
 
         onMaxItemsChangeAsync() {
-          return this.controller._doUpdateAsync(this.Adapter);
+          return this.controller._doUpdateAsync(this.Adapter, this.BookEnd);
         }
 
         onItemsChange(_v?: any, e?: ManagedEvent) {
           if (!e || e instanceof ManagedListChangeEvent) {
-            this.controller._doUpdateAsync(this.Adapter);
+            this.controller._doUpdateAsync(this.Adapter, this.BookEnd);
           }
         }
       }
@@ -175,7 +178,10 @@ export class UIListController extends UIRenderableController<UIContainer> {
   }
 
   /** Update the container with (existing or new) components, one for each list item */
-  private async _doUpdateAsync(Adapter?: UIListItemAdapter) {
+  private async _doUpdateAsync(
+    Adapter?: UIListItemAdapter,
+    BookEnd?: UIRenderableConstructor
+  ) {
     if (this._updateQueued) return;
     this._updateQueued = true;
     await RESOLVED;
@@ -215,6 +221,13 @@ export class UIListController extends UIRenderableController<UIContainer> {
         delete created[item.managedId];
       }
       components.push(component);
+    }
+    if (BookEnd) {
+      if (content.last() instanceof BookEnd) {
+        components.push(content.last()!);
+      } else {
+        components.push(new BookEnd());
+      }
     }
     content.replace(components);
 
