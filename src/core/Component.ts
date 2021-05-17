@@ -195,7 +195,7 @@ export class Component extends ManagedObject {
     if (eventActions) {
       this.addEventHandler(function (e) {
         let actionName = eventActions![e.name];
-        if (actionName) this.emitAction(actionName);
+        if (actionName) this.emitAction(actionName, e);
       });
     }
     if (eventHandlers) {
