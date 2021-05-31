@@ -186,8 +186,9 @@ const _filters: { [id: string]: (v: any, ...args: any[]) => any } = {
   "!!": v => !!v,
   "n": v => +v,
   "num": v => +v,
-  "or": (v, alt) => v || alt,
   "then": (v, a, b) => (v && a) || b,
+  "else": (v, alt) => v || alt,
+  "or": (v, alt) => v || alt, // DEPRECATED! confusing, not same as bind().or(...)
   "uc": _ucFilter,
   "lc": _lcFilter,
   "uniq": _uniqueFilter,
