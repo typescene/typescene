@@ -79,7 +79,7 @@ const errors: { [error: number]: string } = {
   [ERROR.Map_Destroyed]: "[Map] Cannot add objects to a destroyed map",
   [ERROR.Object_Base]: "[Object] Cannot add event handler to base class",
   [ERROR.Object_NotEvent]: "[Object] Argument is not a managed event",
-  [ERROR.Object_Recursion]: "[Object] Event recursion limit reached",
+  [ERROR.Object_Recursion]: "[Object] Event recursion limit reached: %s",
   [ERROR.Object_CannotDeactivate]: "[Object] Cannot deactivate managed object",
   [ERROR.Object_Destroyed]: "[Object] Managed object is already destroyed",
   [ERROR.Object_StateCancelled]: "[Object] State transition cancelled",
