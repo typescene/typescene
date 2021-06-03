@@ -7,6 +7,7 @@ import {
   ComponentConstructor,
   delegateEvents,
   ManagedEvent,
+  component,
 } from "../core";
 import {
   UIComponent,
@@ -140,7 +141,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
   /**
    * Create a child view of given type automatically for each instance of the view component. Bindings for given properties are bound to the ViewComponent instance, others are ignored so that their values will be taken from the containing bound parent instead of the ViewComponent itself.
    * @param propertyName
-   *  The property that will be set. This property must _already_ be a managed child property, decorated using `@managedChild` and optionally `@delegateEvents` for event handling.
+   *  The property that will be set. This property must _already_ be a managed child property, decorated using `@component` and optionally `@delegateEvents` for event handling.
    * @param View
    *  The (preset) constructor for the child view. This constructor will be used to create a child component for each `ViewComponent` instance.
    * @param boundProperties
@@ -173,7 +174,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
 
   /** The root component that makes up the content for this view, as a managed child reference */
   @delegateEvents
-  @managedChild
+  @component
   view?: UIRenderable;
 
   /** Override event delegation, to _also_ propagate events of type `UIComponentEvent` */

@@ -1,13 +1,16 @@
-import { ManagedState, shadowObservable, observe } from "../core";
-import { AppActivationContext } from "./AppActivationContext";
+import { ManagedState, shadowObservable, observe, ComponentConstructor } from "../core";
+import type { AppActivationContext } from "./AppActivationContext";
+import type { Application } from "./Application";
 import { AppComponent } from "./AppComponent";
-import { Application } from "./Application";
 
 /** Activity base class. Represents a component of an application, which can be activated and deactivated independently. Can be used for activities that are activated independently of the UI; otherwise refer to any of the `ViewActivity` classes. Activities are usually preset on the `Application` constructor instead of being constructed independently, except when necessary to facilitate 'lazy' loading of parts of the application code. */
 export class AppActivity extends AppComponent {
   static preset(presets: AppActivity.Presets): Function {
     return super.preset(presets);
   }
+
+  /** @internal Application reference (avoid importing Application to break circular dependency) */
+  static Application: ComponentConstructor;
 
   /** Create a new activity with given name and activation path, both optional. */
   constructor(name?: string, path?: string) {
@@ -35,7 +38,7 @@ export class AppActivity extends AppComponent {
 
   /** Returns the parent application that contains this activity, if any */
   getApplication() {
-    return this.getManagedParent(Application);
+    return this.getManagedParent(AppActivity.Application) as Application | undefined;
   }
 
   /** Activate this activity, optionally based on given captured path segments (returned by `AppActivationContext.match`, for a path such as `foo/bar/:id`, `foo/*name`, or `./:id`). This method is called automatically when the activity path matches the current target path, but may also be called directly. This method can be overridden to validate the captured path segments before activation. */

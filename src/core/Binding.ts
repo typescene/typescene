@@ -1,5 +1,5 @@
 import { err, ERROR } from "../errors";
-import { Component } from "./Component";
+import type { Component } from "./Component";
 import { ManagedList } from "./ManagedList";
 import { logUnhandledException } from "./UnhandledErrorEmitter";
 import { HIDDEN } from "./util";

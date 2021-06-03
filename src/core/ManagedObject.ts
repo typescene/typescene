@@ -200,7 +200,7 @@ export class ManagedObject {
     return this[HIDDEN.REFCOUNT_PROPERTY];
   }
 
-  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed` and `@managedChild` decorators) */
+  /** Returns an array of unique managed objects that contain managed references to this object (see `@managed`, `@managedChild`, and `@component` decorators) */
   protected getManagedReferrers() {
     let seen: boolean[] = Object.create(null);
     let result: ManagedObject[] = [];
@@ -214,7 +214,7 @@ export class ManagedObject {
   }
 
   /**
-   * Returns the managed object that contains a _managed child reference_ that points to this instance, if any (see `@managedChild`).
+   * Returns the managed object that contains a _managed child reference_ that points to this instance, if any (see `@managedChild` and `@component` decorators).
    * If a class argument is specified, parent references are recursed until a parent of given type is found.
    * The object itself is never returned, even if it contains a managed child reference that points to itself.
    * @note The reference to the managed parent (but not its events) can be observed (see `addObserver`) using an `onManagedParentChange` or `onManagedParentChangeAsync` method on the observer.
@@ -299,7 +299,7 @@ export class ManagedObject {
   }
 
   /**
-   * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` decorator) by emitting the same events on this object itself.
+   * Propagate events from managed child objects that are _referenced_ as properties of this object (see `@managedChild` and `@component` decorators) by emitting the same events on this object itself.
    * @deprecated in favor of `@delegateEvents` since version 3.1
    */
   protected propagateChildEvents(
@@ -337,7 +337,7 @@ export class ManagedObject {
 
   /**
    * Destroy this managed object (i.e. change state to `ManagedState.DESTROYING` and then to `ManagedState.DESTROYED`, clear all managed references from and to this object, and destroy all managed children); the `onManagedStateDestroyingAsync` method is called in the process
-   * @note Managed child objects are automatically destroyed when [1] their parent's reference (decorated with `@managedChild`) is cleared or otherwise changed, or [2] the child object is removed from a managed list or map that is itself a managed child, or [3] when the parent object itself is destroyed.
+   * @note Managed child objects are automatically destroyed when [1] their parent's reference (decorated with `@managedChild` or `@component`) is cleared or otherwise changed, or [2] the child object is removed from a managed list or map that is itself a managed child, or [3] when the parent object itself is destroyed.
    */
   protected async destroyManagedAsync() {
     let n = 3;
@@ -632,7 +632,8 @@ export class ManagedObject {
     object: T,
     propertyKey: keyof T,
     isChildReference?: boolean,
-    readonlyRef?: ManagedReference
+    readonlyRef?: ManagedReference,
+    ClassRestriction?: ManagedObjectConstructor<any>
   ) {
     if (!(object instanceof ManagedObject)) {
       throw err(ERROR.Object_PropNotManaged);
@@ -665,7 +666,7 @@ export class ManagedObject {
             // do not assign to read only reference (but used by getter initially)
             throw err(ERROR.Object_NotWritable);
           }
-          ManagedObject._validateReferenceAssignment(obj, target);
+          ManagedObject._validateReferenceAssignment(obj, target, ClassRestriction);
           let cur = obj[HIDDEN.REF_PROPERTY][propId];
           if (cur && target && cur.b === target && !readonlyRef) return;
 

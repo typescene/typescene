@@ -64,7 +64,7 @@ export class ManagedRecord extends Component {
     return result;
   }
 
-  /** Returns the parent record (or parent's parent, etc.). If a class reference is specified, finds the nearest parent of given type. See `@managedChild` decorator. */
+  /** Returns the parent record (or parent's parent, etc.). If a class reference is specified, finds the nearest parent of given type. See `@managedChild` and `@component` decorators. */
   getParentRecord<TParent extends ManagedRecord = ManagedRecord>(
     ParentClass?: ManagedRecordConstructor<TParent>
   ) {
@@ -94,7 +94,7 @@ export class ManagedRecord extends Component {
   }
 
   /**
-   * Returns an array of unique records that contain managed references to this object (see `@managed` and `@managedChild`). This includes records that refer directly to this object, as well as those that refer to managed list(s) or map(s) that contain this record.
+   * Returns an array of unique records that contain managed references to this object (see `@managed`, `@managedChild`, and `@component`). This includes records that refer directly to this object, as well as those that refer to managed list(s) or map(s) that contain this record.
    * @param FilterByClass
    *  If specified, results will only include instances of given class. Other referrers are _not_ inspected recursively.
    */
