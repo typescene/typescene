@@ -1,5 +1,4 @@
-import { Component } from "../core/Component";
-import { bind } from "../core/Binding";
+import { Component, bind, ManagedChangeEvent } from "../core";
 import { AppException } from "../app";
 
 /** @internal Form context binding, can be reused to avoid creating new bindings */
@@ -8,8 +7,19 @@ export const formContextBinding = bind("formContext");
 /** Error that is used when a required property is missing */
 const REQUIRED_ERROR = AppException.type("FORM_REQUIRED", "%s is required");
 
+/** Event that is emitted when changes occur to data stored in a `UIFormContext`; the name of this event is always set to `"FormChange"` to make it easier to delegate these types of events */
+export class UIFormContextChangeEvent extends ManagedChangeEvent {
+  constructor(source: UIFormContext<unknown>) {
+    super("FormChange");
+    this.source = source;
+  }
+
+  /** The form data that was changed */
+  readonly source: UIFormContext<any>;
+}
+
 /**
- * Represents form field data that can be used by input field components. By default, a `formContext` property on `AppActivity` or `ViewComponent` instances is used, but an alternative form context instance may be bound using a `UIForm` or `UIFormContextController` component.
+ * Represents form field data that can be used by input field components. By default, a `formContext` property on `AppActivity` or `ViewComponent` instances is used, but an alternative form context instance may be bound using a `UIForm` or `UIFormContextController` component. Whenever the form data changes, an event of type `UIFormContextChangeEvent` (with name `"FormChange"`) is emitted.
  *
  * To create a typed form context instance, use the static `create` method instead of the constructor.
  */
@@ -49,7 +59,7 @@ export class UIFormContext<TData = any> extends Component {
     if (this._values[name] !== value) {
       this._values[name] = value;
       if (validate) this.validate(name);
-      if (!silent) this.emitChange();
+      if (!silent) this.emit(this._changeEvent);
     } else if (validate) {
       this.validate(name);
     }
@@ -60,7 +70,7 @@ export class UIFormContext<TData = any> extends Component {
     if (!name || !(name in this._values)) return;
     delete this._values[name];
     delete this.errors[name];
-    this.emitChange();
+    this.emit(this._changeEvent);
   }
 
   /** Remove all field values from this instance, including any associated errors, and emit a change event. None of the existing fields will be validated anymore, until they are set again (using `set()`). */
@@ -69,7 +79,7 @@ export class UIFormContext<TData = any> extends Component {
       delete this._values[p];
       delete this.errors[p];
     }
-    this.emitChange();
+    this.emit(this._changeEvent);
   }
 
   /** Returns a plain object that contains properties for all fields and their values */
@@ -145,6 +155,7 @@ export class UIFormContext<TData = any> extends Component {
 
   private _values: Partial<TData> = Object.create(null);
   private _validations: any = Object.create(null);
+  private _changeEvent = new UIFormContextChangeEvent(this).freeze();
 }
 
 export namespace UIFormContext {
