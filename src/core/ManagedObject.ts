@@ -273,7 +273,7 @@ export class ManagedObject {
         value: 0,
       });
     } else if (this._emitting! > RECURSE_EMIT_LIMIT) {
-      throw err(ERROR.Object_Recursion);
+      throw err(ERROR.Object_Recursion, e.name);
     }
     let emitError: any;
     try {
