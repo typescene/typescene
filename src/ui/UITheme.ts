@@ -122,7 +122,7 @@ export class UIColor {
 
 /** Represents a set of default styles and component presets */
 export class UITheme {
-  /** The current theme. This value may be changed but it is not observed. */
+  /** The current theme. This value may be changed but it is not observed, use `Application.renderContext` to re-render UI components after changing the theme. Use `clone()` to initialize a new theme instance. */
   static current: UITheme;
 
   /** Returns a `UIStyle` instance consisting of given named style(s), combined using `UIStyle.mixin(...)` */
@@ -236,6 +236,7 @@ export class UITheme {
     );
   }
 
+  /** Create a new theme with the same properties, colors, icons, and styles (i.e. a 'deep' copy) */
   clone() {
     let result = new UITheme();
     result.modalDialogShadeOpacity = this.modalDialogShadeOpacity;

@@ -12,18 +12,18 @@ Typescene is a robust front end library written in TypeScript: strongly typed, n
 
 ## Documentation
 
-All documentation for Typescene can be found on the website: [https://typescene.dev/docs](https://typescene.dev/docs).
+All documentation for Typescene can be found on the website: [https://typescene.dev/docs/](https://typescene.dev/docs/).
 
-The online docs include an [overview](https://typescene.dev/docs/introduction/overview) as well as other guides, and [reference documentation](https://typescene.dev/docs).
+The online docs include an [overview](https://typescene.dev/docs/introduction) as well as other guides, and [reference documentation](https://typescene.dev/docs).
 
 ## Getting Started
 
 If you're new to Typescene, make sure to check out these resources:
 
-- Read up on the [Architecture overview](https://typescene.dev/docs/introduction/overview)
-- Follow along with [Your first project](https://typescene.dev/docs/guides/first)
+- Read up on the [Architecture overview](https://typescene.dev/docs/introduction)
+- Follow along with the [Installation guide](https://typescene.dev/docs/installation)
 - Use [`create-typescene-webapp`](https://github.com/typescene/create-typescene-webapp)
-- For a more complete example, check out [`typescene-realworld-example-app`](https://github.com/typescene/typescene-realworld-example-app)
+- For a complete example, check out [`typescene-realworld-example-app`](https://github.com/typescene/typescene-realworld-example-app)
 
 ## TODO
 
@@ -58,13 +58,13 @@ The main Typescene repository uses tagged [Releases](https://github.com/typescen
 
 ## Reach Out!
 
-Find us on [Twitter](https://twitter.com/typescene) for the latest news, and please consider giving us a ⭐️ star on [GitHub](https://github.com/typescene/typescene)!
+Find Typescene on [Twitter](https://twitter.com/typescene) for the latest news, and please consider giving the repository a ⭐️ star on [GitHub](https://github.com/typescene/typescene).
 
 ## Support
 
-Support Typescene on [Patreon](https://www.patreon.com/typescene) for financial contributions.
+Your support is greatly appreciated. At this stage, we mostly need to get the word out. If you like Typescene, tell all your friends and colleagues!
 
-For contributions in the form of bug fixes and changes, feel free to use [Pull Requests](https://github.com/typescene/typescene/pulls) or send us a DM on Twitter to discuss how best to approach your issue.
+For contributions in the form of bug fixes and changes, feel free to use [Pull Requests](https://github.com/typescene/typescene/pulls) or send a DM on Twitter to discuss how best to approach your issue.
 
 ## License
 

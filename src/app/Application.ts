@@ -8,8 +8,8 @@ import {
   ManagedCoreEvent,
   delegateEvents,
 } from "../core";
-import { UIRenderContext } from "../ui";
-import { AppActivationContext } from "./AppActivationContext";
+import type { UIRenderContext } from "../ui";
+import type { AppActivationContext } from "./AppActivationContext";
 import { AppActivity } from "./AppActivity";
 import { AppActivityList } from "./AppActivityList";
 
@@ -59,7 +59,7 @@ export class Application extends Component {
     if (activities.length) {
       // preset an AppActivityList with given activities
       let L = AppActivityList.with(...activities);
-      this.presetBoundComponent("activities", L, AppActivity);
+      this.presetBoundComponent("activities", L);
       this.addEventHandler(function (e) {
         // toggle property based on activation state
         if (e === ManagedCoreEvent.INACTIVE) {
@@ -175,6 +175,10 @@ export class Application extends Component {
     return ManagedService.find(name);
   }
 }
+
+// Make sure bindings are in place for `activities`, even if not preset
+Application.presetBoundComponent("activities", AppActivity);
+AppActivity.Application = Application;
 
 export namespace Application {
   /** Application presets type, for use with `Component.with` */

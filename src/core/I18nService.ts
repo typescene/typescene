@@ -149,7 +149,7 @@ export class I18nString {
  * - `%{?}` for true or false (boolean) and `%{!}` for negation
  * - `%{n}` or `%{num}` for values cast to Number
  * - `%{then:a:b}` to select strings a or b based on boolean value
- * - `%{or:b}` to select string b if the value is not boolean true
+ * - `%{else:b}` to select string b if the value is not boolean true
  * - `%{local:...}` for I18n-formatted values; the type part(s) are variable, and will need to be implemented by the `I18nService.format` method of the currently registered I18n service, e.g. `strf("%{local:date}", new Date())`.
  * @note Asterisks (`*`) anywhere in a placeholder are replaced by the next value in the parameter list (_before_ the value being represented itself), e.g. in `strf("%.*f", precision, number)` and `strf("%{local:currency:*}", currency, number)`.
  * @note Floating point numbers are formatted using the decimal separator specified by the `I18nService.decimalSeparator` property of the currently registered I18n service, if any. Number grouping separators are not supported, and if necessary numbers will need to be formatted using %{local:...}.

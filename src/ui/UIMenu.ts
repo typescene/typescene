@@ -1,4 +1,4 @@
-import { Component, ComponentEventHandler, delegateEvents, managedChild } from "../core";
+import { component, Component, ComponentEventHandler, delegateEvents } from "../core";
 import { err, ERROR } from "../errors";
 import { Stringable, UIComponent, UIComponentEvent, UIRenderable } from "./UIComponent";
 import { UIRenderContext } from "./UIRenderContext";
@@ -55,7 +55,7 @@ export class UIMenu extends Component implements UIRenderable {
 
   /** The last menu that was built, as a child object */
   @delegateEvents
-  @managedChild
+  @component
   menu?: UIRenderable;
 
   /** Menu gravity in relation to reference component (start/stretch/end) */
