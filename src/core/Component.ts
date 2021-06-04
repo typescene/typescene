@@ -243,7 +243,7 @@ export class Component extends ManagedObject {
 
   /**
    * Inherit bindings from given component constructor(s) on this constructor. Inherited bindings will be bound to the same bound parent object as bindings passed to `.with()` directly, to update bound properties of (nested) child instances.
-   * @note This method must be used by a custom `preset` function if the preset component (may) have managed child objects (see `@managedChild`) of the given type and the constructor is not passed to `super.preset(...)` or `presetBoundComponent(...)`.
+   * @note This method must be used by a custom `preset` function if the preset component (may) have managed child objects (see `@managedChild`) of the given type and the constructor is not passed to `super.preset(...)` or `presetBoundComponent(...)`. Alternatively, use the `@component` decorator on properties that refer to child components, which also presets bindings from a given component type.
    */
   static presetBindingsFrom(...constructors: Array<ComponentConstructor | undefined>) {
     if (!this.prototype.hasOwnProperty(HIDDEN.BIND_INHERIT_PROPERTY)) {
@@ -261,7 +261,7 @@ export class Component extends ManagedObject {
   /**
    * Make this component the _bound_ parent component for given child component type(s). When a component is assigned to given property, making it a child component, its bindings are bound to the current instance (i.e. the bound parent).
    * @returns An object that represents the bound parent-child composition, and contains methods that can be used to fine-tune binding behavior.
-   * @note Given property _must_ already be designated as a managed child property (see `@managedChild` decorator).
+   * @note Given property _must_ already be designated as a managed child property (see `@managedChild` decorator). Do **not** use this method on properties that are already decorated using the `@component` decorator.
    */
   static presetBoundComponent(
     propertyName: string,
@@ -310,7 +310,7 @@ export class Component extends ManagedObject {
     return this.getManagedParent(ParentClass || Component) as TParent | undefined;
   }
 
-  /** Returns the parent component that is the source of all bound values on this component (and possibly child components). */
+  /** Returns the parent component that is the source of all bound values on this component. See `@component` decorator, and `presetBoundComponent()`. */
   getBoundParentComponent<TParent extends Component>(
     ParentClass?: ComponentConstructor<TParent>
   ): TParent | undefined {
@@ -453,7 +453,7 @@ export namespace Component {
           }
         }
       };
-      include.forEach(C => addBindings(C));
+      include.forEach(addBindings);
       return bindings;
     }
 
@@ -694,8 +694,54 @@ class ManagedValueObject<T> extends ManagedObject {
   }
 }
 
-/** Property decorator: observe events on objects that are referenced by this property. For each event, the `delegateEvent()` method is invoked on the containing component. A default implementation is provided as `Component.delegateEvent`, but this method can be overridden by each subclass.
- * @note This decorator _must_ be combined with either `@managed`, `@managedChild`, or `@service`
+/**
+ * Property decorator: amend decorated property to turn it into a managed child _component_ reference of given type. Also presets bindings from given component type on the parent component (see `Component.presetBoundComponent()`, which allows for greater control of the resulting bindings).
+ *
+ * This asserts a parent-child 'composition' dependency between the referrer and the referenced object(s):
+ * - This property can only be assigned a reference to a `Component` instance of given type.
+ * - When the parent is destroyed, all children are also destroyed.
+ * - When the decorated property is set to another object, the previously referenced object is destroyed.
+ * - When the referenced object is assigned to another managed child reference (or list, map, or reference instance that is a child object), the decorated property is set to undefined.
+ * - The child object may refer to its parent using the `Component.getParentComponent()` and `Component.getBoundParentComponent()` methods.
+ *
+ * @note: The component type parameter is optional, this decorator can be used both on its own or with a class parameter.
+ *
+ * @decorator
+ */
+export function component<T extends Component>(
+  componentType?: ComponentConstructor
+): PropertyDecorator;
+export function component<T extends Component>(target: T, propertyKey: any): void;
+export function component<T extends Component>(
+  componentTypeOrTarget?: any,
+  propertyKey?: any
+) {
+  let C: any = undefined;
+  function decorator(target: T, propertyKey: any) {
+    if (!(target.constructor.prototype instanceof Component)) throw TypeError();
+    ManagedObject.createManagedReferenceProperty(
+      target,
+      propertyKey,
+      true,
+      undefined,
+      C || Component
+    );
+    (target.constructor as typeof Component).presetBoundComponent(propertyKey, C);
+  }
+  if (propertyKey) {
+    // this is used without a parameter, decorate given property immediately
+    decorator(componentTypeOrTarget, propertyKey);
+  } else {
+    // this is used with a parameter, return decorator function now
+    if (componentTypeOrTarget) C = componentTypeOrTarget;
+    return decorator;
+  }
+  return;
+}
+
+/**
+ * Property decorator: observe events on objects that are referenced by this property. For each event, the `delegateEvent()` method is invoked on the containing component. A default implementation is provided as `Component.delegateEvent`, but this method can be overridden by each subclass.
+ * @note This decorator _must_ be combined with `@managed`, `@managedChild`, `@component`, or `@service`
  * @decorator
  */
 export function delegateEvents(targetPrototype: Component, propertyKey: string) {

@@ -1,4 +1,4 @@
-import { Component, delegateEvents, managed, managedChild, ManagedEvent } from "../core";
+import { component, Component, delegateEvents, managed, ManagedEvent } from "../core";
 import {
   UIComponent,
   UIComponentEvent,
@@ -34,7 +34,7 @@ export class UIRenderableController<TContent extends UIRenderable = UIRenderable
 
   /** Renderable content, as a managed child reference */
   @delegateEvents
-  @managedChild
+  @component
   content?: TContent;
 
   /** Override event delegation, to _also_ propagate events of type `UIComponentEvent` */

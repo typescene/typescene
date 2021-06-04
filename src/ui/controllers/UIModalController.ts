@@ -1,4 +1,3 @@
-import { Application } from "../../app";
 import { Binding, ComponentConstructor, delegateEvents, managedChild } from "../../core";
 import { err, ERROR } from "../../errors";
 import { UIComponent, UIRenderable, UIRenderableConstructor } from "../UIComponent";
@@ -73,11 +72,10 @@ UIModalController.addObserver(
       if (this._renderCallback) {
         this._renderCallback = this._renderCallback(undefined);
       }
-      if (this.controller.modal) {
+      if (this.controller.modal && this.controller.renderContext) {
         let ref = this._getReferenceComponent();
-        let application = this.controller.getBoundParentComponent(Application);
-        if (ref && application && application.renderContext) {
-          this._renderCallback = application.renderContext.getRenderCallback() as any;
+        if (ref) {
+          this._renderCallback = this.controller.renderContext.getRenderCallback() as any;
           let callbackProxy: UIRenderContext.RenderCallback = (output, afterRender) => {
             if (!this._renderCallback) return callbackProxy;
             if (output && output.element) {

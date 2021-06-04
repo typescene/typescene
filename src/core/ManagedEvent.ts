@@ -47,7 +47,7 @@ export namespace ManagedCoreEvent {
   export const DESTROYED = new ManagedCoreEvent("Destroyed").freeze();
 }
 
-/** Event that is emitted when a reference to a managed object is assigned to a managed child reference property (i.e. a property decorated with the `@managedChild` decorator); the child object emits this event, with `parent` set to the _new_ parent object, and `propertyName` set to the property name (only if the child object is _directly_ assigned to a property of the parent object) */
+/** Event that is emitted when a reference to a managed object is assigned to a managed child reference property (i.e. a property decorated with the `@managedChild` or `@component` decorators); the child object emits this event, with `parent` set to the _new_ parent object, and `propertyName` set to the property name (only if the child object is _directly_ assigned to a property of the parent object) */
 export class ManagedParentChangeEvent extends ManagedCoreEvent {
   constructor(parent: ManagedObject, propertyName?: string) {
     super("ManagedParentChange");

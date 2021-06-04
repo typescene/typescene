@@ -6,6 +6,8 @@ import {
   ManagedList,
   managed,
   delegateEvents,
+  component,
+  ManagedObject,
 } from "../../../dist";
 
 consider("Component", () => {
@@ -21,9 +23,9 @@ consider("Component", () => {
       a = 123;
     }
     class MyComponent extends Component {
-      @managedChild child = new ChildComponent();
+      @component
+      child = new ChildComponent();
     }
-    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     t.test(c.child.getBoundParentComponent() === c);
   });
@@ -34,9 +36,9 @@ consider("Component", () => {
       @managedChild child?: ChildComponent;
     }
     class MyComponent extends Component {
-      @managedChild child = new ChildComponent();
+      @component(ChildComponent)
+      child = new ChildComponent();
     }
-    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     c.child.child = new ChildComponent();
     t.test(c.child.child.getBoundParentComponent() === c);
@@ -52,9 +54,9 @@ consider("Component", () => {
       @managedChild child?: ChildComponent;
     }
     class MyComponent extends Component {
-      @managedChild child = new ChildComponent(true);
+      @component
+      child = new ChildComponent(true);
     }
-    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     t.test(c.child.child?.getBoundParentComponent() === c);
   });
@@ -65,9 +67,9 @@ consider("Component", () => {
       @managedChild children = new ManagedList().restrict(ChildComponent);
     }
     class MyComponent extends Component {
-      @managedChild child = new ChildComponent();
+      @component(ChildComponent)
+      child = new ChildComponent();
     }
-    MyComponent.presetBoundComponent("child", ChildComponent);
     let c = new MyComponent();
     c.child.children.add(new ChildComponent());
     t.test(c.child.children.first()!.getBoundParentComponent() === c);
@@ -76,15 +78,15 @@ consider("Component", () => {
   it("supports bindings on nested bound components (nest after assignment)", t => {
     class ChildComponent extends Component {
       a = 123;
-      @managedChild
+      @component
       child?: ChildComponent;
     }
     const ComponentWithBinding = ChildComponent.with({ a: bind("b") });
     class MyComponent extends Component {
       b = 0;
-      @managedChild child = new ComponentWithBinding();
+      @component(ComponentWithBinding)
+      child = new ComponentWithBinding();
     }
-    MyComponent.presetBoundComponent("child", ComponentWithBinding);
     let c = new MyComponent();
     c.child.child = new ComponentWithBinding();
     c.b = 456;
@@ -96,14 +98,14 @@ consider("Component", () => {
   it("supports bindings on nested bound components (nest before assignment)", t => {
     class ChildComponent extends Component {
       a = 123;
-      @managedChild child?: ChildComponent;
+      @component child?: ChildComponent;
     }
     const ComponentWithBinding = ChildComponent.with({ a: bind("b") });
     class MyComponent extends Component {
       b = 0;
-      @managedChild child?: ChildComponent;
+      @component(ComponentWithBinding)
+      child?: ChildComponent;
     }
-    MyComponent.presetBoundComponent("child", ComponentWithBinding);
     let c = new MyComponent();
     let child = new ComponentWithBinding();
     child.child = new ComponentWithBinding();
@@ -129,7 +131,7 @@ consider("Component", () => {
         return super.preset(presets, C);
       }
       ChildClass!: ComponentConstructor<ChildComponent>;
-      @managedChild child: ChildComponent;
+      @component child: ChildComponent;
       b = 1;
       s = "ok";
       constructor() {
@@ -143,7 +145,9 @@ consider("Component", () => {
         this.prototype.C = C;
         return super.preset(presets, C);
       }
-      @managedChild seeThrough!: MySeeThroughComponent;
+      // note: component bindings for Component are overridden in preset above,
+      // so @component should be equivalent to @managedChild here
+      @component seeThrough!: MySeeThroughComponent;
       b = 0;
       s = "no";
       C?: ComponentConstructor<MySeeThroughComponent>;
@@ -170,7 +174,7 @@ consider("Component", () => {
   it("can delegate events", t => {
     class B extends Component {}
     class A extends Component {
-      @managed
+      @component()
       @delegateEvents
       b = new B();
       onOK() {
@@ -181,6 +185,19 @@ consider("Component", () => {
   });
 
   it("can delegate events (reverse)", t => {
+    class B extends Component {}
+    class A extends Component {
+      @delegateEvents
+      @component
+      b = new B();
+      onOK() {
+        t.ok();
+      }
+    }
+    new A().b.emit("OK");
+  });
+
+  it("can delegate events (reverse, using @managed)", t => {
     class B extends Component {}
     class A extends Component {
       @delegateEvents
@@ -196,12 +213,12 @@ consider("Component", () => {
   it("propagates action events", t => {
     class C extends Component {}
     class B extends Component {
-      @managed
+      @component
       @delegateEvents
       c = new C();
     }
     class A extends Component {
-      @managed
+      @component
       @delegateEvents
       b = new B();
       onOK() {
@@ -209,5 +226,22 @@ consider("Component", () => {
       }
     }
     new A().b.c.emitAction("OK");
+  });
+
+  it("rejects non-components for component property", t => {
+    class C extends ManagedObject {}
+    class B extends Component {}
+    class A extends Component {
+      @component
+      component?: any;
+    }
+    let a = new A();
+    a.component = new B();
+    try {
+      a.component = new C();
+      t.fail("Accepts plain managed object");
+    } catch {
+      t.ok();
+    }
   });
 });
