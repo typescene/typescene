@@ -121,6 +121,7 @@ export class AppActivity extends AppComponent {
     if (this.isActive()) {
       let path = String(e.source.getNavigationTarget?.() || "");
       if (path) this.getApplication()?.navigate(path);
+      return true;
     }
   }
 
