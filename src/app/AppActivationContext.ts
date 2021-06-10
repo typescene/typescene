@@ -2,6 +2,15 @@ import { ManagedObject } from "../core";
 import { err, ERROR } from "../errors";
 import { AppActivity } from "./AppActivity";
 
+/** Navigation mode(s) supported by `Application.navigate()` (and `AppActivationContext.navigate()`) */
+export interface ApplicationNavigationMode {
+  /** Set to true to navigate back in history *before* navigating to a specified path */
+  back?: boolean;
+
+  /** Set to true to *replace* the current navigation path with another path; afterwards, going back in history will not result in the current navigation path, but the one before it */
+  replace?: boolean;
+}
+
 /** Represents the application state using a single 'target' path in URL format. Used by `AppActivity` classes to implement routing behavior. This class is overridden by specialized implementations to work with platform features, e.g. DOM navigation in a Web browser. */
 export class AppActivationContext extends ManagedObject {
   /** The current full target path, in URL format without leading or trailing slashes (e.g. `foo/bar/123`), defaults to the empty string. Changes to this property automatically result in a change event being emitted on the activation context instance itself. */
@@ -20,7 +29,7 @@ export class AppActivationContext extends ManagedObject {
   private _split: string[] = [];
 
   /** Navigate to given (relative) path, in URL format or `:back` to go back in history; to be overridden, the base implementation does nothing. */
-  navigate(_path: string) {
+  navigate(_path: string, _mode?: ApplicationNavigationMode) {
     // to be overridden
   }
 

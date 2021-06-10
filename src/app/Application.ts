@@ -9,8 +9,11 @@ import {
   delegateEvents,
 } from "../core";
 import type { UIRenderContext } from "../ui";
-import type { AppActivationContext } from "./AppActivationContext";
-import { AppActivity } from "./AppActivity";
+import type {
+  AppActivationContext,
+  ApplicationNavigationMode,
+} from "./AppActivationContext";
+import { AppActivity, NavigationTarget } from "./AppActivity";
 import { AppActivityList } from "./AppActivityList";
 
 /** Handler that is used for automatic class updates (e.g. hot module reload) */
@@ -140,14 +143,14 @@ export class Application extends Component {
   }
 
   /** Navigate to given (relative) path using the current `Application.activationContext` */
-  navigate(path: string) {
-    if (this.activationContext) this.activationContext.navigate(path);
+  navigate(path: string | NavigationTarget, mode?: ApplicationNavigationMode) {
+    if (this.activationContext) this.activationContext.navigate(String(path), mode);
     return this;
   }
 
   /** Go back to the previous navigation path, if implemented by the current `Application.activationContext` */
   goBack() {
-    if (this.activationContext) this.activationContext.navigate(":back");
+    if (this.activationContext) this.activationContext.navigate("", { back: true });
     return this;
   }
 
