@@ -75,6 +75,8 @@ export class UIColor {
   static readonly Accent = new UIColor("accent");
   static readonly Background = new UIColor("background");
   static readonly Text = new UIColor("text");
+  static readonly Separator = new UIColor("separator");
+  static readonly ControlBase = new UIColor("controlBase");
 
   constructor(colorName?: string) {
     if (colorName) {
@@ -286,6 +288,7 @@ export class UITheme {
     background: "@white",
     text: "@background.text",
     separator: "@background^-50%/20%",
+    controlBase: "@background",
     modalShade: "@black",
   };
 
