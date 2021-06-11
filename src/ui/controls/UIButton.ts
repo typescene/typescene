@@ -1,7 +1,14 @@
+import type { NavigationTarget } from "../../app";
 import { Binding, strf } from "../../core";
 import { Stringable } from "../UIComponent";
 import { UITheme, UIColor } from "../UITheme";
 import { UIControl } from "./UIControl";
+
+// NOTE: button click handlers are defined in the platform package, not here.
+// This is to accomodate special cases like right-click, ctrl-click, etc.
+// The click handler emits a 'Navigate' action event (if the button is not disabled),
+// which is handled by `AppActivity` unless overridden, which uses the
+// getNavigationTarget method defined here.
 
 /** Represents a button component */
 export class UIButton extends UIControl {
@@ -9,8 +16,8 @@ export class UIButton extends UIControl {
     // quietly change 'text' to label to support JSX tag content
     if ("text" in (presets as any)) presets.label = (presets as any).text;
 
-    // use a 'link' role automatically if `navigateTo` is specified
-    if (presets.navigateTo && !presets.accessibleRole) {
+    // use a 'link' role automatically if navigation target is specified
+    if ((presets.navigateTo || presets.navigationTarget) && !presets.accessibleRole) {
       presets.accessibleRole = "link";
     }
     return super.preset(presets);
@@ -36,7 +43,6 @@ export class UIButton extends UIControl {
   constructor(label?: Stringable) {
     super();
     this.style = UITheme.getStyle("control", "button");
-    this.shrinkwrap = true;
     if (label !== undefined) this.label = label;
   }
 
@@ -71,6 +77,14 @@ export class UIButton extends UIControl {
 
   /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
   navigateTo?: string;
+
+  /** Navigation target, can be bound to an `AppActivity.navigationTarget` property, if set */
+  navigationTarget?: NavigationTarget;
+
+  /** Returns the navigation target for this button (as a string or `NavigationTarget` instance), if either `navigateTo` or `navigationTarget` properties have been set */
+  getNavigationTarget() {
+    return this.navigationTarget || this.navigateTo;
+  }
 }
 
 /** Shortcut for `UIButton` constructor preset with the `button_primary` named style from the current theme (see `UITheme`) */
@@ -111,6 +125,8 @@ export namespace UIButton {
     iconAfter?: boolean;
     /** Path to navigate to automatically when clicked, if not blank; use `:back` to go back in history */
     navigateTo?: string;
+    /** Navigation target, can be bound to an `AppActivity.navigationTarget` property, if set */
+    navigationTarget?: NavigationTarget;
     /** Set to true to disable keyboard focus for this button */
     disableKeyboardFocus?: boolean;
   }

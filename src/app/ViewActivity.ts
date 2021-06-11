@@ -123,7 +123,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   }
 
   /** Handle FocusIn UI event, remember first/last focused component */
-  protected onFocusIn(e: ComponentEvent) {
+  protected onFocusIn(e: ComponentEvent): boolean | void {
     if (e.source instanceof UIComponent) {
       if (!this.firstFocused) this.firstFocused = e.source;
       this.lastFocused = e.source;
@@ -280,7 +280,7 @@ export class DialogViewActivity extends ViewActivity {
   }
 
   /** Handle CloseModal event by destroying this activity; stops propagation of the event */
-  protected onCloseModal() {
+  protected onCloseModal(): boolean | void {
     this.destroyAsync();
     return true;
   }
