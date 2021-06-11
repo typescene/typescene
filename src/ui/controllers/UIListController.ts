@@ -82,7 +82,7 @@ export class UIListController extends UIRenderableController<UIContainer> {
   }
 
   /** Handle FocusIn events, saving the index of the focused item or restoring focus on the item that was focused last */
-  protected onFocusIn(e: ComponentEvent) {
+  protected onFocusIn(e: ComponentEvent): boolean | void {
     if (e.source !== this.content) {
       // store focus index
       let idx = this.getIndexOfComponent(e.source);
@@ -95,7 +95,7 @@ export class UIListController extends UIRenderableController<UIContainer> {
   }
 
   /** Handle ArrowUpKeyPress events, focusing the previous list item */
-  protected onArrowUpKeyPress() {
+  protected onArrowUpKeyPress(): boolean | void {
     if (!this.focusPreviousItem()) {
       let parentList = this.getParentComponent(UIListController);
       if (parentList && parentList.enableArrowKeyFocus) {
@@ -107,7 +107,7 @@ export class UIListController extends UIRenderableController<UIContainer> {
   }
 
   /** Handle ArrowDownKeyPress events, focusing the next list item */
-  protected onArrowDownKeyPress() {
+  protected onArrowDownKeyPress(): boolean | void {
     if (!this.focusNextItem()) {
       let parentList = this.getParentComponent(UIListController);
       if (parentList && parentList.enableArrowKeyFocus) {
