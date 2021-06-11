@@ -8,7 +8,7 @@ export class UISelectionController extends UIRenderableController {
   selected?: Component;
 
   /** Handle Select events, remember the (original) source component and deselect the previously selected component, if any */
-  onSelect(e: ComponentEvent) {
+  protected onSelect(e: ComponentEvent): boolean | void {
     if (e.source === this.selected) return;
     while (e.inner instanceof ComponentEvent && e.inner.name === "Select") {
       e = e.inner;
@@ -20,7 +20,7 @@ export class UISelectionController extends UIRenderableController {
   }
 
   /** Handle Deselect events (only if their source is the currently selected component) */
-  onDeselect(e: ComponentEvent) {
+  protected onDeselect(e: ComponentEvent): boolean | void {
     if (e.source === this.selected) this.selected = undefined;
     while (e.inner instanceof ComponentEvent && e.inner.name === "Deselect") {
       e = e.inner;

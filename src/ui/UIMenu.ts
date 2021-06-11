@@ -47,7 +47,7 @@ export class UIMenu extends Component implements UIRenderable {
   }
 
   /** Handle SelectMenuItem events by setting the `selected` property to the key of the selected item, and then propagating the event on this component itself. */
-  protected onSelectMenuItem(e: UIMenuItemSelectedEvent) {
+  protected onSelectMenuItem(e: UIMenuItemSelectedEvent): boolean | void {
     this.selected = e.key;
     this.emit(e);
     return true;
