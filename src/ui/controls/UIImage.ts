@@ -20,7 +20,6 @@ export class UIImage extends UIControl {
   constructor(url?: Stringable) {
     super();
     this.style = UITheme.getStyle("control", "image");
-    this.shrinkwrap = true;
     if (url !== undefined) this.url = url;
   }
 

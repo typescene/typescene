@@ -12,21 +12,23 @@ export abstract class UIControl extends UIComponent {
     let origDecoration: Readonly<UIStyle.Decoration>;
     let origTextStyle: Readonly<UIStyle.TextStyle>;
     if (Binding.isBinding(decoration)) {
-      (this as any).presetBinding("decoration", decoration, function (
-        this: UIControl,
-        v: any
-      ) {
-        this.decoration = v ? { ...origDecoration!, ...v } : origDecoration;
-      });
+      (this as any).presetBinding(
+        "decoration",
+        decoration,
+        function (this: UIControl, v: any) {
+          this.decoration = v ? { ...origDecoration!, ...v } : origDecoration;
+        }
+      );
       decoration = undefined;
     }
     if (Binding.isBinding(textStyle)) {
-      (this as any).presetBinding("textStyle", textStyle, function (
-        this: UIControl,
-        v: any
-      ) {
-        this.textStyle = v ? { ...origTextStyle!, ...v } : origTextStyle;
-      });
+      (this as any).presetBinding(
+        "textStyle",
+        textStyle,
+        function (this: UIControl, v: any) {
+          this.textStyle = v ? { ...origTextStyle!, ...v } : origTextStyle;
+        }
+      );
       textStyle = undefined;
     }
     let f = super.preset(presets);
@@ -55,8 +57,8 @@ export abstract class UIControl extends UIComponent {
   /** Set to true to disable this control */
   disabled?: boolean;
 
-  /** Set to true to shrink this element to use as little space as possible within its container, set to false to expand; defaults to true but may be overridden by individual components, e.g. `UILabel` (also overrides `grow` property of `UIComponent.dimensions`) */
-  shrinkwrap = true;
+  /** Set to true to shrink this element to use as little space as possible within its container, set to false to expand; defaults to true but may be overridden by individual components, e.g. `UIExpandedLabel`. Overrides `grow` property of `UIComponent.dimensions`, unless set to `"auto"`. */
+  shrinkwrap: boolean | "auto" = true;
 }
 
 export namespace UIControl {
@@ -69,7 +71,7 @@ export namespace UIControl {
     /** Disable this control */
     disabled?: boolean;
     /** Shrink or grow this control */
-    shrinkwrap?: boolean;
+    shrinkwrap?: boolean | "auto";
 
     // control element event handlers
     onChange?: UIComponentEventHandler<UIControl>;

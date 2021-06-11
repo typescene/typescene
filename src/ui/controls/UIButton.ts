@@ -43,7 +43,6 @@ export class UIButton extends UIControl {
   constructor(label?: Stringable) {
     super();
     this.style = UITheme.getStyle("control", "button");
-    this.shrinkwrap = true;
     if (label !== undefined) this.label = label;
   }
 
