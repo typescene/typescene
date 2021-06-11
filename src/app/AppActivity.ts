@@ -119,6 +119,9 @@ export class AppActivity extends AppComponent {
   /** Handle navigation events (emitted by e.g. `UIButton`) by navigating to a corresponding path using `Application.navigate()`; should be overridden if non-standard navigation behavior is required, for e.g. master-detail navigation; requires events to be delegated for components that may emit 'Navigate' events such as nested views and activities */
   protected onNavigate(e: NavigationEvent): boolean | void {
     if (this.isActive()) {
+      while (e.inner && e.inner.name === "Navigate") {
+        e = e.inner as NavigationEvent;
+      }
       let path = String(e.source.getNavigationTarget?.() || "");
       if (path) this.getApplication()?.navigate(path);
       return true;
