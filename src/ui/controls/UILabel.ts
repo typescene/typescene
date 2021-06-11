@@ -37,7 +37,6 @@ export class UILabel extends UIControl {
   constructor(text?: Stringable) {
     super();
     this.style = UITheme.getStyle("control", "label");
-    this.shrinkwrap = true;
     if (text !== undefined) this.text = text;
   }
 

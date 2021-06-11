@@ -21,7 +21,6 @@ export class UIToggle extends UIControl {
   constructor() {
     super();
     this.style = UITheme.getStyle("control", "toggle");
-    this.shrinkwrap = true;
   }
 
   isFocusable() {
