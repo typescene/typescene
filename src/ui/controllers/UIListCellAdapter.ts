@@ -47,7 +47,7 @@ export class UIListCellAdapter<
 > extends UIRenderableController<UICell> {
   static preset(
     presets: UIListCellAdapter.Presets,
-    ...rest: Array<UIRenderableConstructor>
+    ...components: Array<UIRenderableConstructor>
   ): Function {
     // separate event handlers from other presets
     let cellPresets: any = {};
@@ -58,7 +58,7 @@ export class UIListCellAdapter<
         : cellPresets)[k] = (presets as any)[k];
     }
     if (!cellPresets.accessibleRole) cellPresets.accessibleRole = "listitem";
-    let PresetCell = UICell.with(cellPresets, ...rest);
+    let PresetCell = UICell.with(cellPresets, ...components);
     let p = this.presetBoundComponent("content", PresetCell);
     p.limitBindings("object", "value", "selected", "hovered");
     return super.preset(handlers, PresetCell);

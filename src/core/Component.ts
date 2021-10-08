@@ -47,9 +47,8 @@ export type ComponentConstructor<TComponent extends Component = Component> = new
 
 export namespace ComponentConstructor {
   /** Inferred partial type of the argument to `Component.with` without bindings, for a specific component constructor */
-  export type PresetType<
-    TComponentCtor extends ComponentConstructor
-  > = TComponentCtor extends { preset: (presets: infer TPreset) => void } ? TPreset : any;
+  export type PresetType<TComponentCtor extends ComponentConstructor> =
+    TComponentCtor extends { preset: (presets: infer TPreset) => void } ? TPreset : any;
 
   /** Inferred type of the argument to `Component.with` for a specific component constructor */
   export type PresetArgType<TComponentCtor extends ComponentConstructor> = {
@@ -59,17 +58,15 @@ export namespace ComponentConstructor {
   };
 
   /** Inferred type of the rest arguments to `Component.with` for a specific component constructor */
-  export type PresetRestType<
-    TComponentCtor extends ComponentConstructor
-  > = TComponentCtor extends {
-    preset: (presets: PresetType<TComponentCtor>, ...rest: infer TRest) => void;
-  }
-    ? TRest
-    : never;
+  export type PresetRestType<TComponentCtor extends ComponentConstructor> =
+    TComponentCtor extends {
+      preset: (presets: PresetType<TComponentCtor>, ...components: infer TRest) => void;
+    }
+      ? TRest
+      : never;
 
-  export type WithPresetType<
-    TComponentCtor extends ComponentConstructor
-  > = TComponentCtor & { preset(presets: PresetType<TComponentCtor>): Function };
+  export type WithPresetType<TComponentCtor extends ComponentConstructor> =
+    TComponentCtor & { preset(presets: PresetType<TComponentCtor>): Function };
 }
 
 /** @internal Event that is emitted on (parent) components when a child component is added. The parent component observer responds by setting the `parentObserver` property on the child observer. */
@@ -110,17 +107,17 @@ export class Component extends ManagedObject {
   /** Create a new component constructor, which automatically initializes new instances with given properties, bindings, event handlers, and other values. */
   static with<TComponentCtor extends ComponentConstructor>(
     this: ComponentConstructor.WithPresetType<TComponentCtor>,
-    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
+    ...components: ComponentConstructor.PresetRestType<TComponentCtor>
   ): TComponentCtor;
   static with<TComponentCtor extends ComponentConstructor>(
     this: ComponentConstructor.WithPresetType<TComponentCtor>,
     presets: new () => any,
-    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
+    ...components: ComponentConstructor.PresetRestType<TComponentCtor>
   ): "INVALID_PRESET_ARGUMENT";
   static with<TComponentCtor extends ComponentConstructor>(
     this: ComponentConstructor.WithPresetType<TComponentCtor>,
     presets: ComponentConstructor.PresetArgType<TComponentCtor>,
-    ...rest: ComponentConstructor.PresetRestType<TComponentCtor>
+    ...components: ComponentConstructor.PresetRestType<TComponentCtor>
   ): TComponentCtor;
   static with<TComponentCtor extends ComponentConstructor>(
     this: ComponentConstructor.WithPresetType<TComponentCtor>,
@@ -158,7 +155,7 @@ export class Component extends ManagedObject {
    * Component classes may override this method and return the result of `super.preset(...)`, to add further presets and bindings using static methods on this component class.
    * @returns A function (*must* be typed as `Function` even in derived classes) that is called by the constructor for each new instance, to apply remaining values from the preset object to the component object that is passed through `this`.
    */
-  static preset(presets: object, ...rest: unknown[]): Function {
+  static preset(presets: object, ...components: unknown[]): Function {
     // take and apply bindings and components to the constructor already
     let eventActions: { [eventName: string]: string } | undefined;
     let eventHandlers:
@@ -185,11 +182,11 @@ export class Component extends ManagedObject {
         delete (presets as any)[p];
       } else if (typeof v === "function" && v.prototype instanceof Component) {
         // add bindings for component constructor
-        rest.push(v);
+        components.push(v);
       }
     }
     // register bindings for child components, if any
-    if (rest.length) this.presetBindingsFrom(...(rest as any));
+    if (components.length) this.presetBindingsFrom(...(components as any));
 
     // add event handlers, if any
     if (eventActions) {
@@ -649,9 +646,8 @@ export namespace Component {
     private _parentObserver?: ComponentObserver;
 
     /** List of child component observers, indexed by component ID; maintained by child observers themselves */
-    private _childObservers: { [managedId: string]: ComponentObserver } = Object.create(
-      null
-    );
+    private _childObservers: { [managedId: string]: ComponentObserver } =
+      Object.create(null);
 
     /** Number of currently registered child observers (in _childObservers) */
     private _nChildren = 0;

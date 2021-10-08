@@ -26,7 +26,7 @@ export enum UICellTransition {
 export class UICell extends UIContainer {
   static preset(
     presets: UICell.Presets,
-    ...rest: Array<UIRenderableConstructor | undefined>
+    ...components: Array<UIRenderableConstructor | undefined>
   ): Function {
     let decoration = presets.decoration;
     delete presets.decoration;
@@ -48,7 +48,7 @@ export class UICell extends UIContainer {
       presets.onFocusIn = "Select";
       delete presets.selectOnFocus;
     }
-    let f = super.preset(presets, ...rest);
+    let f = super.preset(presets, ...components);
     return function (this: UICell) {
       f.call(this);
       if (decoration) this.decoration = { ...this.decoration, ...decoration };

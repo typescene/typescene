@@ -98,7 +98,7 @@ export type UIRenderableConstructor = ComponentConstructor<UIRenderable> &
 
 /** Represents a visible part of the user interface. */
 export abstract class UIComponent extends Component implements UIRenderable {
-  static preset(presets: UIComponent.Presets, ...rest: unknown[]): Function {
+  static preset(presets: UIComponent.Presets, ...components: unknown[]): Function {
     // replace `requestFocus` with event handler
     if (presets.requestFocus) {
       delete presets.requestFocus;
@@ -150,7 +150,7 @@ export abstract class UIComponent extends Component implements UIRenderable {
     }
 
     // return preset function
-    let f = super.preset(presets, ...rest);
+    let f = super.preset(presets, ...components);
     return function (this: UIContainer) {
       f.call(this);
       let mixin = style || (styleName && UITheme.current.styles[styleName]);

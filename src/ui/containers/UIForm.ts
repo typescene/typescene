@@ -14,11 +14,11 @@ const _FormCell = UICell.with({ style: "form", accessibleRole: "form" });
 export class UIForm extends UIRenderableController {
   static preset(
     presets: UIForm.Presets,
-    ...rest: Array<UIRenderableConstructor | undefined>
+    ...components: Array<UIRenderableConstructor | undefined>
   ) {
     let formContextPreset = presets.formContext || bind("formContext");
     delete presets.formContext;
-    let CellClass = _FormCell.with(presets, ...rest);
+    let CellClass = _FormCell.with(presets, ...components);
     this.presetBoundComponent("content", CellClass).limitBindings("formContext");
     return super.preset({ formContext: formContextPreset }, CellClass);
   }
