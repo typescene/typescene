@@ -6,7 +6,7 @@ import { UIControl } from "./UIControl";
 
 /** Represents a UI component that displays an image */
 export class UIImage extends UIControl {
-  /** Creates a preset image class with given URL and style, if any */
+  /** Create a preset image class with given URL and style, if any */
   static withUrl(url: Stringable | Binding, style?: string | UIStyle) {
     return this.with({ url, style });
   }
@@ -16,7 +16,7 @@ export class UIImage extends UIControl {
     return super.preset(presets);
   }
 
-  /** Create a new label with given URL */
+  /** Create a new image view component with given URL */
   constructor(url?: Stringable) {
     super();
     this.style = UITheme.getStyle("control", "image");

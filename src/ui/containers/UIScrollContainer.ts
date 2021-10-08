@@ -52,6 +52,7 @@ export class UIScrollContainer extends UIContainer {
     return super.preset(presets, ...rest);
   }
 
+  /** Create a new scroll container view component */
   constructor(...content: UIRenderable[]) {
     super(...content);
     this.style = UITheme.getStyle("container", "scroll");

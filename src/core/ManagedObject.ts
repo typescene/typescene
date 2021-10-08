@@ -153,7 +153,7 @@ export class ManagedObject {
     }
   }
 
-  /** Creates a new managed object instance */
+  /** Create a new managed object instance */
   constructor() {
     // override getter/setter properties to be non-enumerable
     this[HIDDEN.STATE_PROPERTY] = ManagedState.CREATED;

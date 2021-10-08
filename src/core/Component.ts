@@ -10,6 +10,7 @@ import { logUnhandledException } from "./UnhandledErrorEmitter";
 
 /** Event that is emitted on a particular `Component` instance, with reference to the source component as `source` */
 export class ComponentEvent<TComponent extends Component = Component> extends ManagedEvent {
+  /** Create a new event with given name, source, and optionally encapsulated event */
   constructor(name: string, source: TComponent, inner?: ManagedEvent) {
     super(name);
     this.source = source;

@@ -163,6 +163,7 @@ export class ViewComponent extends AppComponent implements UIRenderable {
     this.prototype._Views[propertyName] = View;
   }
 
+  /** Create this view component (to be used with a derived class) */
   constructor() {
     super();
     if (this._Views) {

@@ -33,7 +33,7 @@ export abstract class UIContainer extends UIComponent {
     };
   }
 
-  /** Create a new container component */
+  /** Create a new container view component */
   constructor(...content: UIRenderable[]) {
     super();
     this.content = new ManagedList()

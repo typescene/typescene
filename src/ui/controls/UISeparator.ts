@@ -7,6 +7,7 @@ export class UISeparator extends UIControl {
     return super.preset(presets);
   }
 
+  /** Create a new separator view component */
   constructor() {
     super();
     this.style = UITheme.getStyle("control", "separator");

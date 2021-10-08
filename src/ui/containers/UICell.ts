@@ -55,6 +55,7 @@ export class UICell extends UIContainer {
     };
   }
 
+  /** Create a new cell view component */
   constructor(...content: UIRenderable[]) {
     super(...content);
     this.style = UITheme.getStyle("container", "cell");
