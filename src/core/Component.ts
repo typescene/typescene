@@ -143,7 +143,8 @@ export class Component extends ManagedObject {
 
     // call preset method and store result for use above
     let obj: any = presets[0];
-    if (typeof obj !== "object" || Object.getPrototypeOf(obj) !== Object.prototype) {
+    let objPrototype = Object.getPrototypeOf(obj);
+    if (typeof obj !== "object" || (objPrototype && objPrototype !== Object.prototype)) {
       presetFunc = PresetComponent.preset(Object.create(null), ...presets);
     } else {
       presetFunc = PresetComponent.preset(...(presets as [{}]));
