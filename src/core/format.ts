@@ -8,6 +8,9 @@ export function sprintf(format: string, args: any[]) {
   return format.replace(
     /\%(?:(\d+)\$)?(\{[^\}]*\}|[-+*.0-9 ]*[%a-zA-Z])/g,
     (_str, param, fmt) => {
+      // return % on its own without advancing index
+      if (fmt === "%") return "%";
+
       // special case %s as most common option
       if (fmt === "s") {
         return String((param ? args[param - 1] : args[idx++]) ?? "");
