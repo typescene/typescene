@@ -139,7 +139,7 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   lastFocused?: UIComponent;
 
   /**
-   * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately. The activity responds to the CloseModal event by destroying the activity, which removes the view as well.
+   * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately. Unless an event handler is specified explicitly, the activity responds to the CloseModal event by destroying the activity, which removes the view as well.
    * @param View
    *  A view component constructor
    * @param eventHandler
