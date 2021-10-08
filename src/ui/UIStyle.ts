@@ -272,18 +272,23 @@ export class UIStyle {
   readonly conditionalStyles: UIStyle.ConditionalStyles;
 
   /** Returns a new style set that contains all current styles as well as the styles from given `UIStyle` instance; the result is reused when the exact same style sets are mixed again */
-  mixin(style: UIStyle) {
-    if (!style) return this;
-    let id = this.id + "+" + style.id;
-    if (_mixins[id]) return _mixins[id];
-    let result = new UIStyle(this.name + "--" + style.name, this, style._combined);
-    for (let cond in style.conditionalStyles) {
-      if (style.conditionalStyles[cond as keyof UIStyle.ConditionalStyles]) {
-        result.conditionalStyles[cond as keyof UIStyle.ConditionalStyles] =
-          style.conditionalStyles[cond as keyof UIStyle.ConditionalStyles];
+  mixin(...styles: (UIStyle | undefined)[]) {
+    let result: UIStyle = this;
+    for (let style of styles) {
+      if (!style) continue;
+      let id = result.id + "+" + style.id;
+      if (_mixins[id]) result = _mixins[id];
+      else {
+        result = new UIStyle(result.name + "--" + style.name, result, style._combined);
+        for (let cond in style.conditionalStyles) {
+          if (style.conditionalStyles[cond as keyof UIStyle.ConditionalStyles]) {
+            result.conditionalStyles[cond as keyof UIStyle.ConditionalStyles] =
+              style.conditionalStyles[cond as keyof UIStyle.ConditionalStyles];
+          }
+        }
+        _mixins[id] = result;
       }
     }
-    _mixins[id] = result;
     return result;
   }
 
