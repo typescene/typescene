@@ -4,6 +4,7 @@ import {
   UIRenderable,
   UIRenderableConstructor,
 } from "../UIComponent";
+import { UIStyle } from "../UIStyle";
 import { UITheme } from "../UITheme";
 import { UIContainer } from "./UIContainer";
 
@@ -56,6 +57,9 @@ export class UIScrollContainer extends UIContainer {
     super(...content);
     this.style = UITheme.getStyle("container", "scroll");
   }
+
+  /** Padding around contained elements (in dp or CSS string, or separate offset values) */
+  padding?: UIStyle.Offsets;
 
   /** Vertical scroll snap mode: `start` (snap to start of first 'mostly' visible component), `center` (snap container center to center of component closest to the center), or `end` (snap to end of last 'mostly' visible component) */
   verticalSnap?: "start" | "center" | "end";
@@ -178,6 +182,8 @@ UIScrollContainer.addEventHandler(function (e) {
 export namespace UIScrollContainer {
   /** UIScrollContainer presets type, for use with `Component.with` */
   export interface Presets extends UIContainer.Presets {
+    /** Padding around contained elements (in dp or CSS string, or separate offset values) */
+    padding?: UIStyle.Offsets;
     /** True if vertical scrolling should be enabled, defaults to true */
     verticalScrollEnabled?: boolean;
     /** True if horizontal scrolling should be enabled, defaults to true */
