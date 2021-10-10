@@ -6,9 +6,9 @@ import { UIContainer } from "./UIContainer";
 export class UIRow extends UIContainer {
   static preset(
     presets: UIRow.Presets,
-    ...rest: Array<UIRenderableConstructor | undefined>
+    ...components: Array<UIRenderableConstructor | undefined>
   ): Function {
-    return super.preset(presets, ...rest);
+    return super.preset(presets, ...components);
   }
 
   constructor(...content: UIRenderable[]) {

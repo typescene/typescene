@@ -47,9 +47,9 @@ export class UIScrollEvent extends UIComponentEvent<UIScrollContainer> {
 export class UIScrollContainer extends UIContainer {
   static preset(
     presets: UIScrollContainer.Presets,
-    ...rest: Array<UIRenderableConstructor | undefined>
+    ...components: Array<UIRenderableConstructor | undefined>
   ): Function {
-    return super.preset(presets, ...rest);
+    return super.preset(presets, ...components);
   }
 
   constructor(...content: UIRenderable[]) {
