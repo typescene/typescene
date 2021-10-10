@@ -75,6 +75,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         this.emit(ManagedObjectRemovedEvent, this, target, key);
       }
     }
+    return this;
   }
 
   /**
@@ -101,7 +102,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     let propId = HIDDEN.MANAGED_MAP_REF_PREFIX + key;
     let cur = refs[propId];
     if (cur) {
-      if (target && cur.b === target) return;
+      if (target && cur.b === target) return this;
       ManagedObject._discardRefLink(cur);
     }
 
