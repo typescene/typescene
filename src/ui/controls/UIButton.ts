@@ -23,13 +23,13 @@ export class UIButton extends UIControl {
     return super.preset(presets);
   }
 
-  /** Creates a preset button class with given label (localized using `strf`) and onClick handler, if any */
+  /** Create a preset button class with given label (localized using `strf`) and onClick handler, if any */
   static withLabel(label: Stringable | Binding, onClick?: string) {
     if (typeof label === "string") label = strf(label);
     return this.with({ label, onClick });
   }
 
-  /** Creates a preset button class with given icon *only*, and onClick handler, if any */
+  /** Create a preset button class with given icon *only*, and onClick handler, if any */
   static withIcon(
     icon: string,
     onClick?: string,
@@ -39,7 +39,7 @@ export class UIButton extends UIControl {
     return this.with({ icon, iconSize: size, iconColor: color, onClick });
   }
 
-  /** Create a new button with given label */
+  /** Create a new button view component with given label */
   constructor(label?: Stringable) {
     super();
     this.style = UITheme.getStyle("control", "button");

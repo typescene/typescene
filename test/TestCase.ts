@@ -152,14 +152,14 @@ export class TestCase {
 const _tests: TestGroup[] = [];
 let _current: TestGroup | undefined;
 
-/** Creates a named test group, and runs given callback in the context of this group */
+/** Create a named test group, and runs given callback in the context of this group */
 export function consider(name: string, callback: () => void) {
   _tests.push((_current = { name, cases: [] }));
   callback();
   _current = undefined;
 }
 
-/** Creates a test case within the current test group (must be run within a callback provided to `consider`) */
+/** Create a test case within the current test group (must be run within a callback provided to `consider`) */
 export function it(name: string, callback?: TestCallback) {
   if (!_current) {
     throw Error("Cannot call it(...) outside of consider(...) context");

@@ -10,7 +10,7 @@ import * as util from "./util";
 
 /** Represents an _unordered_ list of managed objects that are indexed using unique key strings */
 export class ManagedMap<T extends ManagedObject = ManagedObject> extends ManagedObject {
-  /** Creates an empty map */
+  /** Create an empty map */
   constructor() {
     super();
   }

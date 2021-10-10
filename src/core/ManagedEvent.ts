@@ -64,6 +64,7 @@ export class ManagedParentChangeEvent extends ManagedCoreEvent {
 
 /** Event that is emitted when a change occurs to a managed object, list/map, or reference; this triggers the same observer method(s) as changing the actual value of a (managed) reference property */
 export class ManagedChangeEvent extends ManagedEvent {
+  /** Create a new change event with given name (defaults to 'Change') */
   constructor(name = "Change") {
     super(name);
   }

@@ -13,11 +13,12 @@ export class UITextField extends UIControl {
     return super.preset(presets);
   }
 
-  /** Creates a preset text field class with given name and placeholder, if any */
+  /** Create a preset text field class with given name and placeholder, if any */
   static withName(name: string, placeholder?: Stringable) {
     return this.with({ name, placeholder });
   }
 
+  /** Create a new text field view component */
   constructor() {
     super();
     this.style = UITheme.getStyle("control", "textfield");

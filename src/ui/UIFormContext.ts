@@ -166,7 +166,7 @@ export class UIFormContext<TData = any> extends Component {
 export namespace UIFormContext {
   /** Encapsulates the current value for a specific form field, as passed to validation test functions; see `UIFormContext.test()` */
   export class ValidationTest<TValue> {
-    /** Creates a new test case; this constructor is called automatically when validating a particular form field */
+    /** Create a new test case; this constructor is called automatically when validating a particular form field */
     constructor(name: string, value?: TValue) {
       this.name = name;
       this.value = value;

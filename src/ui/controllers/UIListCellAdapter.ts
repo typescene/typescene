@@ -16,6 +16,7 @@ import { UIRenderableController } from "../UIRenderableController";
 export class UIListCellAdapterEvent<
   TObject extends ManagedObject = ManagedObject
 > extends ActionEvent {
+  /** Create a new list cell action event with given name, source, and encapsulated event */
   constructor(name: string, source: UIListCellAdapter<TObject>, inner?: ManagedEvent) {
     super(name, source, inner);
     if (!source.content) throw TypeError();
@@ -65,7 +66,7 @@ export class UIListCellAdapter<
   }
 
   /**
-   * Create a new component for given object.
+   * Create a new view component that represents given object in a list view.
    * @param object
    *  The encapsulated object */
   constructor(object: TObject) {

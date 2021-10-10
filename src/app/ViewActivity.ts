@@ -273,6 +273,7 @@ export class PageViewActivity extends ViewActivity {
  * @note Use `UIComponent.position` (`UIStyle.Position`, specifically the `gravity` property) to determine the position of the dialog UI.
  */
 export class DialogViewActivity extends ViewActivity {
+  /** Create a new activity that is rendered as a modal dialog */
   constructor() {
     super();
     this.placement = UIRenderPlacement.DIALOG;

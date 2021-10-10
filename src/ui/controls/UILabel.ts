@@ -6,7 +6,7 @@ import { UIControl } from "./UIControl";
 
 /** Represents a UI component that contains a piece of text */
 export class UILabel extends UIControl {
-  /** Creates a preset label class with given text (localized using `strf`) and style override, if any */
+  /** Create a preset label class with given text (localized using `strf`) and style override, if any */
   static withText(
     text: Stringable | Binding,
     style?: UIStyle.TextStyle | UIStyle | string
@@ -19,7 +19,7 @@ export class UILabel extends UIControl {
       : this.with({ text });
   }
 
-  /** Creates a preset label class with given icon *only* */
+  /** Create a preset label class with given icon *only* */
   static withIcon(
     icon: string | Binding,
     size?: string | number,
@@ -33,7 +33,7 @@ export class UILabel extends UIControl {
     return super.preset(presets);
   }
 
-  /** Create a new label with given text */
+  /** Create a new label view component with given text */
   constructor(text?: Stringable) {
     super();
     this.style = UITheme.getStyle("control", "label");
