@@ -6,7 +6,6 @@ import { ManagedList } from "./ManagedList";
 import { ManagedMap } from "./ManagedMap";
 import { ManagedObject } from "./ManagedObject";
 import { onPropertyChange, observe } from "./observe";
-import { logUnhandledException } from "./UnhandledErrorEmitter";
 
 /** Event that is emitted on a particular `Component` instance, with reference to the source component as `source` */
 export class ComponentEvent<TComponent extends Component = Component> extends ManagedEvent {
@@ -296,8 +295,11 @@ export class Component extends ManagedObject {
    */
   protected delegateEvent(e: ManagedEvent, propertyName: string): boolean | void {
     let method = (this as any)[_makeMethodName(e.name)];
-    let handled = typeof method === "function" && method.call(this, e, propertyName);
+    let handled: any = typeof method === "function" && method.call(this, e, propertyName);
     if (handled === true) return true;
+    if (handled && handled.then && handled.catch) {
+      (handled as Promise<any>).catch(err => exceptionHandler(err));
+    }
     if (e instanceof ActionEvent) {
       this.emit(e);
       return true;
@@ -631,7 +633,7 @@ export namespace Component {
         try {
           (component as any)[bound.binding.id]?.(bound.value);
         } catch (err) {
-          logUnhandledException(err);
+          exceptionHandler(err);
         }
       }
     }
