@@ -115,7 +115,7 @@ export class UIFormContext<TData = any> extends Component {
         let test = new UIFormContext.ValidationTest<any>(name as string, value);
         this._validations[name](test);
         this.errors[name] = undefined;
-      } catch (err) {
+      } catch (err: any) {
         this.errors[name] = err;
       }
     } else {

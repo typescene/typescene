@@ -63,7 +63,7 @@ export class Binding {
         // find nested properties
         if (path) {
           for (let i = 0; i < path.length && result != undefined; i++) {
-            let p = path[i];
+            let p = path[i] as string;
             if (
               typeof result === "object" &&
               !(p in result) &&
