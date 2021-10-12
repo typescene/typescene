@@ -68,6 +68,8 @@ class InheritedPosition extends InheritedStyleObject<UIStyle.Position, "position
       bottom: { enumerable: true, get: o._value.bind(o, "bottom") },
       left: { enumerable: true, get: o._value.bind(o, "left") },
       right: { enumerable: true, get: o._value.bind(o, "right") },
+      start: { enumerable: true, get: o._value.bind(o, "start") },
+      end: { enumerable: true, get: o._value.bind(o, "end") },
     });
     return o as UIStyle.Position;
   }
@@ -80,6 +82,7 @@ class InheritedTextStyle extends InheritedStyleObject<UIStyle.TextStyle, "textSt
   ) {
     let o = new this(base, objects, "textStyle", parent);
     Object.defineProperties(o, {
+      direction: { enumerable: true, get: o._value.bind(o, "direction") },
       align: { enumerable: true, get: o._value.bind(o, "align") },
       color: { enumerable: true, get: o._value.bind(o, "color") },
       fontFamily: { enumerable: true, get: o._value.bind(o, "fontFamily") },
@@ -333,6 +336,8 @@ export namespace UIStyle {
         bottom?: string | number;
         left?: string | number;
         right?: string | number;
+        start?: string | number;
+        end?: string | number;
       };
 
   /** Type definition for an object with conditional styles */
@@ -386,14 +391,20 @@ export namespace UIStyle {
     top?: string | number;
     /** Bottom anchor: relative distance, or absolute position if `gravity` is 'overlay' (in dp or string with unit, defaults to `auto`) */
     bottom?: string | number;
-    /** Left anchor: relative distance, or absolute position if `gravity` is 'overlay' (in dp or string with unit, defaults to `auto`) */
+    /** Left anchor: relative distance, or absolute position if `gravity` is 'overlay' (in dp or string with unit, defaults to `auto`), same as `start` for LTR text direction */
     left?: string | number;
-    /** Right anchor: relative distance, or absolute position if `gravity` is 'overlay' (in dp or string with unit, defaults to `auto`) */
+    /** Right anchor: relative distance, or absolute position if `gravity` is 'overlay' (in dp or string with unit, defaults to `auto`), same as `end` for LTR text direction */
     right?: string | number;
+    /** Start anchor: relative distance, or absolute position if `gravity` is 'overlay' (in dp or string with unit, defaults to `auto`), same as `left` for LTR text direction */
+    start?: string | number;
+    /** End anchor: relative distance, or absolute position if `gravity` is 'overlay' (in dp or string with unit, defaults to `auto`), same as `right` for LTR text direction */
+    end?: string | number;
   }
 
   /** Options for styles of a UI component that shows text */
   export interface TextStyle {
+    /** Text direction (rtl or ltr) */
+    direction?: "rtl" | "ltr";
     /** Text alignment (CSS) */
     align?: string;
     /** Text color (`UIColor` or string) */

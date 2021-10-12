@@ -87,6 +87,9 @@ export class UICell extends UIContainer {
   /** Cell background (`UIColor` or string), defaults to transparent */
   background?: UIColor | string;
 
+  /** Text direction (rtl or ltr) for all components within this cell */
+  textDirection?: "ltr" | "rtl";
+
   /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
   textColor?: UIColor | string;
 
@@ -138,6 +141,8 @@ export namespace UICell {
     margin?: UIStyle.Offsets;
     /** Cell background (`UIColor` or string) */
     background?: UIColor | string;
+    /** Text direction (rtl or ltr) for all components within this cell */
+    textDirection?: "ltr" | "rtl";
     /** Text color (`UIColor` or string), defaults to `inherit` to inherit the text color from a containing cell or background window */
     textColor?: UIColor | string;
     /** Border thickness (in dp or string with unit) */
