@@ -29,7 +29,7 @@ export class UIRow extends UIContainer {
   height?: string | number;
 }
 
-/** Represents a row (see `UIRow`) with all components aligned to the right (or left for right-to-left cultures) */
+/** Represents a row (see `UIRow`) with all components aligned to the right (or left for RTL text direction) */
 export let UIOppositeRow = UIRow.with({ style: "row_opposite" });
 
 /** Represents a row (see `UIRow`) with all components aligned in the center */
