@@ -95,7 +95,12 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     key = String(key);
 
     // check given value first
-    ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
+    ManagedObject._validateReferenceAssignment(
+      this,
+      target,
+      this._managedClassRestriction,
+      key
+    );
     if (!target) return this.unset(key);
 
     // unlink existing reference, if any

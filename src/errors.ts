@@ -1,6 +1,7 @@
 export function err(error: ERROR, s?: any) {
   let msg = errors[error] || "Unknown error";
-  return Error(msg.replace("%s", s));
+  if (s !== undefined) msg += ": " + s;
+  return Error(msg);
 }
 
 export const enum ERROR {
@@ -53,7 +54,7 @@ export const enum ERROR {
 }
 
 const errors: { [error: number]: string } = {
-  [ERROR.ActivationContext_InvalidPath]: "[ActivationContext] Invalid path: %s",
+  [ERROR.ActivationContext_InvalidPath]: "[ActivationContext] Invalid path",
   [ERROR.ViewActivity_NoRenderContext]:
     "[ViewActivity] Render context not found (not a child component?)",
   [ERROR.ViewActivity_NoApplication]: "[ViewActivity] Application instance not found",
@@ -61,25 +62,25 @@ const errors: { [error: number]: string } = {
   [ERROR.ViewComponent_InvalidChild]: "Invalid ViewComponent child component",
   [ERROR.ViewComponent_NoRenderCtx]:
     "[ViewComponent] Render context not found (not a child component?)",
-  [ERROR.Binding_UnknownFilter]: "[Binding] Unknown binding filter: %s",
-  [ERROR.Binding_NotFound]: "[Binding] Binding not found for: %s",
-  [ERROR.Binding_ParentNotFound]: "[Binding] Bound parent binding not found for: %s",
+  [ERROR.Binding_UnknownFilter]: "[Binding] Unknown binding filter",
+  [ERROR.Binding_NotFound]: "[Binding] Binding not found for",
+  [ERROR.Binding_ParentNotFound]: "[Binding] Bound parent binding not found for",
   [ERROR.Binding_NoComponent]: "[Binding] Component not bound",
   [ERROR.Format_ObjectType]: "[Format] Cannot convert object value to string",
-  [ERROR.Format_Type]: "[Format] Invalid format type: %s",
-  [ERROR.Component_NotAHandler]: "[Component] Not an event handler method: %s",
-  [ERROR.Component_InvalidEventHandler]: "[Component] Invalid event handler preset: %s",
+  [ERROR.Format_Type]: "[Format] Invalid format type",
+  [ERROR.Component_NotAHandler]: "[Component] Not an event handler method",
+  [ERROR.Component_InvalidEventHandler]: "[Component] Invalid event handler preset",
   [ERROR.List_Symbol]: "[List] Symbol not supported",
   [ERROR.List_Type]: "[List] Existing objects are not of given type",
   [ERROR.List_Destroyed]: "[List] Cannot add objects to a destroyed list",
   [ERROR.List_Duplicate]: "[List] Cannot insert object that is already in this list",
   [ERROR.List_NotFound]: "[List] Object not found",
-  [ERROR.List_OutOfBounds]: "[List] Index out of bounds: %s",
+  [ERROR.List_OutOfBounds]: "[List] Index out of bounds",
   [ERROR.Map_Type]: "[Map] Existing objects are not of given type",
   [ERROR.Map_Destroyed]: "[Map] Cannot add objects to a destroyed map",
   [ERROR.Object_Base]: "[Object] Cannot add event handler to base class",
   [ERROR.Object_NotEvent]: "[Object] Argument is not a managed event",
-  [ERROR.Object_Recursion]: "[Object] Event recursion limit reached: %s",
+  [ERROR.Object_Recursion]: "[Object] Event recursion limit reached",
   [ERROR.Object_CannotDeactivate]: "[Object] Cannot deactivate managed object",
   [ERROR.Object_Destroyed]: "[Object] Managed object is already destroyed",
   [ERROR.Object_StateCancelled]: "[Object] State transition cancelled",
@@ -90,7 +91,7 @@ const errors: { [error: number]: string } = {
   [ERROR.Object_PropGetSet]:
     "[Object] Cannot turn properties with getters and/or setters into managed references",
   [ERROR.Object_NotWritable]: "[Object] Property is not writable",
-  [ERROR.Record_Serializable]: "[Record] Property is not serializable: %s",
+  [ERROR.Record_Serializable]: "[Record] Property is not serializable",
   [ERROR.Ref_Type]: "[Object] Existing reference is not of given type",
   [ERROR.Service_NoName]: "[Service] Missing property name",
   [ERROR.Service_BlankName]: "[Service] Service name cannot be blank",
@@ -100,8 +101,8 @@ const errors: { [error: number]: string } = {
   [ERROR.Observe_RateLimitNonAsync]:
     "[Object] Rate limit can only be applied to async handlers",
   [ERROR.Observe_ObserverRecursion]: "[Object] Recursion in observer constructor detected",
-  [ERROR.Util_NoSync]: "[Object] Synchronous observers are not allowed for property: %s",
-  [ERROR.Util_AlreadyManaged]: "[Object] Property is already managed in a base class: %s",
+  [ERROR.Util_NoSync]: "[Object] Synchronous observers are not allowed for property",
+  [ERROR.Util_AlreadyManaged]: "[Object] Property is already managed in a base class",
   [ERROR.UIStyle_Invalid]: "[Style] Invalid style set instance",
   [ERROR.UIMenu_NoBuilder]: "[Menu] Builder not found",
   [ERROR.UIModalController_Binding]: "[Modal] modal property cannot be bound",
