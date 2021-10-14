@@ -31,7 +31,7 @@ export class Application extends Component {
    * @note Calling this method directly on `Application` creates an application without any context (i.e. `activationContext` and `renderContext`). Instead, use a constructor that is meant for a specific platform (e.g. `BrowserApplication`).
    */
   static run<T extends Application>(
-    this: typeof Application,
+    this: typeof Application & { new (): T },
     ...activities: Array<ComponentConstructor<AppActivity>>
   ): T {
     let C = this.with(...(activities as any[]));
