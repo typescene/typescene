@@ -21,7 +21,7 @@ if (typeof Symbol !== "function") {
 
 /** Represents a list of managed objects. The objects in the list are _ordered_ and _unique_, ensuring that there are no gaps or repeated list items. */
 export class ManagedList<T extends ManagedObject = ManagedObject> extends ManagedObject {
-  /** Creates a new list of managed objects */
+  /** Create a new list of managed objects */
   constructor(...objects: T[]) {
     super();
     this["^count"] = 0;

@@ -78,15 +78,14 @@ export namespace JSX {
     TPreset
   > {
     (
-      presets: { [P in keyof TPreset]?: TPreset[P] | Binding.Type } &
-        Exclude<
-          {
-            [other: string]: any;
-          },
-          {
-            with: any;
-          }
-        >,
+      presets: { [P in keyof TPreset]?: TPreset[P] | Binding.Type } & Exclude<
+        {
+          [other: string]: any;
+        },
+        {
+          with: any;
+        }
+      >,
       ...rest: ComponentConstructor.PresetRestType<T>
     ): T;
   }

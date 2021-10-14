@@ -61,11 +61,16 @@ export class UIFormContext<TData = any> extends Component {
       if (validate) this.validate(name);
       if (!silent) this.emit(this._changeEvent);
     } else if (validate) {
+      let hadError = !!this.errors[name];
       this.validate(name);
+      let hasError = !!this.errors[name];
+      if (!silent && (hadError || hasError)) {
+        this.emit(this._changeEvent);
+      }
     }
   }
 
-  /** Remove the value for a field with given name, including any associated error, and emit a change event. The field will also no longer be validated. */
+  /** Remove the value for a field with given name, including any associated error, and emit a change event. */
   unset(name: keyof TData) {
     if (!name || !(name in this._values)) return;
     delete this._values[name];
@@ -73,12 +78,10 @@ export class UIFormContext<TData = any> extends Component {
     this.emit(this._changeEvent);
   }
 
-  /** Remove all field values from this instance, including any associated errors, and emit a change event. None of the existing fields will be validated anymore, until they are set again (using `set()`). */
+  /** Remove all field values from this instance, including any associated errors, and emit a change event */
   clear() {
-    for (let p in this._values) {
-      delete this._values[p];
-      delete this.errors[p];
-    }
+    this._values = Object.create(null);
+    for (let p in this.errors) delete this.errors[p];
     this.emit(this._changeEvent);
   }
 
@@ -109,10 +112,10 @@ export class UIFormContext<TData = any> extends Component {
     let value = this._values[name];
     if (this._validations[name]) {
       try {
-        let test = new UIFormContext.ValidationTest(name as string, value);
+        let test = new UIFormContext.ValidationTest<any>(name as string, value);
         this._validations[name](test);
         this.errors[name] = undefined;
-      } catch (err) {
+      } catch (err: any) {
         this.errors[name] = err;
       }
     } else {
@@ -123,7 +126,7 @@ export class UIFormContext<TData = any> extends Component {
 
   /** Validate the current values of all fields that have been set; updates the `error` object, but does _not_ emit a change event */
   validateAll() {
-    for (let p in this._values) this.validate(p);
+    for (let p in this._validations) this.validate(p);
     return this;
   }
 
@@ -154,14 +157,16 @@ export class UIFormContext<TData = any> extends Component {
   readonly errors: { [name in keyof TData]: Error | undefined } = Object.create(null);
 
   private _values: Partial<TData> = Object.create(null);
-  private _validations: any = Object.create(null);
-  private _changeEvent = new UIFormContextChangeEvent(this).freeze();
+  private _validations: {
+    [name in keyof TData]: (test: UIFormContext.ValidationTest<TData[name]>) => void;
+  } = Object.create(null);
+  private _changeEvent = new UIFormContextChangeEvent(this as any).freeze();
 }
 
 export namespace UIFormContext {
   /** Encapsulates the current value for a specific form field, as passed to validation test functions; see `UIFormContext.test()` */
   export class ValidationTest<TValue> {
-    /** Creates a new test case; this constructor is called automatically when validating a particular form field */
+    /** Create a new test case; this constructor is called automatically when validating a particular form field */
     constructor(name: string, value?: TValue) {
       this.name = name;
       this.value = value;

@@ -78,6 +78,7 @@ export class UIColor {
   static readonly Separator = new UIColor("separator");
   static readonly ControlBase = new UIColor("controlBase");
 
+  /** Create a new color instance using given name (e.g. `green` or `@green/20%`, see `UITheme.replaceColor()`) */
   constructor(colorName?: string) {
     if (colorName) {
       this._f = () => {
@@ -324,6 +325,8 @@ export class UITheme {
         bottom: 0,
         left: 0,
         right: 0,
+        start: 0,
+        end: 0,
       },
     }),
     form: UIStyle.create("_form", {

@@ -18,17 +18,17 @@ export class UISpacer extends UIControl {
     return super.preset(presets);
   }
 
-  /** Creates a preset spacer class with given height (in dp or string with unit), shrinkwrapped by default */
+  /** Create a preset spacer class with given height (in dp or string with unit), shrinkwrapped by default */
   static withHeight(minHeight: string | number, shrinkwrap = true) {
     return this.with({ dimensions: { minHeight }, shrinkwrap });
   }
 
-  /** Creates a preset spacer class with given width (in dp or string with unit), shrinkwrapped by default */
+  /** Create a preset spacer class with given width (in dp or string with unit), shrinkwrapped by default */
   static withWidth(minWidth: string | number, shrinkwrap = true) {
     return this.with({ dimensions: { minWidth }, shrinkwrap });
   }
 
-  /** Create a new spacer with given (maximum) width and height */
+  /** Create a new spacer view component with given (maximum) width and height */
   constructor(width?: string | number, height?: string | number, shrink?: boolean) {
     super();
     this.style = UITheme.getStyle("control", "spacer");

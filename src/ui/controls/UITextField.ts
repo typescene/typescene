@@ -13,11 +13,12 @@ export class UITextField extends UIControl {
     return super.preset(presets);
   }
 
-  /** Creates a preset text field class with given name and placeholder, if any */
+  /** Create a preset text field class with given name and placeholder, if any */
   static withName(name: string, placeholder?: Stringable) {
     return this.with({ name, placeholder });
   }
 
+  /** Create a new text field view component */
   constructor() {
     super();
     this.style = UITheme.getStyle("control", "textfield");
@@ -46,6 +47,9 @@ export class UITextField extends UIControl {
 
   /** Form context property name */
   name?: string;
+
+  /** Action name that is displayed on the 'enter' key on some devices */
+  enterKeyHint?: UITextField.EnterKeyHintType;
 
   /** Bound form context, if any */
   @managed
@@ -91,8 +95,20 @@ export namespace UITextField {
     value?: Stringable;
     /** Form state property */
     name?: string;
+    /** Action name that is displayed on the 'enter' key on some devices */
+    enterKeyHint?: UITextField.EnterKeyHintType;
   }
 
   /** Standardized input type names */
   export type InputType = "text" | "password" | "number" | "date" | "color";
+
+  /** Action names that are displayed on the 'enter' key on some devices */
+  export type EnterKeyHintType =
+    | "enter"
+    | "done"
+    | "go"
+    | "next"
+    | "previous"
+    | "search"
+    | "send";
 }

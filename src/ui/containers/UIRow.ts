@@ -6,11 +6,12 @@ import { UIContainer } from "./UIContainer";
 export class UIRow extends UIContainer {
   static preset(
     presets: UIRow.Presets,
-    ...rest: Array<UIRenderableConstructor | undefined>
+    ...components: Array<UIRenderableConstructor | undefined>
   ): Function {
-    return super.preset(presets, ...rest);
+    return super.preset(presets, ...components);
   }
 
+  /** Create a new row view component */
   constructor(...content: UIRenderable[]) {
     super(...content);
     this.style = UITheme.getStyle("container", "row");
@@ -28,7 +29,7 @@ export class UIRow extends UIContainer {
   height?: string | number;
 }
 
-/** Represents a row (see `UIRow`) with all components aligned to the right (or left for right-to-left cultures) */
+/** Represents a row (see `UIRow`) with all components aligned to the right (or left for RTL text direction) */
 export let UIOppositeRow = UIRow.with({ style: "row_opposite" });
 
 /** Represents a row (see `UIRow`) with all components aligned in the center */

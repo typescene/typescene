@@ -63,7 +63,7 @@ export class Binding {
         // find nested properties
         if (path) {
           for (let i = 0; i < path.length && result != undefined; i++) {
-            let p = path[i];
+            let p = path[i] as string;
             if (
               typeof result === "object" &&
               !(p in result) &&
@@ -248,7 +248,7 @@ export class Binding {
  * @note Use the `bindf` function to create instances of this class.
  */
 export class StringFormatBinding extends Binding {
-  /** Creates a new binding for given format string and bindings. See `bindf`. */
+  /** Create a new binding for given format string and bindings. See `bindf`. */
   constructor(format: string, ...args: Array<string | Binding>) {
     super(undefined);
     this._format = format;

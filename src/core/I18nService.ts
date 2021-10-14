@@ -80,6 +80,7 @@ export abstract class I18nService extends ManagedService {
  * @note Objects of this class are returned by the `strf` function, refer to this function for valid format string placeholders.
  */
 export class I18nString {
+  /** Create a new encapsulated string; should not be used directly, see `strf()` instead */
   constructor(format: string | { toString(): string }, values?: any[]) {
     this.format = format;
     if (values) this.update(values);

@@ -16,6 +16,7 @@ import { UIRenderableController } from "../UIRenderableController";
 export class UIListCellAdapterEvent<
   TObject extends ManagedObject = ManagedObject
 > extends ActionEvent {
+  /** Create a new list cell action event with given name, source, and encapsulated event */
   constructor(name: string, source: UIListCellAdapter<TObject>, inner?: ManagedEvent) {
     super(name, source, inner);
     if (!source.content) throw TypeError();
@@ -47,7 +48,7 @@ export class UIListCellAdapter<
 > extends UIRenderableController<UICell> {
   static preset(
     presets: UIListCellAdapter.Presets,
-    ...rest: Array<UIRenderableConstructor>
+    ...components: Array<UIRenderableConstructor>
   ): Function {
     // separate event handlers from other presets
     let cellPresets: any = {};
@@ -58,14 +59,14 @@ export class UIListCellAdapter<
         : cellPresets)[k] = (presets as any)[k];
     }
     if (!cellPresets.accessibleRole) cellPresets.accessibleRole = "listitem";
-    let PresetCell = UICell.with(cellPresets, ...rest);
+    let PresetCell = UICell.with(cellPresets, ...components);
     let p = this.presetBoundComponent("content", PresetCell);
     p.limitBindings("object", "value", "selected", "hovered");
     return super.preset(handlers, PresetCell);
   }
 
   /**
-   * Create a new component for given object.
+   * Create a new view component that represents given object in a list view.
    * @param object
    *  The encapsulated object */
   constructor(object: TObject) {

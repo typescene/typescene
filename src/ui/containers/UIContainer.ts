@@ -13,7 +13,7 @@ import { UIStyle } from "../UIStyle";
 export abstract class UIContainer extends UIComponent {
   static preset(
     presets: UIContainer.Presets,
-    ...rest: Array<UIRenderableConstructor | undefined>
+    ...components: Array<UIRenderableConstructor | undefined>
   ): Function {
     let layout = presets.layout;
     delete presets.layout;
@@ -24,16 +24,18 @@ export abstract class UIContainer extends UIComponent {
       });
       layout = undefined;
     }
-    let f = super.preset(presets, ...rest);
+    let f = super.preset(presets, ...components);
     return function (this: UIContainer) {
       f.call(this);
       if (layout) this.layout = { ...this.layout, ...layout };
       else origLayout = this.layout;
-      if (rest.length) this.content.add(...rest.filter(C => !!C).map(C => new C!()));
+      if (components.length) {
+        this.content.add(...components.filter(C => !!C).map(C => new C!()));
+      }
     };
   }
 
-  /** Create a new container component */
+  /** Create a new container view component */
   constructor(...content: UIRenderable[]) {
     super();
     this.content = new ManagedList()

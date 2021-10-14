@@ -15,12 +15,13 @@ export class UIMenuItemSelectedEvent extends UIComponentEvent {
   readonly key: string;
 }
 
-/** Represents a menu that can be displayed on screen. The menu itself is built up dynamically using a platform dependent builder class. */
+/** Represents a menu that can be displayed on screen. The menu itself is built up dynamically using a platform dependent builder class. Commonly, this class is used as a preset within a `UIModalController`. */
 export class UIMenu extends Component implements UIRenderable {
   static preset(presets: UIMenu.Presets): Function {
     return super.preset(presets);
   }
 
+  /** Create a new renderable menu; should not be called directly */
   constructor() {
     super();
     if (!UITheme.current.MenuBuilder) {

@@ -10,7 +10,7 @@ import * as util from "./util";
 
 /** Represents an _unordered_ list of managed objects that are indexed using unique key strings */
 export class ManagedMap<T extends ManagedObject = ManagedObject> extends ManagedObject {
-  /** Creates an empty map */
+  /** Create an empty map */
   constructor() {
     super();
   }
@@ -75,6 +75,7 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
         this.emit(ManagedObjectRemovedEvent, this, target, key);
       }
     }
+    return this;
   }
 
   /**
@@ -94,14 +95,19 @@ export class ManagedMap<T extends ManagedObject = ManagedObject> extends Managed
     key = String(key);
 
     // check given value first
-    ManagedObject._validateReferenceAssignment(this, target, this._managedClassRestriction);
+    ManagedObject._validateReferenceAssignment(
+      this,
+      target,
+      this._managedClassRestriction,
+      key
+    );
     if (!target) return this.unset(key);
 
     // unlink existing reference, if any
     let propId = HIDDEN.MANAGED_MAP_REF_PREFIX + key;
     let cur = refs[propId];
     if (cur) {
-      if (target && cur.b === target) return;
+      if (target && cur.b === target) return this;
       ManagedObject._discardRefLink(cur);
     }
 
