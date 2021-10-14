@@ -601,14 +601,15 @@ export class ManagedObject {
   protected static _validateReferenceAssignment(
     source: ManagedObject,
     target?: ManagedObject,
-    ClassRestriction: ManagedObjectConstructor<any> = ManagedObject
+    ClassRestriction: ManagedObjectConstructor<any> = ManagedObject,
+    name?: string
   ) {
     if (target !== undefined) {
       if (!source[HIDDEN.STATE_PROPERTY]) {
         throw err(ERROR.Object_RefDestroyed);
       }
       if (!(target instanceof ClassRestriction)) {
-        throw err(ERROR.Object_InvalidRef);
+        throw err(ERROR.Object_InvalidRef, name);
       }
       if (!target[HIDDEN.STATE_PROPERTY]) {
         throw err(ERROR.Object_RefDestroyed);
@@ -666,7 +667,12 @@ export class ManagedObject {
             // do not assign to read only reference (but used by getter initially)
             throw err(ERROR.Object_NotWritable);
           }
-          ManagedObject._validateReferenceAssignment(obj, target, ClassRestriction);
+          ManagedObject._validateReferenceAssignment(
+            obj,
+            target,
+            ClassRestriction,
+            propertyKey as any
+          );
           let cur = obj[HIDDEN.REF_PROPERTY][propId];
           if (cur && target && cur.b === target && !readonlyRef) return;
 
