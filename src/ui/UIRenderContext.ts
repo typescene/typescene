@@ -12,6 +12,7 @@ export const viewportContextBinding = bind("renderContext.viewportContext");
 export enum UIRenderPlacement {
   NONE,
   PAGE,
+  MODAL,
   DIALOG,
   DRAWER,
   DROPDOWN,

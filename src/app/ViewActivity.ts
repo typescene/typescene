@@ -139,28 +139,50 @@ export class ViewActivity extends AppActivity implements UIRenderable {
   lastFocused?: UIComponent;
 
   /**
-   * Create an instance of given view component, wrapped in a singleton dialog view activity, and adds it to the application to be displayed immediately. Unless an event handler is specified explicitly, the activity responds to the CloseModal event by destroying the activity, which removes the view as well.
+   * Create a modal view activity based on the given view component, and activate it immediately. If an event handler is not specified, the activity responds to the CloseModal event (by destroying the activity and view).
    * @param View
    *  A view component constructor
    * @param eventHandler
    *  A function that is invoked for all events that are emitted by the view
-   * @returns A promise that resolves to the view _activity_ instance after it has been activated.
-   * @note Use the `Application.showViewActivityAsync` method, or reference an activity using a managed child property to show a view that is already encapsulated in an activity.
+   * @param BaseActivity
+   *  Base activity class that will be preset with given view, defaults to ModalViewActivity
+   * @returns A promise that resolves to the view activity instance after it has been activated.
+   * @see `ModalViewActivity`
    */
-  showDialogAsync(
+  async showModalAsync<ActivityT extends ModalViewActivity>(
     View: UIRenderableConstructor,
-    eventHandler?: (this: DialogViewActivity, e: ManagedEvent) => void
+    eventHandler?: (this: DialogViewActivity, e: ManagedEvent) => void,
+    BaseActivity?: typeof ModalViewActivity & {
+      new (): ActivityT;
+    }
   ) {
     let app = this.getApplication();
     if (!app) throw err(ERROR.ViewActivity_NoApplication);
 
     // create a singleton activity constructor with event handler
-    class SingletonActivity extends DialogViewActivity.with(View) {}
+    class SingletonActivity extends (BaseActivity ?? ModalViewActivity).with(View) {}
     if (eventHandler) {
       SingletonActivity.prototype.delegateEvent = eventHandler;
     }
-    let activity: ViewActivity = new SingletonActivity();
-    return app.showViewActivityAsync(activity);
+
+    // add the view activity to the application and activate it
+    return app.showViewActivityAsync<ActivityT>(new SingletonActivity() as any);
+  }
+
+  /**
+   * Create a dialog view activity based on the given view component, and activate it immediately. If an event handler is not specified, the activity responds to the CloseModal event (by destroying the activity and view).
+   * @param View
+   *  A view component constructor
+   * @param eventHandler
+   *  A function that is invoked for all events that are emitted by the view
+   * @returns A promise that resolves to the dialog view activity instance after it has been activated.
+   * @see `DialogViewActivity`
+   */
+  async showDialogAsync(
+    View: UIRenderableConstructor,
+    eventHandler?: (this: DialogViewActivity, e: ManagedEvent) => void
+  ): Promise<DialogViewActivity> {
+    return this.showModalAsync(View, eventHandler, DialogViewActivity);
   }
 
   /**
@@ -268,15 +290,12 @@ export class PageViewActivity extends ViewActivity {
   placement = UIRenderPlacement.PAGE;
 }
 
-/**
- * Represents an application activity with a view that is rendered as a modal dialog (when active). The activity is destroyed automatically when a `CloseModal` event is emitted on the view instance.
- * @note Use `UIComponent.position` (`UIStyle.Position`, specifically the `gravity` property) to determine the position of the dialog UI.
- */
-export class DialogViewActivity extends ViewActivity {
-  /** Create a new activity that is rendered as a modal dialog */
+/** Represents an application activity with a view that is rendered as a modal cell (when active); margins can be used to position the view. The activity is destroyed automatically when a `CloseModal` event is emitted on the view instance. */
+export class ModalViewActivity extends ViewActivity {
+  /** Create a new modal view activity */
   constructor() {
     super();
-    this.placement = UIRenderPlacement.DIALOG;
+    this.placement = UIRenderPlacement.MODAL;
     this.modalShadeOpacity = UITheme.current.modalDialogShadeOpacity;
   }
 
@@ -284,6 +303,17 @@ export class DialogViewActivity extends ViewActivity {
   protected onCloseModal(): boolean | void {
     this.destroyAsync();
     return true;
+  }
+}
+
+/**
+ * Represents an application activity with a view that is rendered as a modal dialog (when active); `UIComponent.dimensions` and `UIComponent.position` (gravity) can be used to position the view. The activity is destroyed automatically when a `CloseModal` event is emitted on the view instance.
+ */
+export class DialogViewActivity extends ModalViewActivity {
+  /** Create a new activity that is rendered as a modal dialog */
+  constructor() {
+    super();
+    this.placement = UIRenderPlacement.DIALOG;
   }
 }
 
