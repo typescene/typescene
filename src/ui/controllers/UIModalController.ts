@@ -53,8 +53,8 @@ export class UIModalController extends UIRenderableController {
   @managedChild
   modal?: UIRenderable;
 
-  /** Modal view placement, defaults to Dialog */
-  placement = UIRenderPlacement.DIALOG;
+  /** Modal view placement, defaults to plain modal */
+  placement = UIRenderPlacement.MODAL;
 
   /** Modal backdrop opacity (0-1) */
   modalShadeOpacity?: number;
@@ -117,7 +117,7 @@ export namespace UIModalController {
   export interface Presets {
     /** Modal component constructor (can also be passed as an additional argument to `Component.with`) */
     modal?: UIRenderableConstructor;
-    /** Modal view placement, defaults to Dialog */
+    /** Modal view placement, defaults to plain modal */
     placement?: UIRenderPlacement;
     /** Modal backdrop opacity (0-1), defaults to 0 */
     modalShadeOpacity?: number;
