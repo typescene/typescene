@@ -559,7 +559,12 @@ export class ManagedObject {
         (ref.b as ManagedObject).destroyManagedAsync().catch(util.exceptionHandler);
       }
     }
-    if (_freeRefLinks.length < MAX_FREE_REFLINKS) _freeRefLinks.push(ref);
+    if (_freeRefLinks.length < MAX_FREE_REFLINKS) {
+      // add this reflink to the list of free objects,
+      // but clear all references to avoid memory leaks
+      ref.a = ref.b = ref.f = ref.g = ref.j = ref.k = undefined;
+      _freeRefLinks.push(ref);
+    }
     return true;
   }
 
