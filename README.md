@@ -10,6 +10,8 @@
 
 Typescene is a robust front end library written in TypeScript: strongly typed, no dependencies, no nonsense.
 
+<b>2026 UPDATE: This project has been stopped and re-started multiple times, and its successor is now <a href="https://github.com/talla-ui/talla-ui">Tälla UI</a>. To be continued there!</b>
+
 ## Documentation
 
 All documentation for Typescene can be found on the website: [https://typescene.dev/docs/](https://typescene.dev/docs/).
